@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  admin
+  humanResource // access dashboard, employee handling
+  stockManager // access inventory
+  deliveryPersonnel // access delivery delivery
+  collaborators // ltk food branch
+  employee // employee
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String
+  firstName String
+  lastName  String
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  employee          Employee?
+  deliveryPersonnel DeliveryPersonnel?
+  stockManager      StockManager?
+  humanResource     HumanResource?
+}
+
+model Employee {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model DeliveryPersonnel {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model StockManager {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model HumanResource {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
