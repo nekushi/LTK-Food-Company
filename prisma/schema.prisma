@@ -18,15 +18,15 @@ enum Role {
   humanResource // access dashboard, employee handling
   stockManager // access inventory
   deliveryPersonnel // access delivery delivery
-  collaborators // ltk food branch
+  collaborator // ltk food branch
   employee // employee
 }
 
 model User {
   id        String   @id @default(uuid())
-  username  String
   firstName String
   lastName  String
+  username  String
   password  String
   role      Role
   createdAt DateTime @default(now())
