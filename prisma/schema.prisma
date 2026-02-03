@@ -14,12 +14,12 @@ datasource db {
 }
 
 enum Role {
-  admin
-  humanResource // access dashboard, employee handling
-  stockManager // access inventory
-  deliveryPersonnel // access delivery delivery
-  collaborator // ltk food branch
-  employee // employee
+  ADMIN
+  HUMAN_RESOURCE
+  STOCK_MANAGER
+  DELIVERY_PERSONNEL
+  COLLABORATOR
+  EMPLOYEE
 }
 
 model User {
