@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { addUser } from "@/dal/user";
-import { useState, useActionState } from "react";
+import { useActionState, useState } from "react";
 
 export default function LoginPage() {
   const [isRoleEmployee, setIsRoleEmployee] = useState<boolean>(true);
@@ -29,10 +29,13 @@ export default function LoginPage() {
         className="p-4 border rounded-2xl flex flex-col w-1/4 *:border *:rounded *:px-2 *:py-1 space-y-2"
       >
         <h2 className="text-xl">Add user</h2>
-        First Name:
-        <input type="text" name="firstName" />
+        First Name: <input type="text" name="firstName" />
         Last Name:
         <input type="text" name="lastName" />
+        Username:
+        <input type="text" name="username" />
+        Password
+        <input type="text" name="password" />
         Role:
         <select
           name="role"
@@ -47,17 +50,10 @@ export default function LoginPage() {
           <option value="COLLABORATOR">Collaborator</option>
           <option value="EMPLOYEE">Employee</option>
         </select>
-        {isRoleEmployee ? (
+        {isRoleEmployee && (
           <>
             <p>Employee ID:</p>
             <input type="text" name="employeeId" />
-          </>
-        ) : (
-          <>
-            Username:
-            <input type="text" name="username" />
-            Password
-            <input type="text" name="password" />
           </>
         )}
         <button type="submit" className="hover:bg-blue-100">
