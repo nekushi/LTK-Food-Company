@@ -9,6 +9,7 @@ export async function addUser(prevState: unknown, formdata: FormData) {
   const username = formdata.get("username") as string;
   const password = formdata.get("password") as string;
   const role = formdata.get("role") as Role;
+  const employeeId = formdata.get("employeeId") as string;
 
   return await prisma.$transaction(async (ctx) => {
     const user = await ctx.user.create({
@@ -25,6 +26,7 @@ export async function addUser(prevState: unknown, formdata: FormData) {
       await ctx.employee.create({
         data: {
           userId: user.id,
+          employeeId,
         },
       });
     } else if (user.role === Role.DELIVERY_PERSONNEL) {
@@ -61,17 +63,17 @@ export async function addUser(prevState: unknown, formdata: FormData) {
     },
   });
 
-  if (user.role === "EMPLOYEE") {
-    const employeeUser = await prisma.employee.create({
-      data: {
-        userId: user.id,
-      },
-    });
-  } else if (user.role === "STOCK_MANAGER") {
-    const stockManagerUser = await prisma.stockManager.create({
-      data: {
-        userId: user.id,
-      },
-    });
-  }
+  // if (user.role === "EMPLOYEE") {
+  //   const employeeUser = await prisma.employee.create({
+  //     data: {
+  //       userId: user.id,
+  //     },
+  //   });
+  // } else if (user.role === "STOCK_MANAGER") {
+  //   const stockManagerUser = await prisma.stockManager.create({
+  //     data: {
+  //       userId: user.id,
+  //     },
+  //   });
+  // }
 }
