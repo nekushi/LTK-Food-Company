@@ -39,11 +39,21 @@ model User {
 }
 
 model Employee {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  id           String             @id @default(uuid())
+  employeeId   String             @unique // employeeCode
+  userId       String             @unique
+  user         User               @relation(fields: [userId], references: [id])
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @default(now())
+  employeeData EmployeeWorkData[]
+}
+
+model EmployeeWorkData {
+  id         String   @id @default(uuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  data       Json
+  // ...cardDatas
 }
 
 model DeliveryPersonnel {
