@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
       return newRow;
     });
 
-    const attendanceCard: TypeNamedAttendanceCard = {};
+    // const attendanceCard: TypeNamedAttendanceCard = {};
+    const attendanceCard: TypeAttendanceCard[] = [];
 
     const CHUNK_SIZE = 23;
     for (let i = 0, j = 0; i < normalizedData.length; i += CHUNK_SIZE, j += 1) {
@@ -608,12 +609,14 @@ export async function POST(req: NextRequest) {
         employeeSignature: cardSet[22]["e12"].split(":").at(-1),
       };
 
-      attendanceCard[cardSet[1]["e7"].split(":").at(-1)] = data; // id: { ... } || "e4" for name as key
+      // attendanceCard[cardSet[1]["e7"].split(":").at(-1)] = data; // id: { ... } || "e4" for name as key
+      attendanceCard.push(data);
 
       // // break;
       // if (i == 2 * 23) break;
     }
 
+    // return NextResponse.json(attendanceCard);
     return NextResponse.json(attendanceCard);
   } catch (err) {
     console.error("Excel parsing error:", err);
