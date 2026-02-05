@@ -13,25 +13,39 @@ export async function postExcelFile(results: any, employeeId: string) {
 }
 
 export async function linkToEmployee(data: any) {
-  const getEmployee = await prisma.employee.findUnique({
-    where: {
-      employeeId: data.id,
-    },
-  });
+  // const workData = await prisma.$transaction(async (ctx) => {
 
-  console.log(`Data from geo retrieved`);
-  console.log(getEmployee);
+  for (const singleData of data) {
+    await prisma.$transaction(async (ctx) => {
+      const getEmployee = await ctx.employee.findUnique({
+        where: {
+          employeeId: singleData.id,
+        },
+      });
 
-  if (!getEmployee) {
-    throw new Error("Employee not found — import must be resolved first");
+      // if (!getEmployee) return;
+
+      console.log(`Data from geo retrieved`);
+      console.log(getEmployee);
+      // console.log(singleData);
+
+      if (!getEmployee) {
+        throw new Error("Employee not found — import must be resolved first");
+      }
+
+      const workData = await ctx.employeeWorkData.create({
+        data: {
+          employeeId: getEmployee.id,
+          data: singleData,
+        },
+      });
+
+      console.log(workData);
+
+      // return workData;
+    });
   }
+  // });
 
-  const workData = await prisma.employeeWorkData.create({
-    data: {
-      employeeId: getEmployee.id,
-      data: data,
-    },
-  });
-
-  return workData;
+  // return workData;
 }
