@@ -66,3 +66,9 @@ export type TypeOriginalGeoData = {
   e15: string;
   e16: string;
 };
+
+export type TypeNavList = {
+  name: string;
+  href: string;
+  icon: JSX.Element;
+};
