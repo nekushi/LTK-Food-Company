@@ -1,3 +1,4 @@
+import { TypeAttendanceCard } from "@/index";
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 
@@ -77,535 +78,597 @@ export async function POST(req: NextRequest) {
         charges: cardSet[3]["e11"].split(":").at(-1),
         realPay: cardSet[3]["e13"].split("：").at(-1),
         deviceId: cardSet[4]["e0"].split(":").at(-1),
-        schedules: {
-          [cardSet[6]["e0"]]: {
-            week: cardSet[6]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[6]["e2"],
-                morning_out: cardSet[6]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[6]["e4"],
-                afternoon_out: cardSet[6]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[6]["e6"],
-                overtime_out: cardSet[6]["e7"],
-              },
-            },
-          },
-          [cardSet[7]["e0"]]: {
-            week: cardSet[7]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[7]["e2"],
-                morning_out: cardSet[7]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[7]["e4"],
-                afternoon_out: cardSet[7]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[7]["e6"],
-                overtime_out: cardSet[7]["e7"],
+        schedules: [
+          {
+            [cardSet[6]["e0"]]: {
+              week: cardSet[6]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[6]["e2"],
+                  morning_out: cardSet[6]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[6]["e4"],
+                  afternoon_out: cardSet[6]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[6]["e6"],
+                  overtime_out: cardSet[6]["e7"],
+                },
               },
             },
           },
-          [cardSet[8]["e0"]]: {
-            week: cardSet[8]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[8]["e2"],
-                morning_out: cardSet[8]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[8]["e4"],
-                afternoon_out: cardSet[8]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[8]["e6"],
-                overtime_out: cardSet[8]["e7"],
-              },
-            },
-          },
-          [cardSet[9]["e0"]]: {
-            week: cardSet[9]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[9]["e2"],
-                morning_out: cardSet[9]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[9]["e4"],
-                afternoon_out: cardSet[9]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[9]["e6"],
-                overtime_out: cardSet[9]["e7"],
+          {
+            [cardSet[7]["e0"]]: {
+              week: cardSet[7]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[7]["e2"],
+                  morning_out: cardSet[7]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[7]["e4"],
+                  afternoon_out: cardSet[7]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[7]["e6"],
+                  overtime_out: cardSet[7]["e7"],
+                },
               },
             },
           },
-          [cardSet[10]["e0"]]: {
-            week: cardSet[10]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[10]["e2"],
-                morning_out: cardSet[10]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[10]["e4"],
-                afternoon_out: cardSet[10]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[10]["e6"],
-                overtime_out: cardSet[10]["e7"],
-              },
-            },
-          },
-          [cardSet[11]["e0"]]: {
-            week: cardSet[11]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[11]["e2"],
-                morning_out: cardSet[11]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[11]["e4"],
-                afternoon_out: cardSet[11]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[11]["e6"],
-                overtime_out: cardSet[11]["e7"],
+          {
+            [cardSet[8]["e0"]]: {
+              week: cardSet[8]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[8]["e2"],
+                  morning_out: cardSet[8]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[8]["e4"],
+                  afternoon_out: cardSet[8]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[8]["e6"],
+                  overtime_out: cardSet[8]["e7"],
+                },
               },
             },
           },
-          [cardSet[12]["e0"]]: {
-            week: cardSet[12]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[12]["e2"],
-                morning_out: cardSet[12]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[12]["e4"],
-                afternoon_out: cardSet[12]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[12]["e6"],
-                overtime_out: cardSet[12]["e7"],
-              },
-            },
-          },
-          [cardSet[13]["e0"]]: {
-            week: cardSet[13]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[13]["e2"],
-                morning_out: cardSet[13]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[13]["e4"],
-                afternoon_out: cardSet[13]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[13]["e6"],
-                overtime_out: cardSet[13]["e7"],
+          {
+            [cardSet[9]["e0"]]: {
+              week: cardSet[9]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[9]["e2"],
+                  morning_out: cardSet[9]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[9]["e4"],
+                  afternoon_out: cardSet[9]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[9]["e6"],
+                  overtime_out: cardSet[9]["e7"],
+                },
               },
             },
           },
-          [cardSet[14]["e0"]]: {
-            week: cardSet[14]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[14]["e2"],
-                morning_out: cardSet[14]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[14]["e4"],
-                afternoon_out: cardSet[14]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[14]["e6"],
-                overtime_out: cardSet[14]["e7"],
-              },
-            },
-          },
-          [cardSet[15]["e0"]]: {
-            week: cardSet[15]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[15]["e2"],
-                morning_out: cardSet[15]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[15]["e4"],
-                afternoon_out: cardSet[15]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[15]["e6"],
-                overtime_out: cardSet[15]["e7"],
+          {
+            [cardSet[10]["e0"]]: {
+              week: cardSet[10]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[10]["e2"],
+                  morning_out: cardSet[10]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[10]["e4"],
+                  afternoon_out: cardSet[10]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[10]["e6"],
+                  overtime_out: cardSet[10]["e7"],
+                },
               },
             },
           },
-          [cardSet[16]["e0"]]: {
-            week: cardSet[16]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[16]["e2"],
-                morning_out: cardSet[16]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[16]["e4"],
-                afternoon_out: cardSet[16]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[16]["e6"],
-                overtime_out: cardSet[16]["e7"],
-              },
-            },
-          },
-          [cardSet[17]["e0"]]: {
-            week: cardSet[17]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[17]["e2"],
-                morning_out: cardSet[17]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[17]["e4"],
-                afternoon_out: cardSet[17]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[17]["e6"],
-                overtime_out: cardSet[17]["e7"],
+          {
+            [cardSet[11]["e0"]]: {
+              week: cardSet[11]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[11]["e2"],
+                  morning_out: cardSet[11]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[11]["e4"],
+                  afternoon_out: cardSet[11]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[11]["e6"],
+                  overtime_out: cardSet[11]["e7"],
+                },
               },
             },
           },
-          [cardSet[18]["e0"]]: {
-            week: cardSet[18]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[18]["e2"],
-                morning_out: cardSet[18]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[18]["e4"],
-                afternoon_out: cardSet[18]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[18]["e6"],
-                overtime_out: cardSet[18]["e7"],
-              },
-            },
-          },
-          [cardSet[19]["e0"]]: {
-            week: cardSet[19]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[19]["e2"],
-                morning_out: cardSet[19]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[19]["e4"],
-                afternoon_out: cardSet[19]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[19]["e6"],
-                overtime_out: cardSet[19]["e7"],
+          {
+            [cardSet[12]["e0"]]: {
+              week: cardSet[12]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[12]["e2"],
+                  morning_out: cardSet[12]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[12]["e4"],
+                  afternoon_out: cardSet[12]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[12]["e6"],
+                  overtime_out: cardSet[12]["e7"],
+                },
               },
             },
           },
-          [cardSet[20]["e0"]]: {
-            week: cardSet[20]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[20]["e2"],
-                morning_out: cardSet[20]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[20]["e4"],
-                afternoon_out: cardSet[20]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[20]["e6"],
-                overtime_out: cardSet[20]["e7"],
-              },
-            },
-          },
-          [cardSet[21]["e0"]]: {
-            week: cardSet[21]["e1"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[21]["e2"],
-                morning_out: cardSet[21]["e3"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[21]["e4"],
-                afternoon_out: cardSet[21]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[21]["e6"],
-                overtime_out: cardSet[21]["e7"],
+          {
+            [cardSet[13]["e0"]]: {
+              week: cardSet[13]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[13]["e2"],
+                  morning_out: cardSet[13]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[13]["e4"],
+                  afternoon_out: cardSet[13]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[13]["e6"],
+                  overtime_out: cardSet[13]["e7"],
+                },
               },
             },
           },
-          [cardSet[6]["e8"]]: {
-            week: cardSet[6]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[6]["e10"],
-                morning_out: cardSet[6]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[6]["e4"],
-                afternoon_out: cardSet[6]["e5"],
-              },
-              overtime: {
-                overtime_in: cardSet[6]["e6"],
-                overtime_out: cardSet[6]["e7"],
-              },
-            },
-          },
-          [cardSet[7]["e8"]]: {
-            week: cardSet[7]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[7]["e10"],
-                morning_out: cardSet[7]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[7]["e12"],
-                afternoon_out: cardSet[7]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[7]["e14"],
-                overtime_out: cardSet[7]["e7"],
+          {
+            [cardSet[14]["e0"]]: {
+              week: cardSet[14]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[14]["e2"],
+                  morning_out: cardSet[14]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[14]["e4"],
+                  afternoon_out: cardSet[14]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[14]["e6"],
+                  overtime_out: cardSet[14]["e7"],
+                },
               },
             },
           },
-          [cardSet[8]["e8"]]: {
-            week: cardSet[8]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[8]["e10"],
-                morning_out: cardSet[8]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[8]["e12"],
-                afternoon_out: cardSet[8]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[8]["e14"],
-                overtime_out: cardSet[8]["e7"],
-              },
-            },
-          },
-          [cardSet[9]["e8"]]: {
-            week: cardSet[9]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[9]["e10"],
-                morning_out: cardSet[9]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[9]["e12"],
-                afternoon_out: cardSet[9]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[9]["e14"],
-                overtime_out: cardSet[9]["e15"],
+          {
+            [cardSet[15]["e0"]]: {
+              week: cardSet[15]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[15]["e2"],
+                  morning_out: cardSet[15]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[15]["e4"],
+                  afternoon_out: cardSet[15]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[15]["e6"],
+                  overtime_out: cardSet[15]["e7"],
+                },
               },
             },
           },
-          [cardSet[10]["e8"]]: {
-            week: cardSet[10]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[10]["e10"],
-                morning_out: cardSet[10]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[10]["e12"],
-                afternoon_out: cardSet[10]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[10]["e14"],
-                overtime_out: cardSet[10]["e15"],
-              },
-            },
-          },
-          [cardSet[11]["e8"]]: {
-            week: cardSet[11]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[11]["e10"],
-                morning_out: cardSet[11]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[11]["e12"],
-                afternoon_out: cardSet[11]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[11]["e14"],
-                overtime_out: cardSet[11]["e15"],
+          {
+            [cardSet[16]["e0"]]: {
+              week: cardSet[16]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[16]["e2"],
+                  morning_out: cardSet[16]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[16]["e4"],
+                  afternoon_out: cardSet[16]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[16]["e6"],
+                  overtime_out: cardSet[16]["e7"],
+                },
               },
             },
           },
-          [cardSet[12]["e8"]]: {
-            week: cardSet[12]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[12]["e10"],
-                morning_out: cardSet[12]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[12]["e12"],
-                afternoon_out: cardSet[12]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[12]["e14"],
-                overtime_out: cardSet[12]["e15"],
-              },
-            },
-          },
-          [cardSet[13]["e8"]]: {
-            week: cardSet[13]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[13]["e10"],
-                morning_out: cardSet[13]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[13]["e12"],
-                afternoon_out: cardSet[13]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[13]["e14"],
-                overtime_out: cardSet[13]["e15"],
+          {
+            [cardSet[17]["e0"]]: {
+              week: cardSet[17]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[17]["e2"],
+                  morning_out: cardSet[17]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[17]["e4"],
+                  afternoon_out: cardSet[17]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[17]["e6"],
+                  overtime_out: cardSet[17]["e7"],
+                },
               },
             },
           },
-          [cardSet[14]["e8"]]: {
-            week: cardSet[14]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[14]["e10"],
-                morning_out: cardSet[14]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[14]["e12"],
-                afternoon_out: cardSet[14]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[14]["e14"],
-                overtime_out: cardSet[14]["e15"],
-              },
-            },
-          },
-          [cardSet[15]["e8"]]: {
-            week: cardSet[15]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[15]["e10"],
-                morning_out: cardSet[15]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[15]["e12"],
-                afternoon_out: cardSet[15]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[15]["e14"],
-                overtime_out: cardSet[15]["e15"],
+          {
+            [cardSet[18]["e0"]]: {
+              week: cardSet[18]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[18]["e2"],
+                  morning_out: cardSet[18]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[18]["e4"],
+                  afternoon_out: cardSet[18]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[18]["e6"],
+                  overtime_out: cardSet[18]["e7"],
+                },
               },
             },
           },
-          [cardSet[16]["e8"]]: {
-            week: cardSet[16]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[16]["e10"],
-                morning_out: cardSet[16]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[16]["e12"],
-                afternoon_out: cardSet[16]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[16]["e14"],
-                overtime_out: cardSet[16]["e15"],
-              },
-            },
-          },
-          [cardSet[17]["e8"]]: {
-            week: cardSet[17]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[17]["e10"],
-                morning_out: cardSet[17]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[17]["e12"],
-                afternoon_out: cardSet[17]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[17]["e14"],
-                overtime_out: cardSet[17]["e15"],
+          {
+            [cardSet[19]["e0"]]: {
+              week: cardSet[19]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[19]["e2"],
+                  morning_out: cardSet[19]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[19]["e4"],
+                  afternoon_out: cardSet[19]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[19]["e6"],
+                  overtime_out: cardSet[19]["e7"],
+                },
               },
             },
           },
-          [cardSet[18]["e8"]]: {
-            week: cardSet[18]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[18]["e10"],
-                morning_out: cardSet[18]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[18]["e12"],
-                afternoon_out: cardSet[18]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[18]["e14"],
-                overtime_out: cardSet[18]["e15"],
-              },
-            },
-          },
-          [cardSet[19]["e8"]]: {
-            week: cardSet[19]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[19]["e10"],
-                morning_out: cardSet[19]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[19]["e12"],
-                afternoon_out: cardSet[19]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[19]["e14"],
-                overtime_out: cardSet[19]["e15"],
+          {
+            [cardSet[20]["e0"]]: {
+              week: cardSet[20]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[20]["e2"],
+                  morning_out: cardSet[20]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[20]["e4"],
+                  afternoon_out: cardSet[20]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[20]["e6"],
+                  overtime_out: cardSet[20]["e7"],
+                },
               },
             },
           },
-          [cardSet[20]["e8"]]: {
-            week: cardSet[20]["e9"],
-            in_out: {
-              morning: {
-                morning_in: cardSet[20]["e10"],
-                morning_out: cardSet[20]["e11"],
-              },
-              afternoon: {
-                afternoon_in: cardSet[20]["e12"],
-                afternoon_out: cardSet[20]["e13"],
-              },
-              overtime: {
-                overtime_in: cardSet[20]["e14"],
-                overtime_out: cardSet[20]["e15"],
+          {
+            [cardSet[21]["e0"]]: {
+              week: cardSet[21]["e1"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[21]["e2"],
+                  morning_out: cardSet[21]["e3"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[21]["e4"],
+                  afternoon_out: cardSet[21]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[21]["e6"],
+                  overtime_out: cardSet[21]["e7"],
+                },
               },
             },
           },
-        },
+          {
+            [cardSet[6]["e8"]]: {
+              week: cardSet[6]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[6]["e10"],
+                  morning_out: cardSet[6]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[6]["e4"],
+                  afternoon_out: cardSet[6]["e5"],
+                },
+                overtime: {
+                  overtime_in: cardSet[6]["e6"],
+                  overtime_out: cardSet[6]["e7"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[7]["e8"]]: {
+              week: cardSet[7]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[7]["e10"],
+                  morning_out: cardSet[7]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[7]["e12"],
+                  afternoon_out: cardSet[7]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[7]["e14"],
+                  overtime_out: cardSet[7]["e7"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[8]["e8"]]: {
+              week: cardSet[8]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[8]["e10"],
+                  morning_out: cardSet[8]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[8]["e12"],
+                  afternoon_out: cardSet[8]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[8]["e14"],
+                  overtime_out: cardSet[8]["e7"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[9]["e8"]]: {
+              week: cardSet[9]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[9]["e10"],
+                  morning_out: cardSet[9]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[9]["e12"],
+                  afternoon_out: cardSet[9]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[9]["e14"],
+                  overtime_out: cardSet[9]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[10]["e8"]]: {
+              week: cardSet[10]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[10]["e10"],
+                  morning_out: cardSet[10]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[10]["e12"],
+                  afternoon_out: cardSet[10]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[10]["e14"],
+                  overtime_out: cardSet[10]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[11]["e8"]]: {
+              week: cardSet[11]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[11]["e10"],
+                  morning_out: cardSet[11]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[11]["e12"],
+                  afternoon_out: cardSet[11]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[11]["e14"],
+                  overtime_out: cardSet[11]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[12]["e8"]]: {
+              week: cardSet[12]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[12]["e10"],
+                  morning_out: cardSet[12]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[12]["e12"],
+                  afternoon_out: cardSet[12]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[12]["e14"],
+                  overtime_out: cardSet[12]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[13]["e8"]]: {
+              week: cardSet[13]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[13]["e10"],
+                  morning_out: cardSet[13]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[13]["e12"],
+                  afternoon_out: cardSet[13]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[13]["e14"],
+                  overtime_out: cardSet[13]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[14]["e8"]]: {
+              week: cardSet[14]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[14]["e10"],
+                  morning_out: cardSet[14]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[14]["e12"],
+                  afternoon_out: cardSet[14]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[14]["e14"],
+                  overtime_out: cardSet[14]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[15]["e8"]]: {
+              week: cardSet[15]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[15]["e10"],
+                  morning_out: cardSet[15]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[15]["e12"],
+                  afternoon_out: cardSet[15]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[15]["e14"],
+                  overtime_out: cardSet[15]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[16]["e8"]]: {
+              week: cardSet[16]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[16]["e10"],
+                  morning_out: cardSet[16]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[16]["e12"],
+                  afternoon_out: cardSet[16]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[16]["e14"],
+                  overtime_out: cardSet[16]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[17]["e8"]]: {
+              week: cardSet[17]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[17]["e10"],
+                  morning_out: cardSet[17]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[17]["e12"],
+                  afternoon_out: cardSet[17]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[17]["e14"],
+                  overtime_out: cardSet[17]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[18]["e8"]]: {
+              week: cardSet[18]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[18]["e10"],
+                  morning_out: cardSet[18]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[18]["e12"],
+                  afternoon_out: cardSet[18]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[18]["e14"],
+                  overtime_out: cardSet[18]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[19]["e8"]]: {
+              week: cardSet[19]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[19]["e10"],
+                  morning_out: cardSet[19]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[19]["e12"],
+                  afternoon_out: cardSet[19]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[19]["e14"],
+                  overtime_out: cardSet[19]["e15"],
+                },
+              },
+            },
+          },
+          {
+            [cardSet[20]["e8"]]: {
+              week: cardSet[20]["e9"],
+              in_out: {
+                morning: {
+                  morning_in: cardSet[20]["e10"],
+                  morning_out: cardSet[20]["e11"],
+                },
+                afternoon: {
+                  afternoon_in: cardSet[20]["e12"],
+                  afternoon_out: cardSet[20]["e13"],
+                },
+                overtime: {
+                  overtime_in: cardSet[20]["e14"],
+                  overtime_out: cardSet[20]["e15"],
+                },
+              },
+            },
+          },
+        ],
         employeeSignature: cardSet[22]["e12"].split(":").at(-1),
       };
 
@@ -627,51 +690,51 @@ export async function POST(req: NextRequest) {
   }
 }
 
-type TypeSchedules = Record<string, Schedule>;
+// type TypeSchedules = Record<string, Schedule>;
 
-type Schedule = {
-  week: string;
-  in_out: InOut;
-};
+// type Schedule = {
+//   week: string;
+//   in_out: InOut;
+// };
 
-type InOut = {
-  morning: {
-    morning_in: number;
-    morning_out: number;
-  };
-  afternoon: {
-    afternoon_in: number;
-    afternoon_out: number;
-  };
-  overtime: {
-    overtime_in: number;
-    overtime_out: number;
-  };
-};
+// type InOut = {
+//   morning: {
+//     morning_in: number;
+//     morning_out: number;
+//   };
+//   afternoon: {
+//     afternoon_in: number;
+//     afternoon_out: number;
+//   };
+//   overtime: {
+//     overtime_in: number;
+//     overtime_out: number;
+//   };
+// };
 
-type TypeAttendanceCard = {
-  header: string;
-  companyName: string;
-  name: string;
-  id: string;
-  depart: string;
-  dateRange: string;
-  workingDays: number;
-  attendanceDays: number;
-  lateNum: number;
-  earlyNum: number;
-  absencesDays: number;
-  overtimeHours: number;
-  sickHours: number;
-  leaveHours: number;
-  dailySalary: number;
-  overtimePay: number;
-  allowances: number;
-  charges: number;
-  realPay: number;
-  deviceId: number;
-  schedules: TypeSchedules;
-  employeeSignature: boolean;
-};
+// type TypeAttendanceCard = {
+//   header: string;
+//   companyName: string;
+//   name: string;
+//   id: string;
+//   depart: string;
+//   dateRange: string;
+//   workingDays: number;
+//   attendanceDays: number;
+//   lateNum: number;
+//   earlyNum: number;
+//   absencesDays: number;
+//   overtimeHours: number;
+//   sickHours: number;
+//   leaveHours: number;
+//   dailySalary: number;
+//   overtimePay: number;
+//   allowances: number;
+//   charges: number;
+//   realPay: number;
+//   deviceId: number;
+//   schedules: TypeSchedules[];
+//   employeeSignature: boolean;
+// };
 
-type TypeNamedAttendanceCard = Record<string, TypeAttendanceCard>;
+// type TypeNamedAttendanceCard = Record<string, TypeAttendanceCard>;
