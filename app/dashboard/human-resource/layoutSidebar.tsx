@@ -17,7 +17,7 @@ export default function LayoutSidebar() {
   const path = usePathname();
 
   return (
-    <aside className="h-screen bg-blue-50 flex flex-col p-8 col-span-2">
+    <aside className="h-full bg-blue-50 flex flex-col p-8 col-span-2">
       <div className="my-8 flex flex-col items-center gap-2">
         <div className="rounded-full border size-24 relative">
           <h1 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl">
@@ -34,7 +34,7 @@ export default function LayoutSidebar() {
             return (
               <li
                 key={navList.name}
-                className={`transition hover:text-md hover:bg-blue-100 px-2 py-1 rounded-md origin-left ${
+                className={`transition-transform hover:text-md hover:bg-blue-100 px-2 py-1 rounded-md origin-left ${
                   isActive && "text-blue-500 font-bold text-lg"
                 }`}
               >

@@ -3,7 +3,7 @@
 import { linkToEmployee, postExcelFile } from "@/dal/geo";
 // import * as XLSX from "xlsx";
 import React, { useState, useRef } from "react";
-import EmployeeWorkData from "./workData";
+import EmployeeWorkData from "../workData";
 
 export default function ExcelForm() {
   const [excelFile, setExcelFile] = useState([]);
@@ -48,7 +48,6 @@ export default function ExcelForm() {
   return (
     <div className="">
       <br />
-      <div>Upload excel file</div>
       <form action="" className="flex flex-row">
         <input
           type="file"
@@ -65,7 +64,7 @@ export default function ExcelForm() {
         <button
           type="reset"
           onClick={handleClearForm}
-          className="py-1 px-4 bg-red-300 border-red-300 rounded-md hover:bg-red-400 active:bg-red-500 transition"
+          className="py-1 px-4 bg-red-200 border-red-200 rounded-md hover:bg-red-300 active:bg-red-400 transition"
         >
           Clear upload
         </button>

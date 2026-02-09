@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import ExcelForm from "../excel";
+import ExcelForm from "../payroll/excel";
 import { addUser } from "@/dal/post-user";
 
 export default function CreateEmployee() {
