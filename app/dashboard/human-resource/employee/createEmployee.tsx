@@ -1,8 +1,8 @@
 "use client";
 
-import { addUser } from "@/dal/user";
 import { useActionState, useState } from "react";
 import ExcelForm from "../excel";
+import { addUser } from "@/dal/post-user";
 
 export default function CreateEmployee() {
   const [isRoleEmployee, setIsRoleEmployee] = useState<boolean>(true);
