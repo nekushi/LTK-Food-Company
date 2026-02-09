@@ -72,3 +72,14 @@ export type TypeNavList = {
   href: string;
   icon: JSX.Element;
 };
+
+export type TypeUser = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  password: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
