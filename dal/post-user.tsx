@@ -1,6 +1,6 @@
 "use server";
 
-import { Prisma, Role } from "@/app/generated/prisma/client";
+import { Role } from "@/app/generated/prisma/client";
 import prisma from "@/lib/db";
 
 export async function addUser(prevState: unknown, formdata: FormData) {
@@ -52,28 +52,4 @@ export async function addUser(prevState: unknown, formdata: FormData) {
     console.log(user);
     return user;
   });
-
-  const user = await prisma.user.create({
-    data: {
-      firstName,
-      lastName,
-      username,
-      password,
-      role,
-    },
-  });
-
-  // if (user.role === "EMPLOYEE") {
-  //   const employeeUser = await prisma.employee.create({
-  //     data: {
-  //       userId: user.id,
-  //     },
-  //   });
-  // } else if (user.role === "STOCK_MANAGER") {
-  //   const stockManagerUser = await prisma.stockManager.create({
-  //     data: {
-  //       userId: user.id,
-  //     },
-  //   });
-  // }
 }
