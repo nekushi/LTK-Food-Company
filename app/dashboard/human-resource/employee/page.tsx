@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { getAllUsers } from "@/dal/get-user";
 import { TypeUser } from "@/index";
