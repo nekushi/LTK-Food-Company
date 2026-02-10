@@ -9,7 +9,7 @@ export default function WorkDataMonth({
   const [dateId, schedule] = scheduleData;
 
   return (
-    <tr>
+    <tr className="odd:bg-white even:bg-blue-50 *:text-sm *:font-normal *:text-slate-800 tabular-nums *:py-2 ">
       <td className="pl-6 text-left">
         {dateId} / {schedule.week}
       </td>
@@ -20,12 +20,5 @@ export default function WorkDataMonth({
       <td>{normalizeTime(schedule.in_out.overtime.overtime_in)}</td>
       <td>{normalizeTime(schedule.in_out.overtime.overtime_out)}</td>
     </tr>
-    // <div>
-    // {/* <h2>hello world</h2> */}
-    // {/* <p>{JSON.stringify(schedule, null, 2)}</p> */}
-    // {/* {scheduleData.map((data: any, i: number) => (
-    //   <p key={dateId}>{dateId}</p>
-    // ))} */}
-    // </div>
   );
 }
