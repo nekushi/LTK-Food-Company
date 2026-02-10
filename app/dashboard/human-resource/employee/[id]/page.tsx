@@ -1,4 +1,5 @@
 import { getUser, getUserWorkData } from "@/dal/get-user";
+import { TypeEmployeeWorkData } from "@/index";
 
 export default async function EmployeePage({
   params,
@@ -6,7 +7,7 @@ export default async function EmployeePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  // console.log(`params: ${id}`);
+  console.log(`params: ${id}`);
 
   const user = await getUser(id);
 
@@ -26,5 +27,3 @@ export default async function EmployeePage({
     </div>
   );
 }
-
-type TypeEmployeeWorkData = Awaited<ReturnType<typeof getUserWorkData>>;
