@@ -12,7 +12,7 @@ export default function EmployeeWorkData({
   onApprovedData,
 }: {
   data: TypeAttendanceCard;
-  onApprovedData: any;
+  onApprovedData: (data: TypeAttendanceCard) => void;
 }) {
   // const handleLinkDataClick = async () => {
   //   console.log(data.id);
@@ -20,11 +20,6 @@ export default function EmployeeWorkData({
   //   const res = await linkToEmployee(data);
   //   console.log(res);
   // };
-
-  // console.log(data.schedules);
-
-  // const newasd = data.schedules.map((asd: any) => asd);
-  // console.log(newasd);
 
   return (
     <div className="relative mt-8 mx-8">
@@ -103,9 +98,9 @@ export default function EmployeeWorkData({
         {/* SCHEDULE TABLE */}
         <div className="*:text-center bg-white rounded-lg pt-4">
           <table className="table-fixed w-full border-collapse">
-            <thead className="">
+            <thead>
               <tr className="*:text-sm *:font-medium *:text-slate-600 capitalize tracking-normal *:pb-2 *:border-b *:border-slate-300">
-                <th className="">Date / Day</th>
+                <th>Date / Day</th>
                 <th>Morning In</th>
                 <th>Morning Out</th>
                 <th>Afternoon In</th>
@@ -114,9 +109,9 @@ export default function EmployeeWorkData({
                 <th>Overtime Out</th>
               </tr>
             </thead>
-            <tbody className="">
-              {data.schedules.map((asd: TypeSchedules) => {
-                const [dateId, schedule] = Object.entries(asd)[0] as [
+            <tbody>
+              {data.schedules.map((singleData: TypeSchedules) => {
+                const [dateId, schedule] = Object.entries(singleData)[0] as [
                   string,
                   Schedule,
                 ];

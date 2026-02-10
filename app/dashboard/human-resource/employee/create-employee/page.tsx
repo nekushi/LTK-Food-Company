@@ -3,7 +3,6 @@
 import { addUser } from "@/dal/post-user";
 
 import { useActionState, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { FaArrowLeft } from "react-icons/fa6";
 import Link from "next/link";
@@ -11,8 +10,6 @@ import Link from "next/link";
 export default function CreateEmployee() {
   const [isRoleEmployee, setIsRoleEmployee] = useState<boolean>(true);
   const [state, addUserAction, isPending] = useActionState(addUser, undefined);
-
-  const router = useRouter();
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (e.target.value === "EMPLOYEE") {
