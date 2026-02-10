@@ -1,3 +1,6 @@
+import { JSONValue } from "next/dist/server/config-shared";
+import { JsonValue } from "./app/generated/prisma/internal/prismaNamespace";
+
 export type TypeSchedules = Record<string, Schedule>;
 
 export type Schedule = {
@@ -83,3 +86,11 @@ export type TypeUser = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type TypeEmployeeWorkData = Awaited<ReturnType<typeof getUserWorkData>>;
+
+export type TypeUserWorkData = {
+  id: string;
+  employeeId: string;
+  data: JSON[];
+} | null;
