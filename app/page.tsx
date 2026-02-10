@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { addUser } from "@/dal/user";
-import { useActionState, useState } from "react";
 
 export default function LoginPage() {
   return (

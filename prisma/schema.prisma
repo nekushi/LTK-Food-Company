@@ -52,7 +52,7 @@ model EmployeeWorkData {
   id         String   @id @default(uuid())
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id])
-  data       Json
+  data       Json[]
   // ...cardDatas
 }
 
