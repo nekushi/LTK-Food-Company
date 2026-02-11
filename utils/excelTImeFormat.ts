@@ -1,41 +1,37 @@
-export function cellDataToTime(time: number): string {
-  // if (typeof time !== "number" || Number.isNaN(time)) return time;
+export function formatLongWeirdTime(time: string): string {
+  const numberTime = Number(time);
 
-  const totalSeconds = Math.round(time * 24 * 60 * 60);
+  const totalSeconds = Math.round(numberTime * 24 * 60 * 60);
 
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
 
-  const formatTime = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  const formatTime =
+    `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`.trim();
+
   return formatTime;
 }
 
-export function normalizeTime(value: number | null): string {
-  if (value == null) return "---";
+export function formatNormalTime(hh: string, mm: string): string {
+  const totalMinutes = Number(hh) * 60 + Number(mm);
 
-  const raw = String(value);
+  const totalSeconds = totalMinutes * 60;
 
-  if (/^\s+$/.test(raw)) return "---";
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
 
-  // if (typeof value !== "number" || Number.isNaN(value)) return String(value);
-  if (typeof value !== "number" || Number.isNaN(value)) return raw;
+  const formatTime =
+    `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`.trim();
 
-  if (/^\d{2}:\d{2}$/.test(raw)) return raw;
+  return formatTime;
+}
 
-  if (
-    typeof value !== "number" ||
-    Number.isNaN(value) ||
-    (value >= 0 && value < 1)
-  ) {
-    return cellDataToTime(value);
+export function convertToTimeFormat(value: string | null) {
+  if (value === null || /^\s+$/.test(value)) return "---";
+  else if (Number(value) >= 0 && Number(value) <= 1) {
+    return formatLongWeirdTime(value);
+  } else {
+    const [hh, mm] = value.trim().split(":");
+    return formatNormalTime(hh, mm);
   }
-
-  if (/^\d{1}:\d{2}$/.test(raw)) {
-    const [h, m] = raw.split(":");
-    return `${h.padStart(2, "0")}:${m}`;
-  }
-
-  // if (typeof value !== "number" || Number.isNaN(value)) return String(value);
-
-  return "---";
 }
