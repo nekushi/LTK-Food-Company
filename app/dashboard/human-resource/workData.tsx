@@ -22,7 +22,7 @@ export default function EmployeeWorkData({
   // };
 
   return (
-    <div className="relative mt-8 mx-8">
+    <div className="relative mt-8">
       <div className="flex flex-row justify-between">
         <div>
           <p className="text-xl font-semibold">{data.name}</p>

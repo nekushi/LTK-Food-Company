@@ -9,16 +9,20 @@ export default function WorkDataMonth({
   const [dateId, schedule] = scheduleData;
 
   return (
-    <tr className="odd:bg-white even:bg-blue-50 *:text-sm *:font-normal *:text-slate-800 tabular-nums *:py-2 ">
-      <td className="pl-6 text-left">
-        {dateId} / {schedule.week}
-      </td>
-      <td>{normalizeTime(schedule.in_out.morning.morning_in)}</td>
-      <td>{normalizeTime(schedule.in_out.morning.morning_out)}</td>
-      <td>{normalizeTime(schedule.in_out.afternoon.afternoon_in)}</td>
-      <td>{normalizeTime(schedule.in_out.afternoon.afternoon_out)}</td>
-      <td>{normalizeTime(schedule.in_out.overtime.overtime_in)}</td>
-      <td>{normalizeTime(schedule.in_out.overtime.overtime_out)}</td>
-    </tr>
+    <>
+      {dateId && (
+        <tr className="odd:bg-white even:bg-blue-50 *:text-sm *:font-normal *:text-slate-800 tabular-nums *:py-2 ">
+          <td className="pl-6 text-left">
+            {dateId} / {schedule.week}
+          </td>
+          <td>{normalizeTime(schedule.in_out.morning.morning_in)}</td>
+          <td>{normalizeTime(schedule.in_out.morning.morning_out)}</td>
+          <td>{normalizeTime(schedule.in_out.afternoon.afternoon_in)}</td>
+          <td>{normalizeTime(schedule.in_out.afternoon.afternoon_out)}</td>
+          <td>{normalizeTime(schedule.in_out.overtime.overtime_in)}</td>
+          <td>{normalizeTime(schedule.in_out.overtime.overtime_out)}</td>
+        </tr>
+      )}
+    </>
   );
 }
