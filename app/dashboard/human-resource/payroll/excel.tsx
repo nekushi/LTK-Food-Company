@@ -85,6 +85,9 @@ export default function ExcelForm() {
           Clear upload
         </button>
       </form>
+      {/* {excelFile.length !== 0 && store === "geo" && (
+        <pre>{JSON.stringify(excelFile, null, 2)}</pre>
+      )} */}
       {excelFile.length !== 0 &&
         store === "geo" &&
         excelFile.map((data: TypeAttendanceCard) => (
