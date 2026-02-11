@@ -6,6 +6,7 @@ import EmployeeWorkData from "../workData";
 import { TypeAttendanceCard } from "@/index";
 
 export default function ExcelForm() {
+  const [store, setStore] = useState("geo");
   const [excelFile, setExcelFile] = useState([]);
   const [approvedData, setApprovedData] = useState<TypeAttendanceCard[]>([]);
 
@@ -21,6 +22,11 @@ export default function ExcelForm() {
     // console.log(approvedData);
   };
 
+  const handleStoreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStore(e.target.value);
+    setExcelFile([]);
+  };
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -28,7 +34,7 @@ export default function ExcelForm() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("/api/excel", {
+    const res = await fetch(`/api/excel/${store}`, {
       method: "POST",
       body: formData,
     });
@@ -38,6 +44,8 @@ export default function ExcelForm() {
     console.log(results);
 
     setExcelFile(results);
+    console.log(results[0]);
+
     postExcelFile(results, employeeId);
   };
 
@@ -47,6 +55,15 @@ export default function ExcelForm() {
 
   return (
     <div className="">
+      <select
+        name="stores"
+        id="stores"
+        defaultValue={store}
+        onChange={handleStoreChange}
+      >
+        <option value="geo">Geo</option>
+        <option value="pila">Pila</option>
+      </select>
       <form action="" className="flex flex-row">
         <input
           type="file"
@@ -63,12 +80,13 @@ export default function ExcelForm() {
         <button
           type="reset"
           onClick={handleClearForm}
-          className="py-1 px-4 bg-red-200 border-red-200 rounded-md hover:bg-red-300 active:bg-red-400 transition"
+          className="py-1 px-4 bg-red-200 border-red-200 rounded-md font-medium hover:bg-red-300 active:bg-red-400 transition"
         >
           Clear upload
         </button>
       </form>
       {excelFile.length !== 0 &&
+        store === "geo" &&
         excelFile.map((data: TypeAttendanceCard) => (
           <EmployeeWorkData
             key={data.id}
@@ -76,6 +94,9 @@ export default function ExcelForm() {
             onApprovedData={handleApprovedData}
           />
         ))}
+      {excelFile.length !== 0 && store === "pila" && (
+        <pre>{JSON.stringify(excelFile, null, 2)}</pre>
+      )}
       <button
         onClick={handleLinkDataClick}
         className="border px-2 py-1 rounded"
