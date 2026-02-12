@@ -90,6 +90,7 @@ export default function ExcelForm() {
         excelFile.map((data: TypeAttendanceCard) => (
           <EmployeeWorkData
             key={data.id}
+            store={store}
             data={data}
             onApprovedData={handleApprovedData}
           />
