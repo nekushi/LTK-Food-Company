@@ -1,15 +1,17 @@
 import { linkToEmployee } from "@/dal/geo";
 import { InOut, TypeAttendanceCard, TypeSchedules, Schedule } from "@/index";
-import { numberToMonth } from "@/utils/numberToMonth";
+import { getMonth } from "@/utils/numberToMonth";
 import WorkDataMonth from "./workDataMonth";
 import { MdDateRange, MdStars } from "react-icons/md";
 import { FaCircleCheck, FaCircleXmark } from "react-icons/fa6";
 import { FaCheckCircle, FaCircleNotch } from "react-icons/fa";
 
 export default function EmployeeWorkData({
+  store,
   data,
   onApprovedData,
 }: {
+  store: string;
   data: TypeAttendanceCard;
   onApprovedData: (data: TypeAttendanceCard) => void;
 }) {
@@ -29,7 +31,7 @@ export default function EmployeeWorkData({
         </div>
         <div>
           <p className="font-semibold text-2xl tracking-tight">
-            Month of {numberToMonth(data.dateRange.split(".")[1])}
+            Month of {getMonth(data.dateRange, store)}
           </p>
         </div>
       </div>
