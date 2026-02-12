@@ -92,6 +92,9 @@ export type TypeAttendanceCardPila = {
   role: string;
   schedules: TypeSchedulesPila[];
 };
-// PILA END //
 
-export type TypeExcelFileData<T> = T;
+export type TypeAttendanceCardReturnPila = {
+  date: string;
+  pilaAttendanceCard: TypeAttendanceCardPila[];
+};
+// PILA END //
