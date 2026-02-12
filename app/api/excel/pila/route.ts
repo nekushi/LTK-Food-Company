@@ -287,7 +287,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      date: `${normalizedDataFirstRow["e0"]}${normalizedDataFirstRow["e2"]}`,
+      date: `${normalizedDataFirstRow["e2"]}`,
       pilaAttendanceCard,
     });
   } catch (err) {
