@@ -1,4 +1,6 @@
-export function numberToMonth(month: string): string {
+export function getMonth(month: string | undefined, store: string): string {
+  if (month === undefined) return "";
+
   const date: Record<string, string> = {
     "01": "January",
     "02": "February",
@@ -14,5 +16,16 @@ export function numberToMonth(month: string): string {
     "12": "December",
   };
 
-  return date[month];
+  let monthNumber;
+
+  switch (store) {
+    case "geo":
+      monthNumber = month.split(".")[1];
+      return date[monthNumber];
+    case "pila":
+      monthNumber = month.split(".")[0];
+      return date[monthNumber];
+    default:
+      return "";
+  }
 }

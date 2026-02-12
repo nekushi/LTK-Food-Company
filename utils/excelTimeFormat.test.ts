@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
-// import { normalizeTime } from "./excelTImeFormat";
 import { convertToTimeFormat } from "./excelTImeFormat";
 
-describe("normalizeTime", () => {
+describe("test time conversion function", () => {
   it("If null, returns ---", () => {
     expect(convertToTimeFormat(null)).toBe("---");
   });
