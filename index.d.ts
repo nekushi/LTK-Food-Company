@@ -1,11 +1,35 @@
-export type TypeSchedules = Record<string, Schedule>;
+// GENERAL ACCESS. TYPESAFETY FOR NORMALIZING DATA BEFORE FORMAT (STRINGIFY ALL VALUES) //
+export type TypeRawData = Record<string, string>;
+// END //
 
-export type Schedule = {
+// SIDEBAR NAVLIST START //
+export type TypeNavList = {
+  name: string;
+  href: string;
+  icon: JSX.Element;
+};
+
+export type TypeUser = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  password: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+// SIDEBAR NAVLIST END //
+
+// GEO START //
+export type TypeSchedulesGeo = Record<string, Schedule>;
+
+export type TypeScheduleGeo = {
   week: string;
   in_out: InOut;
 };
 
-export type InOut = {
+export type TypeInOutGeo = {
   morning: {
     morning_in: string | null;
     morning_out: string | null;
@@ -20,7 +44,7 @@ export type InOut = {
   };
 };
 
-export type TypeAttendanceCard = {
+export type TypeAttendanceCardGeo = {
   header: string | undefined;
   companyName: string | undefined;
   name: string | undefined;
@@ -41,73 +65,11 @@ export type TypeAttendanceCard = {
   charges: string | undefined;
   realPay: string | undefined;
   deviceId: string | undefined;
-  schedules: TypeSchedules[];
+  schedules: TypeSchedulesGeo[];
   employeeSignature: string | undefined;
 };
-// export type TypeAttendanceCard = {
-//   header: string;
-//   companyName: string;
-//   name: string;
-//   id: string;
-//   depart: string;
-//   dateRange: string;
-//   workingDays: number;
-//   attendanceDays: number;
-//   lateNum: number;
-//   earlyNum: number;
-//   absencesDays: number;
-//   overtimeHours: number;
-//   sickHours: number;
-//   leaveHours: number;
-//   dailySalary: number;
-//   overtimePay: number;
-//   allowances: number;
-//   charges: number;
-//   realPay: number;
-//   deviceId: number;
-//   schedules: TypeSchedules[];
-//   employeeSignature: boolean;
-// };
 
-export type TypeNamedAttendanceCard = Record<string, TypeAttendanceCard>;
-
-export type TypeOriginalGeoData = {
-  e0: string;
-  e1: string;
-  e2: string;
-  e3: string;
-  e4: string;
-  e5: string;
-  e6: string;
-  e7: string;
-  e8: string;
-  e9: string;
-  e10: string;
-  e11: string;
-  e12: string;
-  e13: string;
-  e14: string;
-  e15: string;
-  e16: string;
-};
-
-export type TypeNavList = {
-  name: string;
-  href: string;
-  icon: JSX.Element;
-};
-
-export type TypeUser = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  username: string;
-  password: string;
-  role: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
+// FETCH EMPLOYEE FOR DYNAMIC ROUTE START //
 export type TypeEmployeeWorkData = Awaited<ReturnType<typeof getUserWorkData>>;
 
 export type TypeUserWorkData = {
@@ -115,6 +77,21 @@ export type TypeUserWorkData = {
   employeeId: string;
   data: JSON[];
 } | null;
+// FETCH EMPLOYEE FOR DYNAMIC ROUTE END //
 
-// export type TypeRawData = Record<string, string | number | null>;
-export type TypeRawData = Record<string, string>;
+// PILA START //
+export type TypeValuesPila = {
+  values: string | null;
+};
+
+export type TypeSchedulesPila = Record<string, TypeValuesPila>;
+
+export type TypeAttendanceCardPila = {
+  id: string;
+  name: string;
+  role: string;
+  schedules: TypeSchedulesPila[];
+};
+// PILA END //
+
+export type TypeExcelFileData<T> = T;

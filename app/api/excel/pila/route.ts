@@ -1,3 +1,4 @@
+import { TypeAttendanceCardPila, TypeRawData } from "@/index";
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 
@@ -17,10 +18,13 @@ export async function POST(req: NextRequest) {
     const worksheet1 = workbook.Sheets[sheetName];
     const worksheet2 = workbook.Sheets["Attend. Logs"];
 
-    const rawDataSheetName = XLSX.utils.sheet_to_json(worksheet1, {
-      defval: null,
-      blankrows: true,
-    });
+    const rawDataSheetName: TypeRawData[] = XLSX.utils.sheet_to_json(
+      worksheet1,
+      {
+        defval: null,
+        blankrows: true,
+      },
+    );
     // const rawDataWorkSheet = XLSX.utils.sheet_to_json(worksheet2, {
     //   defval: null,
     // });
@@ -64,8 +68,8 @@ export async function POST(req: NextRequest) {
     };
 
     // const normalizedData = trimmedData.map((row: any) => {
-    const normalizedData = rawDataSheetName.map((row: any) => {
-      const newRow: Record<any, any> = {};
+    const normalizedData = rawDataSheetName.map((row: TypeRawData) => {
+      const newRow: TypeRawData = {};
       Object.entries(row).forEach(([key, value]) => {
         newRow[columnMapping[key] || key] = value;
       });
@@ -75,7 +79,7 @@ export async function POST(req: NextRequest) {
     const normalizedDataFirstRow = normalizedData[1];
     const normalizedDataRestRow = normalizedData.slice(2);
 
-    const pilaAttendanceCard: any[] = [normalizedDataFirstRow];
+    const pilaAttendanceCard: TypeAttendanceCardPila[] = [];
 
     const CHUNK_SIZE = 3;
     for (
@@ -84,9 +88,8 @@ export async function POST(req: NextRequest) {
       i += CHUNK_SIZE, j += 1
     ) {
       const cardSet = normalizedDataRestRow.slice(i, i + CHUNK_SIZE);
-      // console.log(cardSet[1]["e2"]);
 
-      const data: any = {
+      const data: TypeAttendanceCardPila = {
         id: cardSet[1]["e2"],
         name: cardSet[1]["e9"],
         role: cardSet[1]["e17"],
@@ -281,20 +284,12 @@ export async function POST(req: NextRequest) {
       };
 
       pilaAttendanceCard.push(data);
-      // pilaAttendanceCard.push(cardSet);
     }
 
-    // return NextResponse.json(normalizedData)
-    // if (rawDataWorkSheet.length === 0) {
-    // return NextResponse.json(normalizedData);
-    // return NextResponse.json(normalizedDataFirstRow);
-    // return NextResponse.json(normalizedData.slice(1));
-    return NextResponse.json(pilaAttendanceCard);
-    // return NextResponse.json(normalizedDataRestRow);
-    // return NextResponse.json(trimmedData);
-    // return NextResponse.json(rawDataSheetName);
-    // }
-    // return NextResponse.json(rawDataWorkSheet);
+    return NextResponse.json({
+      date: `${normalizedDataFirstRow["e0"]}${normalizedDataFirstRow["e2"]}`,
+      pilaAttendanceCard,
+    });
   } catch (err) {
     console.error("Excel parsing error:", err);
     return NextResponse.json(
@@ -303,192 +298,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-// schedules: [
-//   {
-//     // 01
-//     [cardSet[1]["e0"]]: {
-//       values: cardSet[3]["e0"],
-//     },
-//   },
-//   {
-//     // 02
-//     [cardSet[1]["e1"]]: {
-//       values: cardSet[3]["e1"],
-//     },
-//   },
-//   {
-//     // 03
-//     [cardSet[1]["e2"]]: {
-//       values: cardSet[3]["e2"],
-//     },
-//   },
-//   {
-//     // 04
-//     [cardSet[1]["e3"]]: {
-//       values: cardSet[3]["e3"],
-//     },
-//   },
-//   {
-//     // 05
-//     [cardSet[1]["e4"]]: {
-//       values: cardSet[3]["e4"],
-//     },
-//   },
-//   {
-//     // 06
-//     [cardSet[1]["e5"]]: {
-//       values: cardSet[3]["e5"],
-//     },
-//   },
-//   {
-//     // 07
-//     [cardSet[1]["e6"]]: {
-//       values: cardSet[3]["e6"],
-//     },
-//   },
-//   {
-//     // 08
-//     [cardSet[1]["e7"]]: {
-//       values: cardSet[3]["e7"],
-//     },
-//   },
-//   {
-//     // 09
-//     [cardSet[1]["e8"]]: {
-//       values: cardSet[3]["e8"],
-//     },
-//   },
-//   {
-//     // 10
-//     [cardSet[1]["e9"]]: {
-//       values: cardSet[3]["e9"],
-//     },
-//   },
-//   {
-//     // 11
-//     [cardSet[1]["e10"]]: {
-//       values: cardSet[3]["e10"],
-//     },
-//   },
-//   {
-//     // 12
-//     [cardSet[1]["e11"]]: {
-//       values: cardSet[3]["e11"],
-//     },
-//   },
-//   {
-//     // 13
-//     [cardSet[1]["e12"]]: {
-//       values: cardSet[3]["e12"],
-//     },
-//   },
-//   {
-//     // 14
-//     [cardSet[1]["e13"]]: {
-//       values: cardSet[3]["e13"],
-//     },
-//   },
-//   {
-//     // 15
-//     [cardSet[1]["e14"]]: {
-//       values: cardSet[3]["e14"],
-//     },
-//   },
-//   {
-//     // 16
-//     [cardSet[1]["e15"]]: {
-//       values: cardSet[3]["e15"],
-//     },
-//   },
-//   {
-//     // 17
-//     [cardSet[1]["e16"]]: {
-//       values: cardSet[3]["e16"],
-//     },
-//   },
-//   {
-//     // 18
-//     [cardSet[1]["e17"]]: {
-//       values: cardSet[3]["e17"],
-//     },
-//   },
-//   {
-//     // 19
-//     [cardSet[1]["e18"]]: {
-//       values: cardSet[3]["e18"],
-//     },
-//   },
-//   {
-//     // 20
-//     [cardSet[1]["e19"]]: {
-//       values: cardSet[3]["e19"],
-//     },
-//   },
-//   {
-//     // 21
-//     [cardSet[1]["e20"]]: {
-//       values: cardSet[3]["e20"],
-//     },
-//   },
-//   {
-//     // 22
-//     [cardSet[1]["e21"]]: {
-//       values: cardSet[3]["e21"],
-//     },
-//   },
-//   {
-//     // 23
-//     [cardSet[1]["e22"]]: {
-//       values: cardSet[3]["e22"],
-//     },
-//   },
-//   {
-//     // 24
-//     [cardSet[1]["e23"]]: {
-//       values: cardSet[3]["e23"],
-//     },
-//   },
-//   {
-//     // 25
-//     [cardSet[1]["e24"]]: {
-//       values: cardSet[3]["e24"],
-//     },
-//   },
-//   {
-//     // 26
-//     [cardSet[1]["e25"]]: {
-//       values: cardSet[3]["e25"],
-//     },
-//   },
-//   {
-//     // 27
-//     [cardSet[1]["e26"]]: {
-//       values: cardSet[3]["e26"],
-//     },
-//   },
-//   {
-//     // 28
-//     [cardSet[1]["e27"]]: {
-//       values: cardSet[3]["e27"],
-//     },
-//   },
-//   {
-//     // 29
-//     [cardSet[1]["e28"]]: {
-//       values: cardSet[3]["e28"],
-//     },
-//   },
-//   {
-//     // 30
-//     [cardSet[1]["e29"]]: {
-//       values: cardSet[3]["e29"],
-//     },
-//   },
-//   {
-//     // 31
-//     [cardSet[1]["e30"]]: {
-//       values: cardSet[3]["e30"],
-//     },
-//   },
-// ],
