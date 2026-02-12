@@ -1,10 +1,10 @@
-import { Schedule } from "@/index";
+import { TypeScheduleGeo } from "@/index";
 import { convertToTimeFormat } from "@/utils/excelTImeFormat";
 
 export default function WorkDataMonth({
   scheduleData,
 }: {
-  scheduleData: [string, Schedule];
+  scheduleData: [string, TypeScheduleGeo];
 }) {
   const [dateId, schedule] = scheduleData;
 

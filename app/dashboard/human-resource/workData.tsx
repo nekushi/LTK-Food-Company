@@ -1,10 +1,14 @@
 import { linkToEmployee } from "@/dal/geo";
-import { InOut, TypeAttendanceCard, TypeSchedules, Schedule } from "@/index";
 import { getMonth } from "@/utils/numberToMonth";
-import WorkDataMonth from "./workDataMonth";
 import { MdDateRange, MdStars } from "react-icons/md";
-import { FaCircleCheck, FaCircleXmark } from "react-icons/fa6";
+import { FaCircleXmark } from "react-icons/fa6";
 import { FaCheckCircle, FaCircleNotch } from "react-icons/fa";
+import WorkDataMonth from "./workDataMonth";
+import {
+  TypeAttendanceCardGeo,
+  TypeScheduleGeo,
+  TypeSchedulesGeo,
+} from "@/index";
 
 export default function EmployeeWorkData({
   store,
@@ -12,8 +16,8 @@ export default function EmployeeWorkData({
   onApprovedData,
 }: {
   store: string;
-  data: TypeAttendanceCard;
-  onApprovedData: (data: TypeAttendanceCard) => void;
+  data: TypeAttendanceCardGeo;
+  onApprovedData: (data: TypeAttendanceCardGeo) => void;
 }) {
   // const handleLinkDataClick = async () => {
   //   console.log(data.id);
@@ -111,10 +115,10 @@ export default function EmployeeWorkData({
               </tr>
             </thead>
             <tbody>
-              {data.schedules.map((singleData: TypeSchedules) => {
+              {data.schedules.map((singleData: TypeSchedulesGeo) => {
                 const [dateId, schedule] = Object.entries(singleData)[0] as [
                   string,
-                  Schedule,
+                  TypeScheduleGeo,
                 ];
 
                 return (

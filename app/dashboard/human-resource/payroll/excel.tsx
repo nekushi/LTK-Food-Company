@@ -2,13 +2,13 @@
 
 import { linkToEmployee, postExcelFile } from "@/dal/geo";
 import React, { useState, useRef } from "react";
-import EmployeeWorkData from "../workData";
-import { TypeAttendanceCard } from "@/index";
+import EmployeeWorkData from "@/app/dashboard/human-resource/workData";
+import { TypeAttendanceCardGeo } from "@/index";
 
 export default function ExcelForm() {
   const [store, setStore] = useState("pila");
   const [excelFile, setExcelFile] = useState([]);
-  const [approvedData, setApprovedData] = useState<TypeAttendanceCard[]>([]);
+  const [approvedData, setApprovedData] = useState<TypeAttendanceCardGeo[]>([]);
 
   const handleLinkDataClick = async () => {
     // console.log(approvedData);
@@ -17,7 +17,7 @@ export default function ExcelForm() {
     console.log(res);
   };
 
-  const handleApprovedData = (newData: TypeAttendanceCard) => {
+  const handleApprovedData = (newData: TypeAttendanceCardGeo) => {
     setApprovedData([...approvedData, newData]);
     // console.log(approvedData);
   };
@@ -44,7 +44,6 @@ export default function ExcelForm() {
     console.log(results);
 
     setExcelFile(results);
-    console.log(results[0]);
 
     postExcelFile(results, employeeId);
   };
@@ -87,7 +86,7 @@ export default function ExcelForm() {
       </form>
       {excelFile.length !== 0 &&
         store === "geo" &&
-        excelFile.map((data: TypeAttendanceCard) => (
+        excelFile.map((data: TypeAttendanceCardGeo) => (
           <EmployeeWorkData
             key={data.id}
             store={store}
