@@ -15,28 +15,14 @@ export default function WorkDataMonth({
           <td className="pl-6 text-left">
             {dateId} / {schedule.week}
           </td>
+          <td>{convertToTimeFormat(schedule.in_out.morning.morning_in)}</td>
+          <td>{convertToTimeFormat(schedule.in_out.morning.morning_out)}</td>
+          <td>{convertToTimeFormat(schedule.in_out.afternoon.afternoon_in)}</td>
           <td>
-            {convertToTimeFormat(String(schedule.in_out.morning.morning_in))}
+            {convertToTimeFormat(schedule.in_out.afternoon.afternoon_out)}
           </td>
-          <td>
-            {convertToTimeFormat(String(schedule.in_out.morning.morning_out))}
-          </td>
-          <td>
-            {convertToTimeFormat(
-              String(schedule.in_out.afternoon.afternoon_in),
-            )}
-          </td>
-          <td>
-            {convertToTimeFormat(
-              String(schedule.in_out.afternoon.afternoon_out),
-            )}
-          </td>
-          <td>
-            {convertToTimeFormat(String(schedule.in_out.overtime.overtime_in))}
-          </td>
-          <td>
-            {convertToTimeFormat(String(schedule.in_out.overtime.overtime_out))}
-          </td>
+          <td>{convertToTimeFormat(schedule.in_out.overtime.overtime_in)}</td>
+          <td>{convertToTimeFormat(schedule.in_out.overtime.overtime_out)}</td>
         </tr>
       )}
     </>

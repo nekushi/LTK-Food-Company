@@ -1,4 +1,4 @@
-import { TypeAttendanceCard } from "@/index";
+import { TypeAttendanceCard, TypeRawData } from "@/index";
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 
@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
 
-    const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+    const rawData: TypeRawData[] = XLSX.utils.sheet_to_json(worksheet, {
+      defval: null,
+    });
 
     const columnMapping: Record<string, string> = {
       __EMPTY: "e0",
@@ -38,24 +40,19 @@ export async function POST(req: NextRequest) {
       __EMPTY_16: "e16",
     };
 
-    const normalizedData = rawData.map((row: any) => {
-      const newRow: Record<string, any> = {};
+    const normalizedData = rawData.map((row: TypeRawData) => {
+      const newRow: TypeRawData = {};
       Object.entries(row).forEach(([key, value]) => {
-        newRow[columnMapping[key] || key] = value;
+        newRow[columnMapping[key] || key] = String(value);
       });
       return newRow;
     });
 
-    // const attendanceCard: TypeNamedAttendanceCard = {};
     const attendanceCard: TypeAttendanceCard[] = [];
 
     const CHUNK_SIZE = 23;
     for (let i = 0, j = 0; i < normalizedData.length; i += CHUNK_SIZE, j += 1) {
       const cardSet = normalizedData.slice(i, i + CHUNK_SIZE);
-      // attendanceCard.push(cardSet[1]); // [6]["e0"] == "10.01"
-      // console.log(cardSet[0]);
-      // attendanceCard[i].header = cardSet[0]["e0"];
-      // attendanceCard[i].companyName = cardSet[1]["e0"];
 
       const data: TypeAttendanceCard = {
         header: cardSet[0]["e0"],
@@ -702,16 +699,11 @@ export async function POST(req: NextRequest) {
         ],
         employeeSignature: cardSet[22]["e12"].split(":").at(-1),
       };
-
-      // attendanceCard[cardSet[1]["e7"].split(":").at(-1)] = data; // id: { ... } || "e4" for name as key
       attendanceCard.push(data);
-
-      // // break;
-      // if (i == 2 * 23) break;
     }
 
-    // return NextResponse.json(attendanceCard);
     return NextResponse.json(attendanceCard);
+    // return NextResponse.json(rawData);
   } catch (err) {
     console.error("Excel parsing error:", err);
     return NextResponse.json(
@@ -720,52 +712,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-// type TypeSchedules = Record<string, Schedule>;
-
-// type Schedule = {
-//   week: string;
-//   in_out: InOut;
-// };
-
-// type InOut = {
-//   morning: {
-//     morning_in: number;
-//     morning_out: number;
-//   };
-//   afternoon: {
-//     afternoon_in: number;
-//     afternoon_out: number;
-//   };
-//   overtime: {
-//     overtime_in: number;
-//     overtime_out: number;
-//   };
-// };
-
-// type TypeAttendanceCard = {
-//   header: string;
-//   companyName: string;
-//   name: string;
-//   id: string;
-//   depart: string;
-//   dateRange: string;
-//   workingDays: number;
-//   attendanceDays: number;
-//   lateNum: number;
-//   earlyNum: number;
-//   absencesDays: number;
-//   overtimeHours: number;
-//   sickHours: number;
-//   leaveHours: number;
-//   dailySalary: number;
-//   overtimePay: number;
-//   allowances: number;
-//   charges: number;
-//   realPay: number;
-//   deviceId: number;
-//   schedules: TypeSchedules[];
-//   employeeSignature: boolean;
-// };
-
-// type TypeNamedAttendanceCard = Record<string, TypeAttendanceCard>;

@@ -6,7 +6,7 @@ import EmployeeWorkData from "../workData";
 import { TypeAttendanceCard } from "@/index";
 
 export default function ExcelForm() {
-  const [store, setStore] = useState("geo");
+  const [store, setStore] = useState("pila");
   const [excelFile, setExcelFile] = useState([]);
   const [approvedData, setApprovedData] = useState<TypeAttendanceCard[]>([]);
 
@@ -85,9 +85,6 @@ export default function ExcelForm() {
           Clear upload
         </button>
       </form>
-      {/* {excelFile.length !== 0 && store === "geo" && (
-        <pre>{JSON.stringify(excelFile, null, 2)}</pre>
-      )} */}
       {excelFile.length !== 0 &&
         store === "geo" &&
         excelFile.map((data: TypeAttendanceCard) => (

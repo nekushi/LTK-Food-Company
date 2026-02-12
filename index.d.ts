@@ -1,6 +1,3 @@
-import { JSONValue } from "next/dist/server/config-shared";
-import { JsonValue } from "./app/generated/prisma/internal/prismaNamespace";
-
 export type TypeSchedules = Record<string, Schedule>;
 
 export type Schedule = {
@@ -10,43 +7,67 @@ export type Schedule = {
 
 export type InOut = {
   morning: {
-    morning_in: number | null;
-    morning_out: number | null;
+    morning_in: string | null;
+    morning_out: string | null;
   };
   afternoon: {
-    afternoon_in: number | null;
-    afternoon_out: number | null;
+    afternoon_in: string | null;
+    afternoon_out: string | null;
   };
   overtime: {
-    overtime_in: number | null;
-    overtime_out: number | null;
+    overtime_in: string | null;
+    overtime_out: string | null;
   };
 };
 
 export type TypeAttendanceCard = {
-  header: string;
-  companyName: string;
-  name: string;
-  id: string;
-  depart: string;
-  dateRange: string;
-  workingDays: number;
-  attendanceDays: number;
-  lateNum: number;
-  earlyNum: number;
-  absencesDays: number;
-  overtimeHours: number;
-  sickHours: number;
-  leaveHours: number;
-  dailySalary: number;
-  overtimePay: number;
-  allowances: number;
-  charges: number;
-  realPay: number;
-  deviceId: number;
+  header: string | undefined;
+  companyName: string | undefined;
+  name: string | undefined;
+  id: string | undefined;
+  depart: string | undefined;
+  dateRange: string | undefined;
+  workingDays: string | undefined;
+  attendanceDays: string | undefined;
+  lateNum: string | undefined;
+  earlyNum: string | undefined;
+  absencesDays: string | undefined;
+  overtimeHours: string | undefined;
+  sickHours: string | undefined;
+  leaveHours: string | undefined;
+  dailySalary: string | undefined;
+  overtimePay: string | undefined;
+  allowances: string | undefined;
+  charges: string | undefined;
+  realPay: string | undefined;
+  deviceId: string | undefined;
   schedules: TypeSchedules[];
-  employeeSignature: boolean;
+  employeeSignature: string | undefined;
 };
+// export type TypeAttendanceCard = {
+//   header: string;
+//   companyName: string;
+//   name: string;
+//   id: string;
+//   depart: string;
+//   dateRange: string;
+//   workingDays: number;
+//   attendanceDays: number;
+//   lateNum: number;
+//   earlyNum: number;
+//   absencesDays: number;
+//   overtimeHours: number;
+//   sickHours: number;
+//   leaveHours: number;
+//   dailySalary: number;
+//   overtimePay: number;
+//   allowances: number;
+//   charges: number;
+//   realPay: number;
+//   deviceId: number;
+//   schedules: TypeSchedules[];
+//   employeeSignature: boolean;
+// };
 
 export type TypeNamedAttendanceCard = Record<string, TypeAttendanceCard>;
 
@@ -94,3 +115,6 @@ export type TypeUserWorkData = {
   employeeId: string;
   data: JSON[];
 } | null;
+
+// export type TypeRawData = Record<string, string | number | null>;
+export type TypeRawData = Record<string, string>;
