@@ -1,4 +1,4 @@
-import { TypeAttendanceCard, TypeRawData } from "@/index";
+import { TypeAttendanceCardGeo, TypeRawData } from "@/index";
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 
@@ -48,13 +48,13 @@ export async function POST(req: NextRequest) {
       return newRow;
     });
 
-    const attendanceCard: TypeAttendanceCard[] = [];
+    const attendanceCard: TypeAttendanceCardGeo[] = [];
 
     const CHUNK_SIZE = 23;
     for (let i = 0, j = 0; i < normalizedData.length; i += CHUNK_SIZE, j += 1) {
       const cardSet = normalizedData.slice(i, i + CHUNK_SIZE);
 
-      const data: TypeAttendanceCard = {
+      const data: TypeAttendanceCardGeo = {
         header: cardSet[0]["e0"],
         companyName: cardSet[1]["e0"].split(":").at(-1),
         name: cardSet[1]["e4"].split(":").at(-1),
