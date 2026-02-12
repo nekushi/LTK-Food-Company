@@ -10,7 +10,7 @@ import {
   TypeSchedulesGeo,
 } from "@/index";
 
-export default function EmployeeWorkData({
+export default function EmployeeWorkDataGeo({
   store,
   data,
   onApprovedData,

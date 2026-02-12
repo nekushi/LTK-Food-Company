@@ -2,12 +2,16 @@
 
 import { linkToEmployee, postExcelFile } from "@/dal/geo";
 import React, { useState, useRef } from "react";
-import EmployeeWorkData from "@/app/dashboard/human-resource/workData";
-import { TypeAttendanceCardGeo } from "@/index";
+import EmployeeWorkDataGeo from "@/components/geo/workData";
+import { TypeAttendanceCardGeo, TypeAttendanceCardReturnPila } from "@/index";
+import EmployeeWorkDataPila from "@/components/pila/workData";
 
 export default function ExcelForm() {
   const [store, setStore] = useState("pila");
-  const [excelFile, setExcelFile] = useState([]);
+  // const [excelFile, setExcelFile] = useState<unknown | null>([]);
+  const [excelFileGeo, setExcelFileGeo] = useState<TypeAttendanceCardGeo[]>([]);
+  const [excelFilePila, setExcelFilePila] =
+    useState<TypeAttendanceCardReturnPila | null>(null);
   const [approvedData, setApprovedData] = useState<TypeAttendanceCardGeo[]>([]);
 
   const handleLinkDataClick = async () => {
@@ -24,7 +28,8 @@ export default function ExcelForm() {
 
   const handleStoreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStore(e.target.value);
-    setExcelFile([]);
+    setExcelFileGeo([]);
+    setExcelFilePila(null);
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,14 +47,27 @@ export default function ExcelForm() {
     const results = await res.json();
     const employeeId = "00212";
     console.log(results);
+    // setExcelFile(results);
 
-    setExcelFile(results);
+    switch (store) {
+      case "geo":
+        setExcelFileGeo(results);
+        break;
+      case "pila":
+        setExcelFilePila(results);
+        // console.log(excelFilePila?[0]?.pilaAttendanceCard);
+
+        break;
+      default:
+        break;
+    }
 
     postExcelFile(results, employeeId);
   };
 
   const handleClearForm = () => {
-    setExcelFile([]);
+    setExcelFileGeo([]);
+    setExcelFilePila(null);
   };
 
   return (
@@ -84,19 +102,23 @@ export default function ExcelForm() {
           Clear upload
         </button>
       </form>
-      {excelFile.length !== 0 &&
-        store === "geo" &&
-        excelFile.map((data: TypeAttendanceCardGeo) => (
-          <EmployeeWorkData
+      {excelFileGeo.length !== 0 &&
+        excelFileGeo?.map((data: TypeAttendanceCardGeo) => (
+          <EmployeeWorkDataGeo
             key={data.id}
             store={store}
             data={data}
             onApprovedData={handleApprovedData}
           />
         ))}
-      {excelFile.length !== 0 && store === "pila" && (
-        <pre>{JSON.stringify(excelFile, null, 2)}</pre>
-      )}
+      {excelFilePila !== null &&
+        excelFilePila.pilaAttendanceCard.length !== 0 && (
+          <EmployeeWorkDataPila
+            store={store}
+            date={excelFilePila.date}
+            pilaAttendanceCard={excelFilePila.pilaAttendanceCard}
+          />
+        )}
       <button
         onClick={handleLinkDataClick}
         className="border px-2 py-1 rounded"
