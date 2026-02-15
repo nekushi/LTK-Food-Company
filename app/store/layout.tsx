@@ -1,7 +1,7 @@
+import StoreLayoutSidebar from "@/components/role/store/storeLayoutSidebar";
 import Header from "@/template/header";
-import LayoutSidebar from "./layoutSidebar";
 
-export default function HumanResourceLayout({
+export default function StoreLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -10,7 +10,7 @@ export default function HumanResourceLayout({
     <div>
       <Header />
       <div className="h-screen grid grid-cols-12">
-        <LayoutSidebar />
+        <StoreLayoutSidebar />
         <div className="col-span-10">{children}</div>
       </div>
     </div>

@@ -1,0 +1,20 @@
+export type EmployeeFormValues = {
+  firstName: string;
+  lastName: string;
+  employeeId: string;
+  dateHired: string;
+  sss: string;
+  pagIbig: string;
+  philhealth: string;
+  tin: string;
+  contactNo: string;
+  email: string;
+  includeInPayroll: boolean;
+  linkAttendanceCard: boolean;
+};
+
+export type EmployeeRow = Omit<EmployeeFormValues, "includeInPayroll" | "linkAttendanceCard"> & {
+  id: string;
+  includeInPayroll: boolean;
+  linkAttendanceCard: boolean;
+};

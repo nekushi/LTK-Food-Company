@@ -12,7 +12,7 @@ export default async function Employee() {
       <h2>This is employee section</h2>
       <h2 className="text-lg">Manage Employee</h2>
       <Link
-        href={"/dashboard/human-resource/employee/create-employee"}
+        href={"/human-resource/employee/create-employee"}
         className="border rounded px-2 py-1 block w-fit mb-8"
       >
         Create User
@@ -31,7 +31,7 @@ export default async function Employee() {
                 {user.role}
               </p>
               <Link
-                href={`/dashboard/human-resource/employee/${user.id}`}
+                href={`/human-resource/employee/${user.id}`}
                 className="border block w-fit px-4 py-2 rounded-sm mt-4 font-medium bg-amber-300 hover:bg-amber-400 active:bg-amber-500 transition"
               >
                 Manage user

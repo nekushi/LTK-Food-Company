@@ -1,0 +1,51 @@
+import type { StoreRequestHistoryEntry } from "./types";
+
+export const DUMMY_STORE_HISTORY: StoreRequestHistoryEntry[] = [
+  {
+    id: "r1",
+    date: "Feb 3, 2025",
+    itemName: "Bond Paper A4 80gsm",
+    itemCode: "BP-A4-80",
+    quantity: 5,
+    unit: "ream",
+    status: "Delivered",
+    notes: "Received on time",
+  },
+  {
+    id: "r2",
+    date: "Feb 5, 2025",
+    itemName: "Ballpen Blue",
+    itemCode: "BP-BLUE",
+    quantity: 2,
+    unit: "box",
+    status: "Approved",
+    notes: "Scheduled for delivery",
+  },
+  {
+    id: "r3",
+    date: "Feb 8, 2025",
+    itemName: "Liquid Soap 1L",
+    itemCode: "LS-1L",
+    quantity: 10,
+    unit: "L",
+    status: "Pending",
+  },
+  {
+    id: "r4",
+    date: "Jan 28, 2025",
+    itemName: "Tissue Roll 2-ply",
+    itemCode: "TR-2P",
+    quantity: 4,
+    unit: "pack",
+    status: "Delivered",
+  },
+  {
+    id: "r5",
+    date: "Feb 1, 2025",
+    itemName: "Bond Paper A4 80gsm",
+    quantity: 3,
+    unit: "ream",
+    status: "Cancelled",
+    notes: "Duplicate request",
+  },
+];

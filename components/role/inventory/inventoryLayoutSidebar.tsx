@@ -13,7 +13,7 @@ import { FaRegUser } from "react-icons/fa";
 
 import { TypeNavList } from "@/index";
 
-export default function LayoutSidebar() {
+export default function InventoryLayoutSidebar() {
   const path = usePathname();
 
   return (
@@ -58,20 +58,24 @@ export default function LayoutSidebar() {
 const navLists: TypeNavList[] = [
   {
     name: "Dashboard",
-    href: "/dashboard/human-resource",
+    href: "/inventory",
     icon: <IoAnalytics />,
   },
   {
-    name: "Employee",
-    href: "/dashboard/human-resource/employee",
+    name: "Inventory",
+    href: "/inventory/items",
     icon: <FaRegUser />,
   },
   {
-    name: "Payroll",
-    href: "/dashboard/human-resource/payroll",
+    name: "Add Inventory",
+    href: "/inventory/items-flow",
     icon: <PiReceiptLight />,
   },
-  { name: "Schedule", href: "", icon: <RiCalendarScheduleLine /> },
-  { name: "Department", href: "", icon: <IoIosGitBranch /> },
+  {
+    name: "Chats",
+    href: "/inventory/chats",
+    icon: <RiCalendarScheduleLine />,
+  },
+  { name: "History", href: "/inventory/history", icon: <IoIosGitBranch /> },
   { name: "Settings", href: "", icon: <IoSettingsOutline /> },
 ] as const;

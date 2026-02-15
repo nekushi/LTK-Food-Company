@@ -1,8 +1,30 @@
 @import "tailwindcss";
 
-/* :root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* LTK Food Corporation – powerful colors, not too light. Amber 60%, blue 30%, others 10% */
+:root {
+  --background: #faf8f5;
+  --foreground: #1c1917;
+  --ltk-amber-50: #fef7e6;
+  --ltk-amber-100: #fde9c4;
+  --ltk-amber-200: #fad48a;
+  --ltk-amber-300: #f5b942;
+  --ltk-amber-400: #e89b1a;
+  --ltk-amber-500: #c7780d;
+  --ltk-amber-600: #a65e0c;
+  --ltk-amber-700: #854a0d;
+  --ltk-amber-800: #6b3d0f;
+  --ltk-amber-900: #573310;
+  --ltk-blue-50: #e8f0fc;
+  --ltk-blue-100: #c8dff8;
+  --ltk-blue-200: #9ec8f2;
+  --ltk-blue-300: #6aa8e8;
+  --ltk-blue-400: #3d82d4;
+  --ltk-blue-500: #2563c2;
+  --ltk-blue-600: #1d4ea0;
+  --ltk-blue-700: #1a4082;
+  --ltk-blue-800: #1a3568;
+  --ltk-blue-900: #152a52;
+  --ltk-blue-white: #e6eef8;
 }
 
 @theme inline {
@@ -10,17 +32,30 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-ltk-amber-50: var(--ltk-amber-50);
+  --color-ltk-amber-100: var(--ltk-amber-100);
+  --color-ltk-amber-200: var(--ltk-amber-200);
+  --color-ltk-amber-400: var(--ltk-amber-400);
+  --color-ltk-amber-500: var(--ltk-amber-500);
+  --color-ltk-amber-600: var(--ltk-amber-600);
+  --color-ltk-amber-700: var(--ltk-amber-700);
+  --color-ltk-blue-50: var(--ltk-blue-50);
+  --color-ltk-blue-100: var(--ltk-blue-100);
+  --color-ltk-blue-200: var(--ltk-blue-200);
+  --color-ltk-blue-500: var(--ltk-blue-500);
+  --color-ltk-blue-600: var(--ltk-blue-600);
+  --color-ltk-blue-white: var(--ltk-blue-white);
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
+} */
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-} */
+}

@@ -1,0 +1,34 @@
+import type { EmployeeRow } from "./types";
+
+export const DUMMY_EMPLOYEES: EmployeeRow[] = [
+  {
+    id: "e1",
+    firstName: "Juan",
+    lastName: "Dela Cruz",
+    employeeId: "EMP-2025-001",
+    dateHired: "2025-01-15",
+    sss: "12-3456789-0",
+    pagIbig: "1234-5678-9012",
+    philhealth: "12-345678901-2",
+    tin: "123-456-789-000",
+    contactNo: "+63 912 345 6789",
+    email: "juan.delacruz@example.com",
+    includeInPayroll: true,
+    linkAttendanceCard: true,
+  },
+  {
+    id: "e2",
+    firstName: "Maria",
+    lastName: "Santos",
+    employeeId: "EMP-2025-002",
+    dateHired: "2025-02-01",
+    sss: "98-7654321-0",
+    pagIbig: "9876-5432-1098",
+    philhealth: "98-765432109-8",
+    tin: "987-654-321-000",
+    contactNo: "+63 918 765 4321",
+    email: "maria.santos@example.com",
+    includeInPayroll: true,
+    linkAttendanceCard: false,
+  },
+];
