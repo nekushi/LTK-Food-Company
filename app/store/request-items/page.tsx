@@ -6,7 +6,7 @@ export default async function StoreRequestItemPageSSR() {
   const itemsAvailable: ItemsReturnTypeStore[] = await getItemsStore();
 
   return (
-    <Suspense>
+    <Suspense fallback={<div>Loading...</div>}>
       <StoreRequestItemPage items={itemsAvailable} />
     </Suspense>
   );

@@ -1,16 +1,5 @@
-"use client";
-
-import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default function LoginPage() {
-  return (
-    <div className="p-4">
-      <div className="p-4">
-        <p>This is login page.</p>
-        <Link href={"/dashboard/"} className="border py-1 px-2 rounded">
-          Go to Dashboard
-        </Link>
-      </div>
-    </div>
-  );
+  redirect("/login");
 }

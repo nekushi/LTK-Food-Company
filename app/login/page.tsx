@@ -4,40 +4,17 @@ import { useForm } from "react-hook-form";
 import type { Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { loginSchema } from "../schemas/login.schema";
+import { loginSchema } from "../../schemas/login.schema";
 import { getUser } from "@/dal/login/get-user";
-
-const ROLES = [
-  "ADMIN",
-  "HR",
-  "STORE_ACCOUNT",
-  "DELIVERY_PERSONNEL",
-  "INVENTORY",
-] as const;
+import { toast } from "react-toastify";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
-
-// function getRedirectForRole(role: string): string {
-//   switch (role) {
-//     // case "ADMIN":
-//     //   return "/inventory";
-//     case "INVENTORY":
-//       return "/inventory";
-//     case "HR":
-//       return "/hr";
-//     case "STORE":
-//       return "/store";
-//     case "DELIVERY":
-//       return "/delivery";
-//     default:
-//       return "/";
-//   }
-// }
 
 export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema) as Resolver<LoginFormValues>,
@@ -58,6 +35,11 @@ export default function LoginPage() {
 
     const result = await getUser(row);
 
+    if (!result.success) {
+      toast.error(result.message);
+      reset();
+    }
+
     // if (result)
   };
 
@@ -67,7 +49,6 @@ export default function LoginPage() {
         <h1 className="mb-6 text-xl font-semibold text-amber-900">
           LTK Food Corporation
         </h1>
-        <p className="mb-4 text-sm text-amber-800/80">Sign in (UI only)</p>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-amber-900">

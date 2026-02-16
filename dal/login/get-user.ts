@@ -1,12 +1,14 @@
 "use server";
 
-import { loginSchema } from "@/app/schemas/login.schema";
+import { loginSchema } from "@/schemas/login.schema";
 import prisma from "@/lib/db";
 import { redirect } from "next/navigation";
 // import { redirect } from "next/dist/server/api-utils";
 import z, { success } from "zod";
 
 import bcrypt from "bcrypt";
+import { createSession, deleteSession } from "@/lib/session";
+import { cookies } from "next/headers";
 
 type UserData = z.infer<typeof loginSchema>;
 
@@ -60,27 +62,42 @@ export async function getUser(data: UserData): Promise<any> {
     findUser.password,
   );
 
-  // if (userData.password === findUser?.password) {
-  //   try {
-  if (passwordMatched) {
-    // await createSession(findUser.id, findUser.username, findUser.email);
-    const role = findUser.role;
-
-    console.log(`role`);
-    console.log(role);
-
-    if (role === "HR") {
-      redirect("/hr");
-    } else if (role === "ADMIN") {
-      redirect("/inventory");
-    } else if (role === "INVENTORY") {
-      redirect("/inventory");
-    } else if (role === "DELIVERY") {
-      redirect("/delivery");
-    } else if (role === "STORE") {
-      redirect("/store");
-    } else {
-      redirect("/");
-    }
+  if (!passwordMatched) {
+    return {
+      success: false,
+      message: "No user found",
+    };
   }
+  // await createSession(findUser.id, findUser.username, findUser.email);
+  const role = findUser.role;
+
+  console.log(`role`);
+  console.log(role);
+
+  await createSession(findUser.id, findUser.username, findUser.role);
+
+  if (role === "HR") {
+    redirect("/hr");
+  } else if (role === "ADMIN") {
+    redirect("/inventory");
+  } else if (role === "INVENTORY") {
+    redirect("/inventory");
+  } else if (role === "DELIVERY") {
+    redirect("/delivery");
+  } else if (role === "STORE") {
+    redirect("/store");
+  } else {
+    redirect("/");
+  }
+}
+
+export async function logout() {
+  // const myCookie = await cookies();
+  // const userId = myCookie.get("userId")?.value;
+  // const username = myCookie.get("username")?.value;
+  // const role = myCookie.get("role")?.value;
+
+  await deleteSession();
+
+  redirect("/login");
 }

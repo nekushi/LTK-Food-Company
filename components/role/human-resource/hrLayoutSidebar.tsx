@@ -12,6 +12,7 @@ import { PiReceiptLight } from "react-icons/pi";
 import { FaRegUser } from "react-icons/fa";
 
 import { TypeNavList } from "@/index";
+import BtnLogout from "@/app/login/btnLogout";
 
 export default function HRLayoutSidebar() {
   const path = usePathname();
@@ -48,9 +49,7 @@ export default function HRLayoutSidebar() {
           })}
         </ul>
       </section>
-      <button className="py-2 rounded-md font-medium bg-blue-100 hover:bg-blue-200 active:bg-blue-300">
-        Log Out
-      </button>
+      <BtnLogout />
     </aside>
   );
 }

@@ -6,8 +6,9 @@ import { redirect } from "next/navigation";
 import z, { success } from "zod";
 
 import bcrypt from "bcrypt";
-import { itemsFlowSchema } from "@/app/schemas/items.schema";
+
 import { Prisma } from "@/app/generated/prisma/client";
+import { itemsFlowSchema } from "@/schemas/items.schema";
 
 type ItemFlowSchema = z.infer<typeof itemsFlowSchema>;
 

@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import type { RequestLineItem } from "./types";
+import { requestItems } from "@/dal/inventory/request-items";
 import { ItemsReturnTypeStore } from "@/dal/inventory/get-items";
+import { toast } from "react-toastify";
 
 const inputClass =
   "w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500";
@@ -13,16 +15,20 @@ export default function StoreRequestItemPage({
 }: {
   items: ItemsReturnTypeStore[];
 }) {
-  const [cart, setCart] = useState<RequestLineItem[]>([]);
+  const [cart, setCart] = useState<ItemsReturnTypeStore[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalItem, setModalItem] = useState<ItemsReturnTypeStore | null>(null);
   const [formProductName, setFormProductName] = useState("");
   const [formQuantity, setFormQuantity] = useState<number>(1);
   const [formUom, setFormUom] = useState("");
+  const [formId, setFormId] = useState<string>("");
+  const [formAccRecognition, setFormAccRecognition] = useState("");
 
   const openModal = (item: ItemsReturnTypeStore) => {
     setModalItem(item);
+    setFormId(item.id);
     setFormProductName(item.productNameGeneral);
+    setFormAccRecognition(item.accountRecognition);
     setFormQuantity(1);
     setFormUom(item.unitOfMeasurement);
     setModalOpen(true);
@@ -36,11 +42,14 @@ export default function StoreRequestItemPage({
   const addToCart = () => {
     const qty = Number(formQuantity);
     if (Number.isNaN(qty) || qty <= 0) return;
-    const line: RequestLineItem = {
-      productName:
+    const line: ItemsReturnTypeStore = {
+      id: formId,
+      productNameGeneral:
         (formProductName.trim() || modalItem?.productNameGeneral) ?? "",
       quantity: qty,
       unitOfMeasurement: (formUom.trim() || modalItem?.unitOfMeasurement) ?? "",
+      accountRecognition:
+        (formAccRecognition.trim() || modalItem?.accountRecognition) ?? "",
     };
     setCart((prev) => [...prev, line]);
     closeModal();
@@ -50,11 +59,16 @@ export default function StoreRequestItemPage({
     setCart((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const sendRequest = () => {
+  const sendRequest = async () => {
     if (cart.length === 0) return;
     console.log("Send request", cart);
-    alert(`Request sent (UI only). ${cart.length} item(s).`);
-    setCart([]);
+    // alert(`Request sent (UI only). ${cart.length} item(s).`);
+    const result = await requestItems(cart);
+
+    if (result.success === "success") {
+      toast.success(result.message);
+      setCart([]);
+    }
   };
 
   return (
@@ -69,7 +83,7 @@ export default function StoreRequestItemPage({
       <div className="overflow-hidden rounded-xl border border-amber-200 bg-white shadow-sm">
         <div className="border-b border-amber-200 bg-amber-50 px-4 py-2">
           <h2 className="text-sm font-semibold text-amber-900">
-            Available items (from inventory)
+            Available items (from inventory) (for reference)
           </h2>
           <p className="text-xs text-amber-700/80">
             Click a row to open the form and add to cart
@@ -81,6 +95,9 @@ export default function StoreRequestItemPage({
               <tr className="border-b border-amber-200 bg-amber-50/70">
                 <th className="whitespace-nowrap px-5 py-3 font-semibold text-amber-900">
                   Product name (general)
+                </th>
+                <th className="whitespace-nowrap px-5 py-3 font-semibold text-amber-900">
+                  Account Recognition
                 </th>
                 <th className="whitespace-nowrap px-5 py-3 font-semibold text-amber-900">
                   Quantity
@@ -102,6 +119,9 @@ export default function StoreRequestItemPage({
                 >
                   <td className="px-5 py-3 text-amber-900">
                     {item.productNameGeneral}
+                  </td>
+                  <td className="px-5 py-3 text-amber-900">
+                    {item.accountRecognition}
                   </td>
                   <td className="whitespace-nowrap px-5 py-3 text-amber-900">
                     {item.quantity}
@@ -144,6 +164,7 @@ export default function StoreRequestItemPage({
                 <thead>
                   <tr className="border-b border-amber-200 text-amber-900">
                     <th className="py-2 font-medium">Product name</th>
+                    <th className="py-2 font-medium">Account Recognition</th>
                     <th className="py-2 font-medium">Quantity</th>
                     <th className="py-2 font-medium">Unit of measurement</th>
                     <th className="w-20" />
@@ -152,8 +173,12 @@ export default function StoreRequestItemPage({
                 <tbody>
                   {cart.map((line, index) => (
                     <tr key={index} className="border-b border-amber-100">
+                      <td className="py-2 text-amber-900 hidden">{line.id}</td>
                       <td className="py-2 text-amber-900">
-                        {line.productName}
+                        {line.productNameGeneral}
+                      </td>
+                      <td className="py-2 text-amber-900">
+                        {line.accountRecognition}
                       </td>
                       <td className="py-2 text-amber-900">{line.quantity}</td>
                       <td className="py-2 text-amber-900">
@@ -216,6 +241,18 @@ export default function StoreRequestItemPage({
                   step="any"
                   value={formQuantity}
                   onChange={(e) => setFormQuantity(Number(e.target.value))}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Recognition</label>
+                <input
+                  type="text"
+                  min="0.001"
+                  step="any"
+                  value={formAccRecognition}
+                  readOnly
+                  onChange={(e) => setFormAccRecognition(e.target.value)}
                   className={inputClass}
                 />
               </div>

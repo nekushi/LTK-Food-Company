@@ -141,6 +141,45 @@ model Account {
   password  String
   roleId    String?
   role      Role
+
+  hr        HumanResource?
+  inventory InventoryManager?
+  store     Store?
+  delivery  Delivery?
+}
+
+model Delivery {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      Account  @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model InventoryManager {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      Account  @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model HumanResource {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      Account  @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Store {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      Account  @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  requestItems RequestedItems[]
 }
 
 model Inventory {
@@ -163,4 +202,15 @@ model Inventory {
   vat                 Float
   ewt                 Float
   netPay              Float
+}
+
+model RequestedItems {
+  id                 String @id @default(uuid())
+  productNameGeneral String
+  quantity           Int
+  accountRecognition String
+  unitOfMeasurement  String
+
+  requestId String @unique
+  requestBy Store  @relation(fields: [requestId], references: [id])
 }

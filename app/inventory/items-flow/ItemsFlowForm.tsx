@@ -11,7 +11,7 @@ import {
   MONTH_NAMES,
   STOCK_TYPES,
   VAT_TYPES,
-} from "@/app/schemas/items.schema";
+} from "@/schemas/items.schema";
 import { addItems } from "@/dal/inventory/add-item";
 import { toast } from "react-toastify";
 

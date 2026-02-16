@@ -5,11 +5,12 @@ import { useForm } from "react-hook-form";
 import type { Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { createUserAccount } from "@/app/actions/create-user-account";
+// import { createUserAccount } from "@/app/actions/create-user-account";
 import { AccountRow } from "@/index";
-import { accountSchema } from "@/app/schemas/account.schema";
+import { accountSchema } from "@/schemas/account.schema";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { createUserAccount } from "@/dal/accounts/create-user-account";
 
 // export const accountSchema = z.object({
 //   firstName: z.string().min(1, "Required"),
