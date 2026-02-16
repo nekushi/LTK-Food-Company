@@ -211,6 +211,6 @@ model RequestedItems {
   accountRecognition String
   unitOfMeasurement  String
 
-  requestId String @unique
-  requestBy Store  @relation(fields: [requestId], references: [id])
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id])
 }

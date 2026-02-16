@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { RequestLineItem } from "./types";
 import { requestItems } from "@/dal/inventory/request-items";
 import { ItemsReturnTypeStore } from "@/dal/inventory/get-items";
 import { toast } from "react-toastify";
@@ -62,12 +61,15 @@ export default function StoreRequestItemPage({
   const sendRequest = async () => {
     if (cart.length === 0) return;
     console.log("Send request", cart);
-    // alert(`Request sent (UI only). ${cart.length} item(s).`);
     const result = await requestItems(cart);
 
-    if (result.success === "success") {
+    if (result.success) {
       toast.success(result.message);
       setCart([]);
+    }
+
+    if (!result.success) {
+      toast.error(result.message);
     }
   };
 

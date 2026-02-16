@@ -1,31 +1,56 @@
 "use server";
 
-import { success } from "zod";
 import { ItemsReturnTypeStore } from "./get-items";
 import prisma from "@/lib/db";
-
-// export async function requestItems(cart: ItemsReturnTypeStore[]) {
-//   return "nice";
-// }
+import { cookies } from "next/headers";
+import { decrypt, SessionPayload } from "@/lib/session";
 
 export async function requestItems(cart: ItemsReturnTypeStore[]) {
   console.log(`Requesting items`);
 
+  console.log(cart);
+
+  const myCookies = (await cookies()).get("session")?.value;
+  const payload = await decrypt(myCookies);
+
+  //   if (!payload)
+  //     return {
+  //       success: false,
+  //       message: "Something went wrong",
+  //     };
+
+  //   const userId = payload?.userId
+
+  const whoRequested = await prisma.store.findUnique({
+    where: {
+      userId: payload?.userId,
+    },
+  });
+
+  console.log(`whoRequested`);
+  console.log(whoRequested);
+
+  if (!whoRequested)
+    return {
+      success: false,
+      message: "Account not found.",
+    };
+
   try {
-    cart.forEach(async (c: ItemsReturnTypeStore) => {
-      const requestedItems = await prisma.requestedItems.create({
+    for (const c of cart) {
+      await prisma.requestedItems.create({
         data: {
           productNameGeneral: c.productNameGeneral,
           quantity: c.quantity,
           accountRecognition: c.accountRecognition,
           unitOfMeasurement: c.unitOfMeasurement,
-          //   requestId:
+          storeId: whoRequested.id,
         },
       });
-    });
+    }
 
     return {
-      success: "success",
+      success: true,
       message: "Items requested successfully",
     };
   } catch (error) {
@@ -34,18 +59,4 @@ export async function requestItems(cart: ItemsReturnTypeStore[]) {
       message: "Something went wrong. Try again.",
     };
   }
-
-  //   const items = await prisma.inventory.findMany();
-
-  //   const forIventory = items.map((item) => ({
-  //     ...item,
-  //     unitPrice: Number(item.unitPrice),
-  //     totalPrice: Number(item.totalPrice),
-  //     vatable: Number(item.vatable),
-  //     vat: Number(item.vat),
-  //     ewt: Number(item.ewt),
-  //     netPay: Number(item.netPay),
-  //   }));
-
-  //   return forIventory;
 }
