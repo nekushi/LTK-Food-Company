@@ -13,69 +13,154 @@ datasource db {
   provider = "postgresql"
 }
 
+// enum Role {
+//   ADMIN
+//   HUMAN_RESOURCE
+//   STOCK_MANAGER
+//   DELIVERY_PERSONNEL
+//   COLLABORATOR
+//   EMPLOYEE
+// }
+
+// model User {
+//   id        String   @id @default(uuid())
+//   firstName String
+//   lastName  String
+//   username  String
+//   password  String
+//   role      Role
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @default(now())
+
+//   employee          Employee?
+//   deliveryPersonnel DeliveryPersonnel?
+//   stockManager      StockManager?
+//   humanResource     HumanResource?
+// }
+
+// model Employee {
+//   id           String             @id @default(uuid())
+//   employeeId   String             @unique // employeeCode
+//   userId       String             @unique
+//   user         User               @relation(fields: [userId], references: [id])
+//   createdAt    DateTime           @default(now())
+//   updatedAt    DateTime           @default(now())
+//   employeeData EmployeeWorkData[]
+// }
+
+// model EmployeeWorkData {
+//   id         String   @id @default(uuid())
+//   employeeId String
+//   employee   Employee @relation(fields: [employeeId], references: [id])
+//   data       Json[]
+//   // ...cardDatas
+// }
+
+// model DeliveryPersonnel {
+//   id        String   @id @default(uuid())
+//   userId    String   @unique
+//   user      User     @relation(fields: [userId], references: [id])
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @default(now())
+// }
+
+// model StockManager {
+//   id        String   @id @default(uuid())
+//   userId    String   @unique
+//   user      User     @relation(fields: [userId], references: [id])
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @default(now())
+// }
+
+// model HumanResource {
+//   id        String   @id @default(uuid())
+//   userId    String   @unique
+//   user      User     @relation(fields: [userId], references: [id])
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @default(now())
+// }
+
+// enum SupplierName {
+//   JB_Pila
+//   JB_Geo
+//   JB_Calamba
+//   JB_Pio
+//   Various_User
+// }
+
+// model Inventory {
+//   id                             String       @id @default(uuid())
+//   monthCreated                   String
+//   yearCreated                    Int
+//   supplierName                   SupplierName
+//   tinNumber                      String
+//   vatRegistered                  Boolean?
+//   nonVat                         Boolean?
+//   beginningStock                 Boolean?
+//   additinalStock                 Boolean?
+//   issuedStock                    Boolean?
+//   productName                    String
+//   productNameSpecific            String
+//   productNameGeneral             String
+//   itemCode                       String?
+//   recognitionOfficeSupplies      Boolean?
+//   recognitionOperationalSupplies Boolean?
+//   recognitionJanitorials         Boolean?
+//   recognitionMarketingSupplies   Boolean?
+//   unitOfMeasurement              String
+//   quantity                       Int
+//   unitPrice                      Decimal
+//   totalPrice                     Decimal
+//   vatable                        Decimal
+//   vat                            Decimal
+//   ewt                            Decimal
+//   netPay                         Decimal
+// }
+
 enum Role {
   ADMIN
-  HUMAN_RESOURCE
-  STOCK_MANAGER
-  DELIVERY_PERSONNEL
-  COLLABORATOR
-  EMPLOYEE
+  HR
+  INVENTORY
+  STORE
+  DELIVERY
 }
 
-model User {
-  id        String   @id @default(uuid())
+enum SupplierName {
+  JB_Pila
+  JB_Geo
+  JB_Calamba
+  JB_Pio
+  Various_User
+}
+
+model Account {
+  id        String  @id @default(uuid())
   firstName String
   lastName  String
   username  String
   password  String
+  roleId    String?
   role      Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
-  employee          Employee?
-  deliveryPersonnel DeliveryPersonnel?
-  stockManager      StockManager?
-  humanResource     HumanResource?
 }
 
-model Employee {
-  id           String             @id @default(uuid())
-  employeeId   String             @unique // employeeCode
-  userId       String             @unique
-  user         User               @relation(fields: [userId], references: [id])
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @default(now())
-  employeeData EmployeeWorkData[]
-}
-
-model EmployeeWorkData {
-  id         String   @id @default(uuid())
-  employeeId String
-  employee   Employee @relation(fields: [employeeId], references: [id])
-  data       Json[]
-  // ...cardDatas
-}
-
-model DeliveryPersonnel {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-}
-
-model StockManager {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-}
-
-model HumanResource {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+model Inventory {
+  id                  String  @id @default(uuid())
+  periodMonth         String
+  periodYear          String
+  supplierName        String
+  tinNumber           String?
+  typeOfVatTaxpayer   String?
+  typeOfStocks        String
+  productNameSpecific String
+  productNameGeneral  String
+  itemCode            String?
+  accountRecognition  String
+  unitOfMeasurement   String
+  quantity            Int
+  unitPrice           Decimal
+  totalPrice          Decimal
+  vatable             Decimal
+  vat                 Decimal
+  ewt                 Decimal
+  netPay              Decimal
 }

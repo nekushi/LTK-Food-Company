@@ -4,80 +4,16 @@ import type { Resolver } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-const STOCK_TYPES = [
-  "Beginning Stocks",
-  "Additional Stocks",
-  "Issued Stocks",
-] as const;
-const VAT_TYPES = ["VAT Registered", "Non-VAT"] as const;
-const ACCOUNTING_RECOGNITION = [
-  "Office Supplies",
-  "Operational Supplies",
-  "Janitorials",
-  "Marketing Supplies",
-] as const;
-const MEASUREMENTS = [
-  "pc",
-  "box",
-  "kg",
-  "g",
-  "L",
-  "mL",
-  "dozen",
-  "pack",
-  "roll",
-  "ream",
-];
-
-const itemsFlowSchema = z
-  .object({
-    periodMonth: z.string().min(1, "Required"),
-    periodYear: z.string().min(1, "Required"),
-    typeOfStocks: z.enum(STOCK_TYPES),
-    typeOfVatTaxpayer: z.enum(VAT_TYPES).optional(),
-    supplierName: z.string().min(1, "Required"),
-    tinNo: z.string().optional(),
-    productNameSpecific: z.string().min(1, "Required"),
-    productNameGeneral: z.string().min(1, "Required"),
-    itemCode: z.string().optional(),
-    accountingRecognition: z.enum(ACCOUNTING_RECOGNITION),
-    measurement: z.string().min(1, "Required"),
-    quantity: z.coerce.number().min(0.0001, "Must be greater than 0"),
-    unitPrice: z.coerce.number().min(0, "Must be 0 or greater"),
-  })
-  .superRefine((data, ctx) => {
-    if (data.typeOfStocks !== "Issued Stocks") {
-      if (!data.typeOfVatTaxpayer) {
-        ctx.addIssue({
-          path: ["typeOfVatTaxpayer"],
-          message: "Required when not Issued stocks",
-          code: z.ZodIssueCode.custom,
-        });
-      }
-      if (!data.tinNo || data.tinNo.trim() === "") {
-        ctx.addIssue({
-          path: ["tinNo"],
-          message: "TIN is required when not Issued stocks",
-          code: z.ZodIssueCode.custom,
-        });
-      }
-    }
-  });
+import {
+  ACCOUNTING_RECOGNITION,
+  itemsFlowSchema,
+  MEASUREMENTS,
+  MONTH_NAMES,
+  STOCK_TYPES,
+  VAT_TYPES,
+} from "@/app/schemas/items.schema";
+import { addItems } from "@/dal/inventory/add-item";
+import { toast } from "react-toastify";
 
 export type ItemsFlowFormValues = z.infer<typeof itemsFlowSchema>;
 
@@ -104,7 +40,7 @@ function computeDerived(
   }
   const vatable = totalPrice / 1.12;
   const vat = totalPrice - vatable;
-  const ewt = vatable * 0.02;
+  const ewt = vatable * 0.01;
   const netPay = totalPrice - ewt;
   return { totalPrice, vatable, vat, ewt, netPay };
 }
@@ -114,6 +50,7 @@ export function ItemsFlowForm() {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<ItemsFlowFormValues>({
     resolver: zodResolver(itemsFlowSchema) as Resolver<ItemsFlowFormValues>,
@@ -146,10 +83,31 @@ export function ItemsFlowForm() {
     isVatRegistered,
   );
 
-  const onSubmit = (data: ItemsFlowFormValues) => {
+  const onSubmit = async (data: ItemsFlowFormValues) => {
     const payload = { ...data, ...derived };
+    const row: z.infer<typeof itemsFlowSchema> = {
+      periodMonth: data.periodMonth,
+      periodYear: data.periodYear,
+      supplierName: data.supplierName,
+      tinNo: data.tinNo,
+      typeOfVatTaxpayer: data.typeOfVatTaxpayer,
+      typeOfStocks: data.typeOfStocks,
+      productNameSpecific: data.productNameSpecific,
+      productNameGeneral: data.productNameGeneral,
+      itemCode: data.itemCode,
+      accountingRecognition: data.accountingRecognition,
+      measurement: data.measurement,
+      quantity: data.quantity,
+      unitPrice: data.unitPrice,
+    };
     console.log("Items flow submit", payload);
-    alert("Form submitted (UI only). Data logged to console.");
+    const result = await addItems(row);
+
+    if (result.success === "success") {
+      toast.success(result.message);
+      reset();
+    }
+    // alert("Form submitted (UI only). Data logged to console.");
   };
 
   const onStoreForBatch = () => {
@@ -182,7 +140,18 @@ export function ItemsFlowForm() {
           </h1>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+        <form
+          onSubmit={handleSubmit(
+            (data) => {
+              console.log("VALID SUBMIT", data);
+              onSubmit(data);
+            },
+            (errors) => {
+              console.log("INVALID SUBMIT", errors);
+            },
+          )}
+          className="p-6"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 md:gap-0">
             {/* Left column */}
             <div className="space-y-4 border-amber-200 pr-0 md:border-r md:pr-8">
@@ -414,6 +383,27 @@ export function ItemsFlowForm() {
               </div>
 
               <div className="space-y-2 border-t border-amber-200 pt-4">
+                {/* <div>
+                  <label className={labelClass}>Total price:</label>
+                  <input
+                    type="number"
+                    step="any"
+                    {...register("totalPrice")}
+                    className={inputClass}
+                    placeholder="00"
+                    defaultValue={
+                      derived.totalPrice > 0
+                        ? derived.totalPrice.toFixed(2)
+                        : "auto generated"
+                    }
+                  />
+                  {errors.totalPrice && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {errors.totalPrice.message}
+                    </p>
+                  )}
+                </div> */}
+
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-sm font-medium text-amber-900">
                     Total Price:
@@ -468,18 +458,18 @@ export function ItemsFlowForm() {
 
           {/* Buttons - full width, stacked */}
           <div className="mt-8 flex flex-col gap-3 border-t border-amber-200 pt-6">
-            <button
+            {/* <button
               type="button"
               onClick={onStoreForBatch}
               className="w-full rounded-md bg-amber-500 py-2.5 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
             >
               Store for batch save
-            </button>
+            </button> */}
             <button
               type="submit"
               className="w-full rounded-md bg-emerald-500 py-2.5 text-sm font-medium text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
             >
-              Save batched data
+              Save item
             </button>
           </div>
         </form>

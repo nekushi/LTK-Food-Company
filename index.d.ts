@@ -98,3 +98,41 @@ export type TypeAttendanceCardReturnPila = {
   pilaAttendanceCard: TypeAttendanceCardPila[];
 };
 // PILA END //
+
+// CREATE USER ACCOUNT START //
+export type AccountRow = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  password: string;
+  role: string;
+};
+// END //
+
+type CreateAccountResponse =
+  | {
+      status: "validation_error";
+      errors: { errors: string[] };
+      // errors: {
+      //   firstName?: string[] | undefined;
+      //   lastName?: string[] | undefined;
+      //   username?: string[] | undefined;
+      //   password?: string[] | undefined;
+      //   role?: string[] | undefined;
+      // };
+    }
+  | {
+      success: true;
+      message: string;
+      user: {
+        firstName: string;
+        lastName: string;
+        username: string;
+        role: "ADMIN" | "HR" | "INVENTORY" | "STORE" | "DELIVERY";
+      };
+    }
+  | {
+      success: false;
+      message: string;
+    };

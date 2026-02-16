@@ -18,11 +18,15 @@ export function ChatLayout({
   messages,
   onSendMessage,
 }: ChatLayoutProps) {
-  const [selectedId, setSelectedId] = useState<string>(conversations[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState<string>(
+    conversations[0]?.id ?? "",
+  );
   const [inputValue, setInputValue] = useState("");
 
   const selectedConversation = conversations.find((c) => c.id === selectedId);
-  const threadMessages = messages.filter((m) => m.conversationId === selectedId);
+  const threadMessages = messages.filter(
+    (m) => m.conversationId === selectedId,
+  );
 
   const handleSend = () => {
     const trimmed = inputValue.trim();
@@ -32,7 +36,7 @@ export function ChatLayout({
   };
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] min-h-[400px] flex-col rounded-xl border border-amber-200 bg-white shadow-sm md:flex-row">
+    <div className="flex h-[calc(100vh-8rem)] min-h-100 flex-col rounded-xl border border-amber-200 bg-white shadow-sm md:flex-row">
       {/* Conversation list */}
       <aside className="w-full border-b border-amber-200 md:w-64 md:border-b-0 md:border-r">
         <div className="border-b border-amber-200 p-3">
@@ -41,7 +45,7 @@ export function ChatLayout({
             <p className="mt-0.5 text-xs text-amber-700/80">{subtitle}</p>
           )}
         </div>
-        <ul className="max-h-[200px] overflow-y-auto md:max-h-none md:flex-1">
+        <ul className="max-h-50 overflow-y-auto md:max-h-none md:flex-1">
           {conversations.map((c) => (
             <li key={c.id}>
               <button
@@ -51,7 +55,9 @@ export function ChatLayout({
                   selectedId === c.id ? "bg-amber-100" : ""
                 }`}
               >
-                <span className="text-sm font-medium text-amber-900">{c.name}</span>
+                <span className="text-sm font-medium text-amber-900">
+                  {c.name}
+                </span>
                 {c.lastMessage && (
                   <span className="truncate text-xs text-amber-700/80">
                     {c.lastMessage}
@@ -61,7 +67,7 @@ export function ChatLayout({
                   <span className="text-xs text-amber-600/70">{c.lastAt}</span>
                 )}
                 {c.unread !== undefined && c.unread > 0 && (
-                  <span className="mt-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-medium text-white">
+                  <span className="mt-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-medium text-white">
                     {c.unread}
                   </span>
                 )}
@@ -104,7 +110,7 @@ export function ChatLayout({
                             {msg.senderName}
                           </p>
                         )}
-                        <p className="text-sm whitespace-pre-wrap break-words">
+                        <p className="text-sm whitespace-pre-wrap wrap-break-word">
                           {msg.body}
                         </p>
                         <p

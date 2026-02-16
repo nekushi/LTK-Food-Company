@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const workbook = XLSX.read(buffer, { type: "buffer" });
-    const sheetName = workbook.SheetNames[0];
+    const sheetName = workbook.SheetNames[1];
     // const worksheet = workbook.Sheets[sheetName];
     const worksheet1 = workbook.Sheets[sheetName];
     const worksheet2 = workbook.Sheets["Attend. Logs"];

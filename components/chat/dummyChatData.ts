@@ -2,20 +2,51 @@ import type { ChatConversation, ChatMessage } from "./types";
 
 /** Dummy conversations for inventory personnel (chat with stores) */
 export const INVENTORY_CONVERSATIONS: ChatConversation[] = [
-  { id: "store-alpha", name: "Store Alpha", lastMessage: "Can we get 5 reams of bond paper?", lastAt: "2m ago", unread: 1 },
-  { id: "store-beta", name: "Store Beta", lastMessage: "Request received. Will deliver tomorrow.", lastAt: "1h ago" },
-  { id: "store-gamma", name: "Store Gamma", lastMessage: "Thanks for the quick response.", lastAt: "Yesterday" },
+  {
+    id: "store-alpha",
+    name: "Store Alpha",
+    lastMessage: "Can we get 5 reams of bond paper?",
+    lastAt: "2m ago",
+    unread: 1,
+  },
+  {
+    id: "store-beta",
+    name: "Store Beta",
+    lastMessage: "Request received. Will deliver tomorrow.",
+    lastAt: "1h ago",
+  },
+  {
+    id: "store-gamma",
+    name: "Store Gamma",
+    lastMessage: "Thanks for the quick response.",
+    lastAt: "Yesterday",
+  },
 ];
 
 /** Dummy conversations for store account (chat with inventory) */
 export const STORE_CONVERSATIONS: ChatConversation[] = [
-  { id: "inventory-main", name: "Inventory Personnel", lastMessage: "Request received. Will deliver tomorrow.", lastAt: "1h ago" },
+  {
+    id: "inventory-main",
+    name: "Inventory Personnel",
+    lastMessage: "Request received. Will deliver tomorrow.",
+    lastAt: "1h ago",
+  },
 ];
 
 /** Dummy conversations for HR (internal / support) */
 export const HR_CONVERSATIONS: ChatConversation[] = [
-  { id: "support", name: "Support", lastMessage: "Payroll file has been processed.", lastAt: "30m ago" },
-  { id: "admin", name: "Admin", lastMessage: "New accounts created: 2.", lastAt: "Yesterday" },
+  {
+    id: "support",
+    name: "Support",
+    lastMessage: "Payroll file has been processed.",
+    lastAt: "30m ago",
+  },
+  {
+    id: "admin",
+    name: "Admin",
+    lastMessage: "New accounts created: 2.",
+    lastAt: "Yesterday",
+  },
 ];
 
 /** Shared dummy messages for a thread (inventory ↔ store) */
