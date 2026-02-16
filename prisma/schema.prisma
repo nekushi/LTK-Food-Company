@@ -157,10 +157,10 @@ model Inventory {
   accountRecognition  String
   unitOfMeasurement   String
   quantity            Int
-  unitPrice           Decimal
-  totalPrice          Decimal
-  vatable             Decimal
-  vat                 Decimal
-  ewt                 Decimal
-  netPay              Decimal
+  unitPrice           Float
+  totalPrice          Float
+  vatable             Float
+  vat                 Float
+  ewt                 Float
+  netPay              Float
 }
