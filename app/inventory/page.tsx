@@ -38,19 +38,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import { getRequestedItemsWithStore } from "@/dal/inventory/get-requested-items";
+import { rejectRequest } from "@/dal/inventory/get-requested-items";
 
 interface RequestedItem {
-  id: string; // Prisma UUID
+  id: string;
   productNameGeneral: string;
   quantity: number;
   storeId: string;
 }
 
-type RequestedItemWithStoreUI = RequestedItem;
+interface RequestedItemWithStoreUI extends RequestedItem {
+  storeUsername?: string;
+}
 
 interface InventoryDashboardLink {
   href: string;
@@ -96,20 +98,56 @@ export default function Inventory() {
     [],
   );
   const [initialIds, setInitialIds] = useState<Set<string>>(new Set());
+  const [storeIdToUsername, setStoreIdToUsername] = useState<
+    Record<string, string>
+  >({});
+  const [decisionModal, setDecisionModal] = useState<{
+    open: boolean;
+    itemId: string;
+    productName: string;
+  } | null>(null);
+  const [decisionNote, setDecisionNote] = useState("");
+  const [decisionSubmitting, setDecisionSubmitting] = useState(false);
 
   useEffect(() => {
     // Load existing requested items so they appear permanently
     const loadInitialRequestedItems = async () => {
       try {
-        const items = await getRequestedItemsWithStore();
-        const mapped: RequestedItemWithStoreUI[] = items.map((item) => ({
+        const response = await fetch("/api/inventory/requested-items");
+        if (!response.ok) {
+          throw new Error("Failed to load requested items");
+        }
+        const data: {
+          success: boolean;
+          items?: {
+            id: string;
+            productNameGeneral: string;
+            quantity: number;
+            storeId: string;
+            storeUsername: string;
+          }[];
+        } = await response.json();
+
+        if (!data.success || !data.items) return;
+
+        const mapped: RequestedItemWithStoreUI[] = data.items.map((item) => ({
           id: item.id,
           productNameGeneral: item.productNameGeneral,
           quantity: item.quantity,
           storeId: item.storeId,
+          storeUsername: item.storeUsername,
         }));
+
         setNotifications(mapped);
         setInitialIds(new Set(mapped.map((item) => item.id)));
+
+        const names: Record<string, string> = {};
+        for (const item of mapped) {
+          if (item.storeUsername) {
+            names[item.storeId] = item.storeUsername;
+          }
+        }
+        setStoreIdToUsername((prev) => ({ ...prev, ...names }));
       } catch (error) {
         console.error("Failed to load requested items", error);
       }
@@ -134,22 +172,26 @@ export default function Inventory() {
           schema: "public",
           table: "RequestedItems",
         },
-        (payload: RealtimePostgresChangesPayload<RequestedItem>) => {
-          const newItem = payload.new as RequestedItemWithStoreUI;
+        async (payload: RealtimePostgresChangesPayload<RequestedItem>) => {
+          console.log("[Inventory] Realtime INSERT payload:", payload);
+          const raw = payload.new as RequestedItem;
+          const newItem: RequestedItemWithStoreUI = {
+            id: raw.id,
+            productNameGeneral: raw.productNameGeneral,
+            quantity: raw.quantity,
+            storeId: raw.storeId,
+          };
+          setNotifications((prev) => [newItem, ...prev]);
 
-          // Show browser notification
           if (
             typeof window !== "undefined" &&
             "Notification" in window &&
             Notification.permission === "granted"
           ) {
-            new Notification("New Item Requested!", {
-              body: `Item "${newItem.productNameGeneral}" x${newItem.quantity} requested.`,
+            new Notification("New request", {
+              body: `${newItem.productNameGeneral} x${newItem.quantity}`,
             });
           }
-
-          // Update UI notifications
-          setNotifications((prev) => [newItem, ...prev]);
         },
       )
       .subscribe();
@@ -160,6 +202,25 @@ export default function Inventory() {
     };
   }, []);
 
+  /** Group requests by store: { storeId -> items[] }; each group = 1 request */
+  const byStore = useMemo(() => {
+    const map = new Map<string, RequestedItemWithStoreUI[]>();
+    for (const n of notifications) {
+      const list = map.get(n.storeId) ?? [];
+      list.push(n);
+      map.set(n.storeId, list);
+    }
+    return Array.from(map.entries()).map(([storeId, items]) => ({
+      storeId,
+      items,
+    }));
+  }, [notifications]);
+
+  const totalRequests = byStore.length;
+  const newRequests = byStore.filter((group) =>
+    group.items.some((n) => !initialIds.has(n.id)),
+  ).length;
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -169,18 +230,15 @@ export default function Inventory() {
             Quick access to all inventory tools and real-time item requests.
           </p>
         </div>
-        {notifications.length > 0 && (
+        {totalRequests > 0 && (
           <div className="flex items-center gap-2">
             <span className="bg-gray-800 text-white rounded-full px-3 py-1 text-sm font-semibold">
-              {notifications.length} total request
-              {notifications.length > 1 ? "s" : ""}
+              {totalRequests} request
+              {totalRequests !== 1 ? "s" : ""} total
             </span>
-            {notifications.filter((n) => !initialIds.has(n.id)).length > 0 && (
+            {newRequests > 0 && (
               <span className="bg-red-500 text-white rounded-full px-3 py-1 text-sm font-semibold">
-                {
-                  notifications.filter((n) => !initialIds.has(n.id)).length
-                }{" "}
-                new
+                {newRequests} new
               </span>
             )}
           </div>
@@ -204,67 +262,162 @@ export default function Inventory() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold mb-3">Requests</h2>
-        {notifications.length > 0 ? (
-          <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
-            {notifications.map((n) => (
-              <li
-                key={n.id}
-                className={`border p-3 rounded-md flex items-center justify-between text-sm transition-colors ${
-                  initialIds.has(n.id)
-                    ? "border-gray-200 bg-white hover:bg-gray-50"
-                    : "border-blue-400 bg-blue-50"
-                }`}
+        <h2 className="text-lg font-semibold mb-3">Requests (by store)</h2>
+        {byStore.length > 0 ? (
+          <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
+            {byStore.map(({ storeId, items }) => (
+              <div
+                key={storeId}
+                className="rounded-lg border border-gray-200 bg-white overflow-hidden"
               >
-                <div>
-                  <div className="font-medium">
-                    {n.productNameGeneral} x{n.quantity}
-                  </div>
-                  {!initialIds.has(n.id) && (
-                    <div className="text-xs text-blue-700 font-semibold">
-                      New request
-                    </div>
-                  )}
-                  {initialIds.has(n.id) && (
-                    <div className="text-xs text-gray-600">Existing request</div>
-                  )}
+                <div className="border-b border-gray-200 bg-gray-50 px-3 py-2">
+                  <span className="text-sm font-semibold text-gray-800">
+                    {storeIdToUsername[storeId] ?? items[0]?.storeUsername ?? "Store"} · {items.length} item{items.length !== 1 ? "s" : ""}
+                  </span>
                 </div>
-                <button
-                  type="button"
-                  className="text-xs px-3 py-1 rounded-full border border-red-500 text-red-600 hover:bg-red-50"
-                  onClick={async () => {
-                    try {
-                      const response = await fetch(
-                        `/api/inventory/requested-items/${n.id}`,
-                        { method: "DELETE" },
-                      );
-                      if (!response.ok) {
-                        throw new Error("Failed to delete request");
-                      }
-                      setNotifications((prev) =>
-                        prev.filter((item) => item.id !== n.id),
-                      );
-                      setInitialIds((prev) => {
-                        const next = new Set(prev);
-                        next.delete(n.id);
-                        return next;
-                      });
-                    } catch (error) {
-                      console.error(error);
-                    }
-                  }}
-                >
-                  Delete
-                </button>
-              </li>
+                <ul className="divide-y divide-gray-100">
+                  {items.map((n) => (
+                    <li
+                      key={n.id}
+                      className={`flex items-center justify-between px-3 py-2 text-sm ${
+                        initialIds.has(n.id)
+                          ? "bg-white hover:bg-gray-50"
+                          : "bg-blue-50/70"
+                      }`}
+                    >
+                      <div>
+                        <span className="font-medium">
+                          {n.productNameGeneral} x{n.quantity}
+                        </span>
+                        {!initialIds.has(n.id) && (
+                          <span className="ml-2 text-xs font-semibold text-blue-700">
+                            New
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="text-xs px-2 py-1 rounded border border-red-600 text-red-700 bg-red-50 hover:bg-red-100 font-medium"
+                          onClick={() =>
+                            setDecisionModal({
+                              open: true,
+                              itemId: n.id,
+                              productName: n.productNameGeneral,
+                            })
+                          }
+                        >
+                          Reject
+                        </button>
+                        <button
+                          type="button"
+                          className="text-xs px-2 py-1 rounded border border-red-500 text-red-600 hover:bg-red-50"
+                          onClick={async () => {
+                            try {
+                              const response = await fetch(
+                                `/api/inventory/requested-items/${n.id}`,
+                                { method: "DELETE" },
+                              );
+                              if (!response.ok) {
+                                throw new Error("Failed to delete request");
+                              }
+                              setNotifications((prev) =>
+                                prev.filter((item) => item.id !== n.id),
+                              );
+                              setInitialIds((prev) => {
+                                const next = new Set(prev);
+                                next.delete(n.id);
+                                return next;
+                              });
+                            } catch (error) {
+                              console.error(error);
+                            }
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
           <p className="text-sm text-gray-600">
-            No new item requests yet. You&apos;ll see them here as they come in.
+            No item requests yet. They will appear here grouped by store.
           </p>
         )}
       </section>
+
+      {/* Reject modal: note for store */}
+      {decisionModal?.open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => {
+            if (!decisionSubmitting) {
+              setDecisionModal(null);
+              setDecisionNote("");
+            }
+          }}
+        >
+          <div
+            className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              Reject request
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Item: <span className="font-medium text-gray-800">{decisionModal.productName}</span>. Add a note for the store (will show on their history).
+            </p>
+            <textarea
+              value={decisionNote}
+              onChange={(e) => setDecisionNote(e.target.value)}
+              placeholder="Note for the store (optional)"
+              rows={4}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+            />
+            <div className="mt-4 flex gap-2 justify-end">
+              <button
+                type="button"
+                disabled={decisionSubmitting}
+                className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                onClick={() => {
+                  setDecisionModal(null);
+                  setDecisionNote("");
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={decisionSubmitting}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                onClick={async () => {
+                  setDecisionSubmitting(true);
+                  const result = await rejectRequest([decisionModal.itemId], decisionNote);
+                  setDecisionSubmitting(false);
+                  if (result.success) {
+                    setNotifications((prev) =>
+                      prev.filter((n) => n.id !== decisionModal.itemId)
+                    );
+                    setInitialIds((prev) => {
+                      const next = new Set(prev);
+                      next.delete(decisionModal.itemId);
+                      return next;
+                    });
+                    setDecisionModal(null);
+                    setDecisionNote("");
+                  }
+                }}
+              >
+                {decisionSubmitting ? "Saving..." : "Reject"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

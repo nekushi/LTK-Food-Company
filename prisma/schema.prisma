@@ -205,11 +205,13 @@ model Inventory {
 }
 
 model RequestedItems {
-  id                 String @id @default(uuid())
+  id                 String  @id @default(uuid())
   productNameGeneral String
   quantity           Int
   accountRecognition String
   unitOfMeasurement  String
+  isRequestApproved  Boolean @default(false)
+  note               String?
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])

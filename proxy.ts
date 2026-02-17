@@ -72,6 +72,7 @@ const protectedRoutes = [
   "/inventory/items",
   "/inventory/chats",
   "/inventory/history",
+  "/store",
   "/store/request-items",
   "/store/chats",
   "/store/history",

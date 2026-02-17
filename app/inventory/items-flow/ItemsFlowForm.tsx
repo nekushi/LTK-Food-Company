@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Resolver } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +14,11 @@ import {
   VAT_TYPES,
 } from "@/schemas/items.schema";
 import { addItems } from "@/dal/inventory/add-item";
+import {
+  getApprovedRequestedItems,
+  issueStock,
+  type RequestedItemPersistent,
+} from "@/dal/inventory/get-requested-items";
 import { toast } from "react-toastify";
 
 export type ItemsFlowFormValues = z.infer<typeof itemsFlowSchema>;
@@ -51,6 +57,7 @@ export function ItemsFlowForm() {
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ItemsFlowFormValues>({
     resolver: zodResolver(itemsFlowSchema) as Resolver<ItemsFlowFormValues>,
@@ -77,13 +84,40 @@ export function ItemsFlowForm() {
   const typeOfVatTaxpayer = watch("typeOfVatTaxpayer");
   const showVatTin = typeOfStocks !== "Issued Stocks";
   const isVatRegistered = typeOfVatTaxpayer === "VAT Registered";
+  const isIssuedStocks = typeOfStocks === "Issued Stocks";
   const derived = computeDerived(
     Number(quantity) || 0,
     Number(unitPrice) || 0,
     isVatRegistered,
   );
 
+  const [requestedItems, setRequestedItems] = useState<
+    RequestedItemPersistent[]
+  >([]);
+  const [selectedRequestedItemId, setSelectedRequestedItemId] = useState<
+    string | null
+  >(null);
+  const [issueModalOpen, setIssueModalOpen] = useState(false);
+  const [issueNote, setIssueNote] = useState("");
+  const [issueSubmitting, setIssueSubmitting] = useState(false);
+
+  // Fetch requested items when issued stocks is selected
+  const handleTypeOfStocksChange = async (value: string) => {
+    if (value === "Issued Stocks") {
+      const items = await getApprovedRequestedItems();
+      setRequestedItems(items);
+    } else {
+      setRequestedItems([]);
+      setSelectedRequestedItemId(null);
+    }
+  };
+
   const onSubmit = async (data: ItemsFlowFormValues) => {
+    if (isIssuedStocks && selectedRequestedItemId) {
+      setIssueModalOpen(true);
+      return;
+    }
+
     const payload = { ...data, ...derived };
     const row: z.infer<typeof itemsFlowSchema> = {
       periodMonth: data.periodMonth,
@@ -107,7 +141,23 @@ export function ItemsFlowForm() {
       toast.success(result.message);
       reset();
     }
-    // alert("Form submitted (UI only). Data logged to console.");
+  };
+
+  const handleIssueStock = async () => {
+    if (!selectedRequestedItemId) return;
+    setIssueSubmitting(true);
+    const result = await issueStock(selectedRequestedItemId, issueNote);
+    setIssueSubmitting(false);
+    if (result.success) {
+      toast.success(result.message);
+      setIssueModalOpen(false);
+      setIssueNote("");
+      setSelectedRequestedItemId(null);
+      reset();
+      getApprovedRequestedItems().then(setRequestedItems);
+    } else {
+      toast.error(result.message);
+    }
   };
 
   const onStoreForBatch = () => {
@@ -193,20 +243,27 @@ export function ItemsFlowForm() {
               <div>
                 <span className={labelClass}>Type of Stocks:</span>
                 <div className="mt-1.5 space-y-1.5">
-                  {STOCK_TYPES.map((value) => (
-                    <label
-                      key={value}
-                      className="flex cursor-pointer items-center gap-2 text-sm text-amber-900"
-                    >
-                      <input
-                        type="radio"
-                        {...register("typeOfStocks")}
-                        value={value}
-                        className="h-4 w-4 border-amber-300 text-amber-600 focus:ring-amber-500"
-                      />
-                      {value}
-                    </label>
-                  ))}
+                  {STOCK_TYPES.map((value) => {
+                    const { onChange, ...registerProps } = register("typeOfStocks");
+                    return (
+                      <label
+                        key={value}
+                        className="flex cursor-pointer items-center gap-2 text-sm text-amber-900"
+                      >
+                        <input
+                          type="radio"
+                          {...registerProps}
+                          value={value}
+                          onChange={(e) => {
+                            onChange(e);
+                            handleTypeOfStocksChange(e.target.value);
+                          }}
+                          className="h-4 w-4 border-amber-300 text-amber-600 focus:ring-amber-500"
+                        />
+                        {value}
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -267,20 +324,63 @@ export function ItemsFlowForm() {
                 </div>
               )}
 
-              <div>
-                <label className={labelClass}>Product Name (General):</label>
-                <input
-                  type="text"
-                  {...register("productNameGeneral")}
-                  className={inputClass}
-                  placeholder="Enter general product name"
-                />
-                {errors.productNameGeneral && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.productNameGeneral.message}
-                  </p>
-                )}
-              </div>
+              {isIssuedStocks ? (
+                <div>
+                  <label className={labelClass}>Select Requested Item:</label>
+                  <select
+                    value={selectedRequestedItemId || ""}
+                    onChange={(e) => {
+                      const itemId = e.target.value;
+                      setSelectedRequestedItemId(itemId || null);
+                      const item = requestedItems.find((i) => i.id === itemId);
+                      if (item) {
+                        setValue("productNameGeneral", item.productNameGeneral);
+                        setValue("quantity", item.quantity);
+                        setValue("measurement", item.unitOfMeasurement);
+                        if (
+                          ACCOUNTING_RECOGNITION.includes(
+                            item.accountRecognition as typeof ACCOUNTING_RECOGNITION[number],
+                          )
+                        ) {
+                          setValue(
+                            "accountingRecognition",
+                            item.accountRecognition as typeof ACCOUNTING_RECOGNITION[number],
+                          );
+                        }
+                      }
+                    }}
+                    className={inputClass}
+                  >
+                    <option value="">Select a requested item...</option>
+                    {requestedItems.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.productNameGeneral} x{item.quantity}{" "}
+                        {item.unitOfMeasurement} (Store: {item.storeUsername})
+                      </option>
+                    ))}
+                  </select>
+                  {selectedRequestedItemId && (
+                    <p className="mt-1 text-xs text-amber-600">
+                      Selected item will be issued from inventory.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <label className={labelClass}>Product Name (General):</label>
+                  <input
+                    type="text"
+                    {...register("productNameGeneral")}
+                    className={inputClass}
+                    placeholder="Enter general product name"
+                  />
+                  {errors.productNameGeneral && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {errors.productNameGeneral.message}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className={labelClass}>Product Name (Specific):</label>
@@ -469,11 +569,64 @@ export function ItemsFlowForm() {
               type="submit"
               className="w-full rounded-md bg-emerald-500 py-2.5 text-sm font-medium text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
             >
-              Save item
+              {isIssuedStocks ? "Issue stock" : "Save item"}
             </button>
           </div>
         </form>
       </div>
+
+      {/* Issue stock modal */}
+      {issueModalOpen && selectedRequestedItemId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => {
+            if (!issueSubmitting) {
+              setIssueModalOpen(false);
+            }
+          }}
+        >
+          <div
+            className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              Issue Stock
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Add a note for this stock issuance (will be saved with the
+              request).
+            </p>
+            <textarea
+              value={issueNote}
+              onChange={(e) => setIssueNote(e.target.value)}
+              placeholder="Note (optional)"
+              rows={4}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+            />
+            <div className="mt-4 flex gap-2 justify-end">
+              <button
+                type="button"
+                disabled={issueSubmitting}
+                className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                onClick={() => {
+                  setIssueModalOpen(false);
+                  setIssueNote("");
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={issueSubmitting}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+                onClick={handleIssueStock}
+              >
+                {issueSubmitting ? "Issuing..." : "Issue Stock"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
