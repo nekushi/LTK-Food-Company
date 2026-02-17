@@ -1,6 +1,6 @@
 "use client";
 
-import { linkToEmployee, postExcelFile } from "@/dal/geo";
+// import { linkToEmployee, postExcelFile } from "@/dal/geo";
 import React, { useState, useRef } from "react";
 import EmployeeWorkDataGeo from "@/components/geo/workData";
 import { TypeAttendanceCardGeo, TypeAttendanceCardReturnPila } from "@/index";
@@ -14,12 +14,12 @@ export default function ExcelForm() {
     useState<TypeAttendanceCardReturnPila | null>(null);
   const [approvedData, setApprovedData] = useState<TypeAttendanceCardGeo[]>([]);
 
-  const handleLinkDataClick = async () => {
-    // console.log(approvedData);
+  // const handleLinkDataClick = async () => {
+  //   // console.log(approvedData);
 
-    const res = await linkToEmployee(approvedData);
-    console.log(res);
-  };
+  //   const res = await linkToEmployee(approvedData);
+  //   console.log(res);
+  // };
 
   const handleApprovedData = (newData: TypeAttendanceCardGeo) => {
     setApprovedData([...approvedData, newData]);
@@ -62,7 +62,7 @@ export default function ExcelForm() {
         break;
     }
 
-    postExcelFile(results, employeeId);
+    // postExcelFile(results, employeeId);
   };
 
   const handleClearForm = () => {
@@ -120,7 +120,7 @@ export default function ExcelForm() {
           />
         )}
       <button
-        onClick={handleLinkDataClick}
+        // onClick={handleLinkDataClick}
         className="border px-2 py-1 rounded"
       >
         Link names
