@@ -205,13 +205,27 @@ model Inventory {
 }
 
 model RequestedItems {
-  id                 String  @id @default(uuid())
-  productNameGeneral String
-  quantity           Int
-  accountRecognition String
-  unitOfMeasurement  String
-  isRequestApproved  Boolean @default(false)
-  note               String?
+  id                  String  @id @default(uuid())
+  periodMonth         String
+  periodYear          String
+  supplierName        String
+  tinNumber           String?
+  typeOfVatTaxpayer   String?
+  typeOfStocks        String
+  productNameSpecific String
+  productNameGeneral  String
+  itemCode            String?
+  accountRecognition  String
+  unitOfMeasurement   String
+  quantity            Int
+  unitPrice           Float
+  totalPrice          Float
+  vatable             Float
+  vat                 Float
+  ewt                 Float
+  netPay              Float
+  isRequestApproved   Boolean @default(false)
+  note                String?
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])

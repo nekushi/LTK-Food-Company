@@ -41,6 +41,7 @@ export async function createSession(
 ) {
   //   const expiresAt = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000); // 1 day
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+  // const expiresAt = new Date(Date.now() + 5 * 1000); // 5 seconds
   const session = await encrypt({ userId, username, role, expiresAt });
   const cookieStore = await cookies();
 
@@ -65,6 +66,7 @@ export async function updateSession() {
   }
 
   const expires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+  // const expires = new Date(Date.now() + 5 * 1000); // 5 seconds
 
   const cookieStore = await cookies();
   cookieStore.set("userId", payload.userId as string);

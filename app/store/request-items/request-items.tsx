@@ -1,35 +1,94 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { requestItems } from "@/dal/inventory/request-items";
-import { ItemsReturnTypeStore } from "@/dal/inventory/get-items";
+import { Activity, useMemo, useState } from "react";
+import {
+  MergedItemReturnTypeInventory,
+  requestItems,
+} from "@/dal/inventory/request-items";
+import { ItemsReturnTypeInventory } from "@/dal/inventory/get-items";
 import { toast } from "react-toastify";
 
 const inputClass =
   "w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500";
 const labelClass = "mb-1 block text-sm font-medium text-amber-900";
 
+// type RestItemsReturnTypeInventory = {
+//   periodMonth: string;
+//   periodYear: string;
+//   supplierName: string;
+//   tinNumber: string | null;
+//   typeOfVatTaxpayer: string | null;
+//   typeOfStocks: string;
+//   itemCode: string | null;
+//   unitPrice: number;
+//   totalPrice: number;
+//   vatable: number;
+//   vat: number;
+//   ewt: number;
+//   netPay: number;
+// };
+
+// interface MergedItemReturnTypeInventory extends RestItemsReturnTypeInventory {
+//   id: string;
+//   productNameGeneral: string;
+//   accountRecognition: string;
+//   unitOfMeasurement: string;
+//   quantity: number;
+// }
+
 export default function StoreRequestItemPage({
   items,
 }: {
-  items: ItemsReturnTypeStore[];
+  items: ItemsReturnTypeInventory[];
 }) {
-  const [cart, setCart] = useState<ItemsReturnTypeStore[]>([]);
+  const [cart, setCart] = useState<MergedItemReturnTypeInventory[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalItem, setModalItem] = useState<ItemsReturnTypeStore | null>(null);
-  const [formProductName, setFormProductName] = useState("");
+  const [modalItem, setModalItem] = useState<ItemsReturnTypeInventory | null>(
+    null,
+  );
+  const [formProductNameGeneral, setFormProductNameGeneral] = useState("");
+  const [formProductNameSpecific, setFormProductNameSpecific] = useState("");
   const [formQuantity, setFormQuantity] = useState<number>(1);
   const [formUom, setFormUom] = useState("");
   const [formId, setFormId] = useState<string>("");
   const [formAccRecognition, setFormAccRecognition] = useState("");
+  const [formPeriodMonth, setFormPeriodMonth] = useState("");
+  const [formPeriodYear, setFormPeriodYear] = useState("");
+  const [formSupplierName, setFormSupplierName] = useState("");
+  const [formTinNumber, setFormTinNumber] = useState<string | null>();
+  const [formTypeOfVatTaxpayer, setFormTypeOfVatTaxpayer] = useState<
+    string | null
+  >();
+  const [formTypeOfStocks, setFormTypeOfStocks] = useState("");
+  const [formItemCode, setFormItemCode] = useState<string | null>();
+  const [formUnitPrice, setFormUnitPrice] = useState<number>(0);
+  const [formTotalPrice, setFormTotalPrice] = useState<number>(0);
+  const [formVatable, setFormVatable] = useState<number>(0);
+  const [formVat, setFormVat] = useState<number>(0);
+  const [formEwt, setFormEwt] = useState<number>(0);
+  const [formNetPay, setFormNetPay] = useState<number>(0);
 
-  const openModal = (item: ItemsReturnTypeStore) => {
+  // const openModal = (item: MergedItemReturnTypeInventory) => {
+  const openModal = (item: ItemsReturnTypeInventory) => {
     setModalItem(item);
     setFormId(item.id);
-    setFormProductName(item.productNameGeneral);
+    setFormProductNameGeneral(item.productNameGeneral);
     setFormAccRecognition(item.accountRecognition);
     setFormQuantity(1);
     setFormUom(item.unitOfMeasurement);
+    setFormPeriodMonth(item.periodMonth);
+    setFormPeriodYear(item.periodYear);
+    setFormSupplierName(item.supplierName);
+    setFormTinNumber(item.tinNumber || "");
+    setFormTypeOfVatTaxpayer(item.typeOfVatTaxpayer || "");
+    setFormTypeOfStocks(item.typeOfStocks);
+    setFormItemCode(item.itemCode || "");
+    setFormUnitPrice(item.unitPrice);
+    setFormTotalPrice(item.totalPrice);
+    setFormVatable(item.vatable);
+    setFormVat(item.vat);
+    setFormEwt(item.ewt);
+    setFormNetPay(item.netPay);
     setModalOpen(true);
   };
 
@@ -41,16 +100,37 @@ export default function StoreRequestItemPage({
   const addToCart = () => {
     const qty = Number(formQuantity);
     if (Number.isNaN(qty) || qty <= 0) return;
-    const line: ItemsReturnTypeStore = {
+    const line: MergedItemReturnTypeInventory = {
       id: formId,
       productNameGeneral:
-        (formProductName.trim() || modalItem?.productNameGeneral) ?? "",
+        (formProductNameGeneral.trim() || modalItem?.productNameGeneral) ?? "",
+      productNameSpecific:
+        (formProductNameSpecific.trim() || modalItem?.productNameSpecific) ??
+        "",
       quantity: qty,
       unitOfMeasurement: (formUom.trim() || modalItem?.unitOfMeasurement) ?? "",
       accountRecognition:
         (formAccRecognition.trim() || modalItem?.accountRecognition) ?? "",
+      periodMonth: (formPeriodMonth.trim() || modalItem?.periodMonth) ?? "",
+      periodYear: (formPeriodYear.trim() || modalItem?.periodYear) ?? "",
+      supplierName: (formSupplierName.trim() || modalItem?.supplierName) ?? "",
+      tinNumber: (formTinNumber?.trim() || modalItem?.tinNumber) ?? "",
+      typeOfVatTaxpayer:
+        (formTypeOfVatTaxpayer?.trim() || modalItem?.typeOfVatTaxpayer) ?? "",
+      typeOfStocks: (formTypeOfStocks.trim() || modalItem?.typeOfStocks) ?? "",
+      itemCode: (formItemCode?.trim() || modalItem?.itemCode) ?? "",
+      unitPrice:
+        (Number(formUnitPrice.toFixed(2)) || modalItem?.unitPrice) ?? 0,
+      totalPrice:
+        (Number(formTotalPrice.toFixed(2)) || modalItem?.totalPrice) ?? 0,
+      vatable: (Number(formVatable.toFixed(2)) || modalItem?.vatable) ?? 0,
+      vat: (Number(formVat.toFixed(2)) || modalItem?.vat) ?? 0,
+      ewt: (Number(formEwt.toFixed(2)) || modalItem?.ewt) ?? 0,
+      netPay: (Number(formNetPay.toFixed(2)) || modalItem?.netPay) ?? 0,
     };
+
     setCart((prev) => [...prev, line]);
+    toast.success("Added to cart");
     closeModal();
   };
 
@@ -110,6 +190,50 @@ export default function StoreRequestItemPage({
                 <th className="w-24 px-5 py-3 font-semibold text-amber-900">
                   Action
                 </th>
+                <Activity mode="hidden">
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Product Name Specific
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Period Month
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Period Year
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Supplier Name
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    TIN Number
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Type of Vat Taxpayer
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Type of Stocks
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Item Code
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Unit Price
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Total Price
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Vatable
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    VAT
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    EWT
+                  </th>
+                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
+                    Net Pay
+                  </th>
+                </Activity>
               </tr>
             </thead>
             <tbody>
@@ -143,6 +267,50 @@ export default function StoreRequestItemPage({
                       Add to cart
                     </button>
                   </td>
+                  <Activity mode="hidden">
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.productNameSpecific}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.periodMonth}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.periodYear}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.supplierName}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.tinNumber}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.typeOfVatTaxpayer}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.typeOfStocks}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.itemCode}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.unitPrice}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.totalPrice}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.vatable}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.vat}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.ewt}
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {item.netPay}
+                    </td>
+                  </Activity>
                 </tr>
               ))}
             </tbody>
@@ -226,12 +394,12 @@ export default function StoreRequestItemPage({
             </h3>
             <div className="space-y-4">
               <div>
-                <label className={labelClass}>Product name</label>
+                <label className={labelClass}>Product Name General</label>
                 <input
                   type="text"
-                  value={formProductName}
+                  value={formProductNameGeneral}
                   readOnly
-                  onChange={(e) => setFormProductName(e.target.value)}
+                  onChange={(e) => setFormProductNameGeneral(e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -268,6 +436,148 @@ export default function StoreRequestItemPage({
                   className={inputClass}
                 />
               </div>
+              <Activity mode="hidden">
+                <div>
+                  <label className={labelClass}>Product Name Specific</label>
+                  <input
+                    type="text"
+                    value={formProductNameSpecific}
+                    readOnly
+                    onChange={(e) => setFormProductNameGeneral(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Period Month</label>
+                  <input
+                    type="text"
+                    value={formPeriodMonth}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Period Year</label>
+                  <input
+                    type="text"
+                    value={formPeriodYear}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Supplier Name</label>
+                  <input
+                    type="text"
+                    value={formSupplierName}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>TIN Number</label>
+                  <input
+                    type="text"
+                    value={formTinNumber as string}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Type of Taxpayer</label>
+                  <input
+                    type="text"
+                    value={formTypeOfVatTaxpayer as string}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Type of Stocks</label>
+                  <input
+                    type="text"
+                    value={formTypeOfStocks}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Item Code</label>
+                  <input
+                    type="text"
+                    value={formItemCode as string}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Unit Price</label>
+                  <input
+                    type="text"
+                    value={formUnitPrice}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Total Price</label>
+                  <input
+                    type="text"
+                    value={formTotalPrice}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Vatable</label>
+                  <input
+                    type="text"
+                    value={formVatable}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Vat</label>
+                  <input
+                    type="text"
+                    value={formVat}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Ewt</label>
+                  <input
+                    type="text"
+                    value={formEwt}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Net Pay</label>
+                  <input
+                    type="text"
+                    value={formNetPay}
+                    readOnly
+                    onChange={(e) => setFormUom(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+              </Activity>
             </div>
             <div className="mt-6 flex gap-2">
               <button

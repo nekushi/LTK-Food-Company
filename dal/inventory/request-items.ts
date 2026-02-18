@@ -4,8 +4,35 @@ import { ItemsReturnTypeStore } from "./get-items";
 import prisma from "@/lib/db";
 import { cookies } from "next/headers";
 import { decrypt, SessionPayload } from "@/lib/session";
+import { Prisma } from "@/app/generated/prisma/client";
 
-export async function requestItems(cart: ItemsReturnTypeStore[]) {
+export type RestItemsReturnTypeInventory = {
+  periodMonth: string;
+  periodYear: string;
+  supplierName: string;
+  tinNumber: string;
+  typeOfVatTaxpayer: string;
+  typeOfStocks: string;
+  productNameSpecific: string;
+  itemCode: string;
+  unitPrice: number;
+  totalPrice: number;
+  vatable: number;
+  vat: number;
+  ewt: number;
+  netPay: number;
+};
+
+export interface MergedItemReturnTypeInventory extends RestItemsReturnTypeInventory {
+  id: string;
+  productNameGeneral: string;
+  accountRecognition: string;
+  unitOfMeasurement: string;
+  quantity: number;
+}
+
+// export async function requestItems(cart: ItemsReturnTypeStore[]) {
+export async function requestItems(cart: MergedItemReturnTypeInventory[]) {
   console.log(`Requesting items`);
 
   console.log(cart);
@@ -38,15 +65,31 @@ export async function requestItems(cart: ItemsReturnTypeStore[]) {
 
   try {
     for (const c of cart) {
-      await prisma.requestedItems.create({
+      const reqItems = await prisma.requestedItems.create({
         data: {
+          periodMonth: c.periodMonth,
+          periodYear: c.periodYear,
+          supplierName: c.supplierName,
+          tinNumber: c.tinNumber,
+          typeOfVatTaxpayer: c.typeOfVatTaxpayer,
+          typeOfStocks: c.typeOfStocks,
+          itemCode: c.itemCode,
+          unitPrice: c.unitPrice,
+          totalPrice: c.totalPrice,
+          vatable: c.vatable,
+          vat: c.vat,
+          ewt: c.ewt,
+          netPay: c.netPay,
           productNameGeneral: c.productNameGeneral,
+          productNameSpecific: c.productNameSpecific,
           quantity: c.quantity,
           accountRecognition: c.accountRecognition,
           unitOfMeasurement: c.unitOfMeasurement,
           storeId: whoRequested.id,
         },
       });
+
+      console.log(reqItems);
     }
 
     return {
@@ -54,6 +97,9 @@ export async function requestItems(cart: ItemsReturnTypeStore[]) {
       message: "Items requested successfully",
     };
   } catch (error) {
+    // throw new Error (error)
+    console.log(error);
+
     return {
       success: false,
       message: "Something went wrong. Try again.",
