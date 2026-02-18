@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { MergedItemReturnTypeInventory } from "./request-items";
 
 export type RequestedItemPersistent = {
   id: string;
@@ -153,9 +154,14 @@ export async function getRequestedItemsHistoryForStore(): Promise<
   }));
 }
 
+export interface MergedItemReturnTypeInventoryWithStore extends MergedItemReturnTypeInventory {
+  storeId: string;
+  storeUsername: string;
+}
+
 /** Get requested items available for issuing stocks (pending requests). */
 export async function getApprovedRequestedItems(): Promise<
-  RequestedItemPersistent[]
+  MergedItemReturnTypeInventoryWithStore[]
 > {
   const requestedItems = await prisma.requestedItems.findMany({
     where: { note: null },
@@ -173,9 +179,23 @@ export async function getApprovedRequestedItems(): Promise<
   return requestedItems.map((item) => ({
     id: item.id,
     productNameGeneral: item.productNameGeneral,
+    productNameSpecific: item.productNameSpecific,
     quantity: item.quantity,
     accountRecognition: item.accountRecognition,
     unitOfMeasurement: item.unitOfMeasurement,
+    periodMonth: item.periodMonth,
+    periodYear: item.periodYear,
+    supplierName: item.supplierName,
+    tinNumber: item.tinNumber || "",
+    typeOfVatTaxpayer: item.typeOfVatTaxpayer || "",
+    typeOfStocks: item.typeOfStocks,
+    itemCode: item.itemCode || "",
+    unitPrice: item.unitPrice,
+    totalPrice: item.totalPrice,
+    vatable: item.vatable,
+    vat: item.vat,
+    ewt: item.ewt,
+    netPay: item.netPay,
     storeId: item.storeId,
     storeUsername: item.store.user.username,
     isRequestApproved: item.isRequestApproved,

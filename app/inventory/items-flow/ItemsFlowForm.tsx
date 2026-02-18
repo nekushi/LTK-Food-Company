@@ -17,9 +17,11 @@ import { addItems } from "@/dal/inventory/add-item";
 import {
   getApprovedRequestedItems,
   issueStock,
+  MergedItemReturnTypeInventoryWithStore,
   type RequestedItemPersistent,
 } from "@/dal/inventory/get-requested-items";
 import { toast } from "react-toastify";
+import { MergedItemReturnTypeInventory } from "@/dal/inventory/request-items";
 
 export type ItemsFlowFormValues = z.infer<typeof itemsFlowSchema>;
 
@@ -92,7 +94,8 @@ export function ItemsFlowForm() {
   );
 
   const [requestedItems, setRequestedItems] = useState<
-    RequestedItemPersistent[]
+    // RequestedItemPersistent[]
+    MergedItemReturnTypeInventoryWithStore[]
   >([]);
   const [selectedRequestedItemId, setSelectedRequestedItemId] = useState<
     string | null
@@ -244,7 +247,8 @@ export function ItemsFlowForm() {
                 <span className={labelClass}>Type of Stocks:</span>
                 <div className="mt-1.5 space-y-1.5">
                   {STOCK_TYPES.map((value) => {
-                    const { onChange, ...registerProps } = register("typeOfStocks");
+                    const { onChange, ...registerProps } =
+                      register("typeOfStocks");
                     return (
                       <label
                         key={value}
@@ -334,17 +338,41 @@ export function ItemsFlowForm() {
                       setSelectedRequestedItemId(itemId || null);
                       const item = requestedItems.find((i) => i.id === itemId);
                       if (item) {
-                        setValue("productNameGeneral", item.productNameGeneral);
-                        setValue("quantity", item.quantity);
-                        setValue("measurement", item.unitOfMeasurement);
+                        // Populate all form fields from the selected requested item
+                        setValue("supplierName", item.supplierName || "");
+                        setValue("tinNo", item.tinNumber || "");
+                        setValue(
+                          "productNameSpecific",
+                          item.productNameSpecific || "",
+                        );
+                        setValue(
+                          "productNameGeneral",
+                          item.productNameGeneral || "",
+                        );
+                        setValue("itemCode", item.itemCode || "");
+                        setValue("measurement", item.unitOfMeasurement || "");
+                        setValue("quantity", item.quantity || 0);
+                        setValue("unitPrice", item.unitPrice || 0);
+
+                        // Set typeOfVatTaxpayer if it exists and is valid
+                        if (item.typeOfVatTaxpayer) {
+                          const vatType =
+                            item.typeOfVatTaxpayer as (typeof VAT_TYPES)[number];
+                          if (VAT_TYPES.includes(vatType)) {
+                            setValue("typeOfVatTaxpayer", vatType);
+                          }
+                        }
+
+                        // Set accountingRecognition if it exists and is valid
                         if (
+                          item.accountRecognition &&
                           ACCOUNTING_RECOGNITION.includes(
-                            item.accountRecognition as typeof ACCOUNTING_RECOGNITION[number],
+                            item.accountRecognition as (typeof ACCOUNTING_RECOGNITION)[number],
                           )
                         ) {
                           setValue(
                             "accountingRecognition",
-                            item.accountRecognition as typeof ACCOUNTING_RECOGNITION[number],
+                            item.accountRecognition as (typeof ACCOUNTING_RECOGNITION)[number],
                           );
                         }
                       }
