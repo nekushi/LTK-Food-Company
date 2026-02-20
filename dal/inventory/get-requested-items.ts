@@ -95,6 +95,34 @@ export type RequestedItemHistoryEntry = {
   note: string | null;
 };
 
+/** Issued items (approved, with note) for delivery page. */
+export async function getIssuedItemsForDelivery(): Promise<
+  RequestedItemHistoryEntry[]
+> {
+  const items = await prisma.requestedItems.findMany({
+    where: {
+      isRequestApproved: true,
+      NOT: { note: null },
+    },
+    orderBy: { id: "desc" },
+    include: {
+      store: {
+        select: { user: { select: { username: true } } },
+      },
+    },
+  });
+  return items.map((item) => ({
+    id: item.id,
+    productNameGeneral: item.productNameGeneral,
+    quantity: item.quantity,
+    unitOfMeasurement: item.unitOfMeasurement,
+    storeId: item.storeId,
+    storeUsername: item.store.user.username,
+    isRequestApproved: item.isRequestApproved,
+    note: item.note,
+  }));
+}
+
 /** Decided requests (note set) for inventory history page. */
 export async function getRequestedItemsHistoryForInventory(): Promise<
   RequestedItemHistoryEntry[]

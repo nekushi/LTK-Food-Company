@@ -226,6 +226,7 @@ model RequestedItems {
   netPay              Float
   isRequestApproved   Boolean @default(false)
   note                String?
+  deliveryStatus      String?
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])

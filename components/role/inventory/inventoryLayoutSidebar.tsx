@@ -76,5 +76,6 @@ const navLists: TypeNavList[] = [
     icon: <RiCalendarScheduleLine />,
   },
   { name: "History", href: "/inventory/history", icon: <IoIosGitBranch /> },
+  { name: "Delivery", href: "/inventory/delivery", icon: <IoIosGitBranch /> },
   { name: "Settings", href: "", icon: <IoSettingsOutline /> },
 ] as const;

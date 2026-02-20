@@ -183,6 +183,33 @@ export default function Inventory() {
           };
           setNotifications((prev) => [newItem, ...prev]);
 
+          // Fetch store username via API
+          try {
+            const response = await fetch(
+              `/api/inventory/store-username/${raw.storeId}`,
+            );
+            if (response.ok) {
+              const data: { success: boolean; username?: string } =
+                await response.json();
+              if (data.success && data.username) {
+                setStoreIdToUsername((prev) => ({
+                  ...prev,
+                  [raw.storeId]: data.username!,
+                }));
+                // Update the item with username
+                setNotifications((prev) =>
+                  prev.map((item) =>
+                    item.id === raw.id
+                      ? { ...item, storeUsername: data.username }
+                      : item,
+                  ),
+                );
+              }
+            }
+          } catch (error) {
+            console.error("Failed to fetch store username", error);
+          }
+
           if (
             typeof window !== "undefined" &&
             "Notification" in window &&

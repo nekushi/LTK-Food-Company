@@ -115,8 +115,11 @@ export function ItemsFlowForm({
 
   const isAdditionalStocks = typeOfStocks === "Additional Stocks";
 
-  const beginningStockItems = inventoryItems.filter(
-    (item) => item.typeOfStocks === "Beginning Stocks",
+  // When adding additional stock, allow selecting from both Beginning and Additional Stocks
+  const additionalStockBaseItems = inventoryItems.filter(
+    (item) =>
+      item.typeOfStocks === "Beginning Stocks" ||
+      item.typeOfStocks === "Additional Stocks",
   );
 
   // Fetch requested items when issued stocks is selected
@@ -431,14 +434,14 @@ export function ItemsFlowForm({
               ) : isAdditionalStocks ? (
                 <div>
                   <label className={labelClass}>
-                    Select Existing Inventory Item:
+                    Select Inventory Item (Beginning or Additional):
                   </label>
                   <select
                     value={selectedInventoryItemId || ""}
                     onChange={(e) => {
                       const itemId = e.target.value;
                       setSelectedInventoryItemId(itemId || null);
-                      const item = beginningStockItems.find(
+                      const item = additionalStockBaseItems.find(
                         (i) => i.id === itemId,
                       );
                       if (item) {
@@ -486,8 +489,8 @@ export function ItemsFlowForm({
                     }}
                     className={inputClass}
                   >
-                    <option value="">Select an inventory item...</option>
-                    {beginningStockItems.map((item) => (
+                    <option value="">Select beginning or additional stock item...</option>
+                    {additionalStockBaseItems.map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.productNameGeneral} x{item.quantity}{" "}
                         {item.unitOfMeasurement}
