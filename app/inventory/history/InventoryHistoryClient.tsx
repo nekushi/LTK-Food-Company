@@ -88,6 +88,9 @@ export function InventoryHistoryClient({
                   <th className="whitespace-nowrap px-5 py-3 font-semibold text-amber-900">
                     Status
                   </th>
+                  <th className="whitespace-nowrap px-5 py-3 font-semibold text-amber-900">
+                    Delivery status
+                  </th>
                   <th className="min-w-[160px] px-5 py-3 font-semibold text-amber-900">
                     Note
                   </th>
@@ -121,6 +124,9 @@ export function InventoryHistoryClient({
                       >
                         {entry.isRequestApproved ? "Approved" : "Rejected"}
                       </span>
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                      {entry.deliveryStatus ?? "—"}
                     </td>
                     <td className="min-w-[160px] px-5 py-3 text-amber-900">
                       {entry.note ?? "—"}

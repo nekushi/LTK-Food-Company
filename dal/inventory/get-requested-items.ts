@@ -93,9 +93,10 @@ export type RequestedItemHistoryEntry = {
   storeUsername: string;
   isRequestApproved: boolean;
   note: string | null;
+  deliveryStatus: string | null;
 };
 
-/** Issued items (approved, with note) for delivery page. */
+/** Issued items (approved, with note) for delivery page. Only "to be delivered" or null status. */
 export async function getIssuedItemsForDelivery(): Promise<
   RequestedItemHistoryEntry[]
 > {
@@ -103,6 +104,10 @@ export async function getIssuedItemsForDelivery(): Promise<
     where: {
       isRequestApproved: true,
       NOT: { note: null },
+      OR: [
+        { deliveryStatus: null },
+        { deliveryStatus: "to be delivered" },
+      ],
     },
     orderBy: { id: "desc" },
     include: {
@@ -120,6 +125,7 @@ export async function getIssuedItemsForDelivery(): Promise<
     storeUsername: item.store.user.username,
     isRequestApproved: item.isRequestApproved,
     note: item.note,
+    deliveryStatus: item.deliveryStatus,
   }));
 }
 
@@ -145,6 +151,7 @@ export async function getRequestedItemsHistoryForInventory(): Promise<
     storeUsername: item.store.user.username,
     isRequestApproved: item.isRequestApproved,
     note: item.note,
+    deliveryStatus: item.deliveryStatus,
   }));
 }
 
@@ -179,6 +186,7 @@ export async function getRequestedItemsHistoryForStore(): Promise<
     storeUsername: item.store.user.username,
     isRequestApproved: item.isRequestApproved,
     note: item.note,
+    deliveryStatus: item.deliveryStatus,
   }));
 }
 
@@ -298,6 +306,7 @@ export async function issueStock(
       data: {
         isRequestApproved: true,
         note: note.trim() || null,
+        deliveryStatus: "to be delivered",
       },
     });
 
@@ -317,6 +326,26 @@ export async function getStoreUsername(
   });
 
   return store?.user.username ?? null;
+}
+
+/** Set deliveryStatus for requested items (e.g. "on the way" when Off for Delivery). */
+export async function setDeliveryStatus(
+  requestedItemIds: string[],
+  deliveryStatus: string,
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    if (requestedItemIds.length === 0) {
+      return { success: true };
+    }
+    await prisma.requestedItems.updateMany({
+      where: { id: { in: requestedItemIds } },
+      data: { deliveryStatus },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("setDeliveryStatus", error);
+    return { success: false, message: "Failed to update delivery status." };
+  }
 }
 
 export type RequestedItemsGroupedByStore = Record<

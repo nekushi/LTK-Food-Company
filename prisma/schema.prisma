@@ -231,3 +231,10 @@ model RequestedItems {
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])
 }
+
+model Location {
+  id        String   @id @default(uuid())
+  lat       Float
+  lng       Float
+  createdAt DateTime @default(now())
+}
