@@ -70,7 +70,8 @@ export default function DeliveryClient({
           Delivery — Issued items to deliver
         </h1>
         <p className="mt-1 text-sm text-amber-800/80">
-          Issued stocks by store. Add stores to the delivery box, then mark Off for Delivery.
+          Issued stocks by store. Add stores to the delivery box, then mark Off
+          for Delivery.
         </p>
       </div>
 
@@ -96,7 +97,8 @@ export default function DeliveryClient({
                         {storeName}
                       </span>
                       <span className="text-xs text-amber-700">
-                        · {items.length} item{items.length !== 1 ? "s" : ""} to deliver
+                        · {items.length} item{items.length !== 1 ? "s" : ""} to
+                        deliver
                       </span>
                       <button
                         type="button"
@@ -107,7 +109,9 @@ export default function DeliveryClient({
                             : "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-200"
                         }`}
                       >
-                        {isSelectedStore ? "In delivery box" : "Add to delivery box"}
+                        {isSelectedStore
+                          ? "In delivery box"
+                          : "Add to delivery box"}
                       </button>
                     </div>
                     <ul className="divide-y divide-amber-100">
@@ -121,7 +125,10 @@ export default function DeliveryClient({
                             {item.unitOfMeasurement}
                           </span>
                           {item.note && (
-                            <span className="text-xs text-amber-600 max-w-[200px] truncate" title={item.note}>
+                            <span
+                              className="text-xs text-amber-600 max-w-[200px] truncate"
+                              title={item.note}
+                            >
                               {item.note}
                             </span>
                           )}
@@ -163,7 +170,8 @@ export default function DeliveryClient({
                       className="flex items-center justify-between gap-2 px-4 py-2 text-sm text-amber-900"
                     >
                       <span className="truncate">
-                        {item.productNameGeneral} × {item.quantity} {item.unitOfMeasurement}
+                        {item.productNameGeneral} × {item.quantity}{" "}
+                        {item.unitOfMeasurement}
                       </span>
                       <button
                         type="button"

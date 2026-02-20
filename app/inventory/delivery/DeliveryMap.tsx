@@ -6,11 +6,15 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 if (typeof window !== "undefined") {
-  delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: string })._getIconUrl;
+  delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: string })
+    ._getIconUrl;
   L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+    iconRetinaUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+    iconUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+    shadowUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
   });
 }
 
@@ -21,8 +25,8 @@ type LocationEntry = {
   createdAt: string;
 };
 
-const DEFAULT_CENTER: [number, number] = [14.5995, 120.9842];
-const DEFAULT_ZOOM = 10;
+const DEFAULT_CENTER: [number, number] = [14.121, 121.16];
+const DEFAULT_ZOOM = 12;
 
 function MapContent({ locations }: { locations: LocationEntry[] }) {
   const map = useMap();
@@ -73,7 +77,9 @@ export default function DeliveryMap() {
   return (
     <div className="rounded-xl border-2 border-amber-300 bg-amber-50/30 overflow-hidden">
       <MapContainer
-        center={locations[0] ? [locations[0].lat, locations[0].lng] : DEFAULT_CENTER}
+        center={
+          locations[0] ? [locations[0].lat, locations[0].lng] : DEFAULT_CENTER
+        }
         zoom={DEFAULT_ZOOM}
         style={{ height: "280px", width: "100%" }}
         scrollWheelZoom
@@ -87,7 +93,7 @@ export default function DeliveryMap() {
           <Marker key={loc.id} position={[loc.lat, loc.lng]}>
             <Popup>
               <span className="text-amber-900">
-                {loc.lat.toFixed(5)}, {loc.lng.toFixed(5)}
+                {loc.lat}, {loc.lng}
               </span>
             </Popup>
           </Marker>

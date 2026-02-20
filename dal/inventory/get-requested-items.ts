@@ -96,6 +96,47 @@ export type RequestedItemHistoryEntry = {
   deliveryStatus: string | null;
 };
 
+export type OnTheWayItemEntry = RequestedItemHistoryEntry & {
+  storeLatitude: number | null;
+  storeLongitude: number | null;
+};
+
+/** Items with deliveryStatus "on the way" for /delivery page (driver view). */
+export async function getOnTheWayItemsForDelivery(): Promise<
+  OnTheWayItemEntry[]
+> {
+  const items = await prisma.requestedItems.findMany({
+    where: {
+      isRequestApproved: true,
+      NOT: { note: null },
+      deliveryStatus: "on the way",
+    },
+    orderBy: { id: "desc" },
+    include: {
+      store: {
+        select: {
+          user: { select: { username: true } },
+          latitude: true,
+          longitude: true,
+        },
+      },
+    },
+  });
+  return items.map((item) => ({
+    id: item.id,
+    productNameGeneral: item.productNameGeneral,
+    quantity: item.quantity,
+    unitOfMeasurement: item.unitOfMeasurement,
+    storeId: item.storeId,
+    storeUsername: item.store.user.username,
+    isRequestApproved: item.isRequestApproved,
+    note: item.note,
+    deliveryStatus: item.deliveryStatus,
+    storeLatitude: item.store.latitude,
+    storeLongitude: item.store.longitude,
+  }));
+}
+
 /** Issued items (approved, with note) for delivery page. Only "to be delivered" or null status. */
 export async function getIssuedItemsForDelivery(): Promise<
   RequestedItemHistoryEntry[]

@@ -178,6 +178,8 @@ model Store {
   user      Account  @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+  latitude  Float?
+  longitude Float?
 
   requestItems RequestedItems[]
 }
