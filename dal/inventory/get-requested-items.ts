@@ -242,10 +242,19 @@ export async function issueStock(
       if (remainingToIssue <= 0) break;
 
       const toDeduct = Math.min(remainingToIssue, invItem.quantity);
-      await prisma.inventory.update({
-        where: { id: invItem.id },
-        data: { quantity: invItem.quantity - toDeduct },
-      });
+      const newQuantity = invItem.quantity - toDeduct;
+      
+      // If quantity reaches 0, delete the inventory item instead of updating
+      if (newQuantity <= 0) {
+        await prisma.inventory.delete({
+          where: { id: invItem.id },
+        });
+      } else {
+        await prisma.inventory.update({
+          where: { id: invItem.id },
+          data: { quantity: newQuantity },
+        });
+      }
       remainingToIssue -= toDeduct;
     }
 

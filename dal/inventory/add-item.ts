@@ -118,3 +118,72 @@ export async function addItems(data: ItemFlowSchema) {
     };
   }
 }
+
+export async function addAdditionalStock(id: string, data: ItemFlowSchema) {
+  console.log(`Add additional stock`);
+
+  const result = itemsFlowSchema.safeParse(data);
+
+  if (!result.success) {
+    const tree = z.treeifyError(result.error);
+    return {
+      success: "validation_error",
+      errors: tree,
+    };
+  }
+
+  try {
+    const existing = await prisma.inventory.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return {
+        success: false,
+        message: "Base inventory item not found",
+      };
+    }
+
+    const extras = computeDerived(
+      data.quantity,
+      data.unitPrice,
+      data.typeOfVatTaxpayer,
+    );
+
+    const updated = await prisma.inventory.update({
+      where: { id },
+      data: {
+        periodMonth: data.periodMonth,
+        periodYear: data.periodYear,
+        supplierName: data.supplierName,
+        tinNumber: data.tinNo,
+        typeOfVatTaxpayer: data.typeOfVatTaxpayer,
+        typeOfStocks: data.typeOfStocks,
+        productNameSpecific: data.productNameSpecific,
+        productNameGeneral: data.productNameGeneral,
+        itemCode: data.itemCode,
+        accountRecognition: data.accountingRecognition,
+        unitOfMeasurement: data.measurement,
+        quantity: existing.quantity + data.quantity,
+        unitPrice: data.unitPrice,
+        totalPrice: existing.totalPrice + extras.totalPrice,
+        vatable: existing.vatable + extras.vatable,
+        vat: existing.vat + extras.vat,
+        ewt: existing.ewt + extras.ewt,
+        netPay: existing.netPay + extras.netPay,
+      },
+    });
+
+    return {
+      success: "success",
+      item: updated,
+      message: "Additional stock added successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "Something went wrong",
+    };
+  }
+}

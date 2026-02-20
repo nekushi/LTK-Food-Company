@@ -14,6 +14,7 @@ import {
   VAT_TYPES,
 } from "@/schemas/items.schema";
 import { addItems } from "@/dal/inventory/add-item";
+import { addAdditionalStock } from "@/dal/inventory/add-item";
 import {
   getApprovedRequestedItems,
   issueStock,
@@ -22,6 +23,7 @@ import {
 } from "@/dal/inventory/get-requested-items";
 import { toast } from "react-toastify";
 import { MergedItemReturnTypeInventory } from "@/dal/inventory/request-items";
+import type { ItemsReturnTypeInventory } from "@/dal/inventory/get-items";
 
 export type ItemsFlowFormValues = z.infer<typeof itemsFlowSchema>;
 
@@ -53,7 +55,11 @@ function computeDerived(
   return { totalPrice, vatable, vat, ewt, netPay };
 }
 
-export function ItemsFlowForm() {
+export function ItemsFlowForm({
+  inventoryItems,
+}: {
+  inventoryItems: ItemsReturnTypeInventory[];
+}) {
   const {
     register,
     handleSubmit,
@@ -100,24 +106,53 @@ export function ItemsFlowForm() {
   const [selectedRequestedItemId, setSelectedRequestedItemId] = useState<
     string | null
   >(null);
+  const [selectedInventoryItemId, setSelectedInventoryItemId] = useState<
+    string | null
+  >(null);
   const [issueModalOpen, setIssueModalOpen] = useState(false);
   const [issueNote, setIssueNote] = useState("");
   const [issueSubmitting, setIssueSubmitting] = useState(false);
+
+  const isAdditionalStocks = typeOfStocks === "Additional Stocks";
+
+  const beginningStockItems = inventoryItems.filter(
+    (item) => item.typeOfStocks === "Beginning Stocks",
+  );
 
   // Fetch requested items when issued stocks is selected
   const handleTypeOfStocksChange = async (value: string) => {
     if (value === "Issued Stocks") {
       const items = await getApprovedRequestedItems();
       setRequestedItems(items);
+      setSelectedInventoryItemId(null);
+    } else if (value === "Additional Stocks") {
+      setRequestedItems([]);
+      setSelectedRequestedItemId(null);
+      setSelectedInventoryItemId(null);
     } else {
       setRequestedItems([]);
       setSelectedRequestedItemId(null);
+      setSelectedInventoryItemId(null);
     }
   };
 
   const onSubmit = async (data: ItemsFlowFormValues) => {
     if (isIssuedStocks && selectedRequestedItemId) {
       setIssueModalOpen(true);
+      return;
+    }
+
+    if (isAdditionalStocks && selectedInventoryItemId) {
+      const result = await addAdditionalStock(selectedInventoryItemId, data);
+
+      if (result.success === "success") {
+        toast.success(result.message);
+        reset();
+      } else if (result.success === "validation_error") {
+        toast.error("Validation error when adding additional stock.");
+      } else {
+        toast.error(result.message ?? "Something went wrong");
+      }
       return;
     }
 
@@ -390,6 +425,78 @@ export function ItemsFlowForm() {
                   {selectedRequestedItemId && (
                     <p className="mt-1 text-xs text-amber-600">
                       Selected item will be issued from inventory.
+                    </p>
+                  )}
+                </div>
+              ) : isAdditionalStocks ? (
+                <div>
+                  <label className={labelClass}>
+                    Select Existing Inventory Item:
+                  </label>
+                  <select
+                    value={selectedInventoryItemId || ""}
+                    onChange={(e) => {
+                      const itemId = e.target.value;
+                      setSelectedInventoryItemId(itemId || null);
+                      const item = beginningStockItems.find(
+                        (i) => i.id === itemId,
+                      );
+                      if (item) {
+                        setValue("periodMonth", item.periodMonth || "");
+                        setValue("periodYear", item.periodYear || "");
+                        setValue("typeOfStocks", "Additional Stocks");
+                        setValue("supplierName", item.supplierName || "");
+                        setValue("tinNo", item.tinNumber || "");
+                        setValue(
+                          "productNameSpecific",
+                          item.productNameSpecific || "",
+                        );
+                        setValue(
+                          "productNameGeneral",
+                          item.productNameGeneral || "",
+                        );
+                        setValue("itemCode", item.itemCode || "");
+                        setValue(
+                          "measurement",
+                          item.unitOfMeasurement || "",
+                        );
+                        // Default additional quantity to 1; user can adjust
+                        setValue("quantity", 1);
+                        setValue("unitPrice", item.unitPrice || 0);
+
+                        if (item.typeOfVatTaxpayer) {
+                          const vatType = item.typeOfVatTaxpayer as (typeof VAT_TYPES)[number];
+                          if (VAT_TYPES.includes(vatType)) {
+                            setValue("typeOfVatTaxpayer", vatType);
+                          }
+                        }
+
+                        if (
+                          item.accountRecognition &&
+                          ACCOUNTING_RECOGNITION.includes(
+                            item.accountRecognition as (typeof ACCOUNTING_RECOGNITION)[number],
+                          )
+                        ) {
+                          setValue(
+                            "accountingRecognition",
+                            item.accountRecognition as (typeof ACCOUNTING_RECOGNITION)[number],
+                          );
+                        }
+                      }
+                    }}
+                    className={inputClass}
+                  >
+                    <option value="">Select an inventory item...</option>
+                    {beginningStockItems.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.productNameGeneral} x{item.quantity}{" "}
+                        {item.unitOfMeasurement}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedInventoryItemId && (
+                    <p className="mt-1 text-xs text-amber-600">
+                      Selected item will have its stock increased.
                     </p>
                   )}
                 </div>

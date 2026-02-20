@@ -23,7 +23,12 @@ export async function getItemsInventory() {
 export async function getItemsStore() {
   console.log(`Fetching items`);
 
-  const items = await prisma.inventory.findMany();
+  // Filter out items with quantity <= 0 - they should not be visible to stores
+  const items = await prisma.inventory.findMany({
+    where: {
+      quantity: { gt: 0 },
+    },
+  });
 
   const forStore = items.map((item) => ({
     id: item.id,
