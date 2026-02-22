@@ -29,48 +29,16 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 export default function Map() {
-  const latlngLastRef = useRef({ lat: 0, lng: 0 });
-  const latlngRef = useRef({ lat: 0, lng: 0 });
   const [latlng, setLatlng] = useState({ lat: 0, lng: 0 });
-  const [tracking, setTracking] = useState<boolean>(false);
-  const watchId = useRef<number | null>(null);
-  const timeoutRef = useRef<number | null>(null);
-  const [location, setLocation] = useState<MapLocation[]>([
-    { id: "0", lat: 0, lng: 0 },
-  ]);
-
-  //   function sendingDataLoop() {
-  //     timeoutRef.current = window.setTimeout(async () => {
-  //       sendingDataLoop();
-  //     }, 5000);
-  //   }
-
-  //   const sendLocation = () => {
-  //     if (!tracking) {
-  //       console.log(`Start tracking first`);
-  //       return;
-  //     }
-
-  //     console.log(`Sending data`);
-  //     sendingDataLoop();
-  //   };
-
-  //   const getLocation = async () => {
-  //     const res = await fetch("/api/location");
-  //     const locationData = await res.json();
-  //     const list = Array.isArray(locationData) ? locationData : [];
-  //     setLocation(
-  //       list.map((loc: { id: string; lat: number; lng: number }) => ({
-  //         id: loc.id,
-  //         lat: loc.lat,
-  //         lng: loc.lng,
-  //       })),
-  //     );
-  //   };
+  const [location, setLocation] = useState<MapLocation>({
+    id: "0",
+    lat: 0,
+    lng: 0,
+  });
 
   const getLocation = async () => {
     const res = await fetch("/api/get-location/");
-    const locationData: MapLocation[] = await res.json();
+    const locationData: MapLocation = await res.json();
 
     setLocation(locationData);
   };
@@ -98,17 +66,20 @@ export default function Map() {
       console.log("unsubscribing");
       channels.unsubscribe();
     };
-  }, [latlng.lat, latlng.lng]);
+    //   }, [latlng.lat, latlng.lng]);
+  }, [location.lat, location.lng]);
 
   return (
     <div>
       <MapContainer
-        center={[location?.[0]?.lat ?? 0, location?.[0]?.lng ?? 0]}
+        // center={[location?.[0]?.lat ?? 0, location?.[0]?.lng ?? 0]}
+        center={[location?.lat ?? 0, location?.lng ?? 0]}
         zoom={16}
         style={{ height: "400px", width: "100%" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <AutoFollow position={location?.[0] ?? { lat: 0, lng: 0 }} />
+        {/* <AutoFollow position={location?.[0] ?? { lat: 0, lng: 0 }} /> */}
+        <AutoFollow position={location ?? { lat: 0, lng: 0 }} />
       </MapContainer>
 
       {/* <div className="p-4 space-y-2">

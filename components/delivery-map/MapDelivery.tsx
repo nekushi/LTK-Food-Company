@@ -3,7 +3,7 @@
 import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-import L, { latLng } from "leaflet";
+import L from "leaflet";
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import shadowUrl from "leaflet/dist/images/marker-shadow.png";
@@ -16,7 +16,6 @@ import {
   useImperativeHandle,
 } from "react";
 import AutoFollow from "./AutoFollow";
-import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
@@ -54,12 +53,10 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
   ({ getLocation, postLocation, destinationLat, destinationLng }, ref) => {
-    const latlngLastRef = useRef({ lat: 0, lng: 0 });
     const latlngRef = useRef({ lat: 0, lng: 0 });
     const [latlng, setLatlng] = useState({ lat: 0, lng: 0 });
     const [tracking, setTracking] = useState<boolean>(false);
     const watchId = useRef<number | null>(null);
-    const timeoutRef = useRef<number | null>(null);
     const [location, setLocation] = useState<MapLocation[]>([
       { id: 0, lat: 0, lng: 0 },
     ]);
@@ -131,8 +128,6 @@ const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
         });
 
       return () => {
-        // console.log(location);
-
         console.log("unsubscribing");
         channels.unsubscribe();
       };
@@ -155,11 +150,6 @@ const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
             destinationLng={destinationLng}
           />
         </MapContainer>
-
-        <div className="p-4 space-y-2">
-          <p>Lat: {location?.[0]?.lat ?? 0}</p>
-          <p>Lng: {location?.[0]?.lng ?? 0}</p>
-        </div>
       </div>
     );
   },

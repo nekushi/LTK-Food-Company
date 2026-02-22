@@ -52,7 +52,7 @@ function groupByStore(
   return map;
 }
 
-const METERS_NEAR_DESTINATION = 100;
+const METERS_NEAR_DESTINATION = 50;
 
 export default function DeliveryRunClient({
   onTheWayItems,
@@ -257,13 +257,20 @@ export default function DeliveryRunClient({
       )}
 
       <div className="relative flex-1 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/30 p-6 min-h-[400px] flex items-center justify-center">
-        <DeliveryMapComponent
-          ref={mapDeliveryRef}
-          getLocation={getLocation}
-          postLocation={postLocation}
-          destinationLat={destinationLat}
-          destinationLng={destinationLng}
-        />
+        {!tracking ? (
+          <p className="text-center text-sm text-amber-700">
+            Use Start GPS to track; you'll be alerted when within{" "}
+            {METERS_NEAR_DESTINATION} m of the destination.
+          </p>
+        ) : (
+          <DeliveryMapComponent
+            ref={mapDeliveryRef}
+            getLocation={getLocation}
+            postLocation={postLocation}
+            destinationLat={destinationLat}
+            destinationLng={destinationLng}
+          />
+        )}
       </div>
     </div>
   );

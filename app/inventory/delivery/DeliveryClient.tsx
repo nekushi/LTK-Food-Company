@@ -33,7 +33,6 @@ export default function DeliveryClient({
   const byStore = groupByStore(issuedItems);
   const storeEntries = Array.from(byStore.entries());
   const boxItems = issuedItems.filter((item) => boxItemIds.has(item.id));
-  // Only one store in the box: derive selected store from box items
   const boxStoreName = boxItems.length > 0 ? boxItems[0].storeUsername : null;
 
   const addStoreToBox = (storeId: string) => {
@@ -79,7 +78,6 @@ export default function DeliveryClient({
 
       <div className="flex-1 p-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Left: list of issued items by store */}
           <div className="lg:col-span-2 space-y-4">
             {storeEntries.length === 0 ? (
               <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-8 text-center text-amber-800">
@@ -143,9 +141,7 @@ export default function DeliveryClient({
             )}
           </div>
 
-          {/* Right: Delivery box + summary / map */}
           <div className="space-y-4">
-            {/* Delivery box section */}
             <div className="rounded-xl border-2 border-amber-300 bg-amber-50/80 overflow-hidden">
               <div className="border-b border-amber-200 bg-amber-100 px-4 py-3 flex items-center justify-between">
                 <span className="text-sm font-semibold text-amber-900">
@@ -221,20 +217,6 @@ export default function DeliveryClient({
     </div>
   );
 }
-
-// "use client";
-
-// import { useState, useEffect } from "react";
-
-// import dynamic from "next/dynamic";
-
-// const Map = dynamic(() => import("@/components/delivery-map/Map"), {
-//   ssr: false,
-// });
-
-// export default function Home() {
-//   return <Map />;
-// }
 
 export type Tcenter = {
   lat: number;
