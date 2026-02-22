@@ -60,7 +60,7 @@ const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
     const [tracking, setTracking] = useState<boolean>(false);
     const watchId = useRef<number | null>(null);
     const timeoutRef = useRef<number | null>(null);
-    const DEFAULT_CENTER = { lat: 14.5995, lng: 120.9842 };
+    const DEFAULT_CENTER = { lat: 14.087257412220977, lng: 121.17774785384329 };
     const [location, setLocation] = useState<MapLocation[]>([
       { id: 0, lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng },
     ]);
@@ -153,7 +153,7 @@ const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
       : DEFAULT_CENTER;
 
     return (
-      <div className="absolute inset-0 min-h-[300px]">
+      <div className="absolute inset-0 min-h-[300px] rounded-lg overflow-hidden">
         <MapContainer
           center={mapCenter}
           zoom={hasValidCenter ? 16 : 10}
@@ -170,11 +170,6 @@ const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
             destinationLng={destinationLng}
           />
         </MapContainer>
-
-        <div className="p-4 space-y-2">
-          <p>Lat: {location?.[0]?.lat ?? "—"}</p>
-          <p>Lng: {location?.[0]?.lng ?? "—"}</p>
-        </div>
       </div>
     );
   },

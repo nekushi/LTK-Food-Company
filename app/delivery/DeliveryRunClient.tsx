@@ -105,6 +105,8 @@ export default function DeliveryRunClient({
   );
 
   const stopGps = useCallback(() => {
+    console.log("stop tracking");
+
     mapDeliveryRef.current?.stopTracking();
     if (watchIdRef.current != null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
@@ -261,15 +263,31 @@ export default function DeliveryRunClient({
         </>
       )}
 
-      <div className="relative flex-1 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/30 p-6 min-h-[400px] flex flex-col">
+      <div className="relative flex-1 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/30 p-4 min-h-[400px] flex flex-col">
+        {/* {tracking ? (
+          <div className="relative flex-1 min-h-[350px] w-full">
+            <DeliveryMapComponent
+              ref={mapDeliveryRef}
+              getLocation={getLocation}
+              postLocation={postLocation}
+              destinationLat={destinationLat}
+              destinationLng={destinationLng}
+            />
+          </div>
+        ) : (
+          <p className="text-center text-sm text-amber-700">
+            Map placeholder — use Start GPS to track; you’ll be alerted when
+            within 100 m of the destination.
+          </p>
+        )} */}
         <div className="relative flex-1 min-h-[350px] w-full">
           <DeliveryMapComponent
-          ref={mapDeliveryRef}
-          getLocation={getLocation}
-          postLocation={postLocation}
-          destinationLat={destinationLat}
-          destinationLng={destinationLng}
-        />
+            ref={mapDeliveryRef}
+            getLocation={getLocation}
+            postLocation={postLocation}
+            destinationLat={destinationLat}
+            destinationLng={destinationLng}
+          />
         </div>
       </div>
     </div>
