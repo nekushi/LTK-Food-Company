@@ -10,20 +10,23 @@ type Props = {
     lat: number;
     lng: number;
   };
+  destinationLat?: number | null;
+  destinationLng?: number | null;
 };
 
 // interface RefinedRoutingRef extends L.Routing.Control {
 //   createMarker: () => void;
 // }
 
-export default function AutoFollow({ position }: Props) {
+export default function AutoFollow({
+  position,
+  destinationLat,
+  destinationLng,
+}: Props) {
   const map = useMap();
 
   const markerRef = useRef<L.Marker | null>(null);
-  //   const routingRef = useRef<L.Routing.Control | null>(null);
   const routingRef = useRef<L.Routing.Control | null>(null);
-
-  const destination = L.latLng(14.10588, 121.15017);
 
   map.setView([position.lat, position.lng], map.getZoom(), {
     animate: true,
@@ -33,6 +36,13 @@ export default function AutoFollow({ position }: Props) {
     if (!position || position.lat === 0 || position.lng === 0) return;
 
     const userLatLng = L.latLng(position.lat, position.lng);
+    const destination =
+      destinationLat != null &&
+      destinationLng != null &&
+      Number.isFinite(destinationLat) &&
+      Number.isFinite(destinationLng)
+        ? L.latLng(destinationLat, destinationLng)
+        : L.latLng(14.121, 121.16);
 
     if (!markerRef.current) {
       markerRef.current = L.marker(userLatLng).addTo(map);
@@ -54,7 +64,7 @@ export default function AutoFollow({ position }: Props) {
         lineOptions: {
           styles: [
             {
-              color: "red",
+              color: "blue",
               weight: 6,
               opacity: 0.9,
             },
@@ -66,7 +76,7 @@ export default function AutoFollow({ position }: Props) {
     } else {
       routingRef.current.setWaypoints([userLatLng, destination]);
     }
-  }, [position, map]);
+  }, [position, map, destinationLat, destinationLng]);
 
   return null;
 }

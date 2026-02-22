@@ -1,8 +1,24 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import type { OnTheWayItemEntry } from "@/dal/inventory/get-requested-items";
+import type {
+  MapDeliveryRef,
+  MapLocation,
+  MapDeliveryProps,
+} from "@/components/delivery-map/MapDelivery";
+import type { ComponentRef } from "react";
+
+const DeliveryMapComponent = dynamic(
+  () => import("@/components/delivery-map/MapDelivery"),
+  {
+    ssr: false,
+  },
+) as React.ForwardRefExoticComponent<
+  MapDeliveryProps & React.RefAttributes<MapDeliveryRef>
+>;
 
 /** Haversine distance in meters */
 function distanceMeters(
@@ -25,8 +41,8 @@ function distanceMeters(
 
 function groupByStore(
   items: OnTheWayItemEntry[],
-): Map<string, OnTheWayItemEntry[]> {
-  const map = new Map<string, OnTheWayItemEntry[]>();
+): globalThis.Map<string, OnTheWayItemEntry[]> {
+  const map = new globalThis.Map<string, OnTheWayItemEntry[]>();
   for (const item of items) {
     const key = item.storeId;
     const list = map.get(key) ?? [];
@@ -47,6 +63,7 @@ export default function DeliveryRunClient({
   const [tracking, setTracking] = useState(false);
   const [withinRange, setWithinRange] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const mapDeliveryRef = useRef<MapDeliveryRef>(null);
   const watchIdRef = useRef<number | null>(null);
 
   const byStore = groupByStore(onTheWayItems);
@@ -56,14 +73,34 @@ export default function DeliveryRunClient({
   const destinationLat = firstStoreItems[0]?.storeLatitude ?? null;
   const destinationLng = firstStoreItems[0]?.storeLongitude ?? null;
   const hasDestination =
-    destinationLat != 14.121 &&
-    destinationLng != 121.16 &&
+    destinationLat != null &&
+    destinationLng != null &&
     Number.isFinite(destinationLat) &&
     Number.isFinite(destinationLng);
   const allItemIds = onTheWayItems.map((i) => i.id);
   const storeName = firstStoreItems[0]?.storeUsername ?? "—";
 
+  const getLocation = useCallback(async (): Promise<MapLocation[]> => {
+    const res = await fetch("/api/location/get-location");
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data || typeof data !== "object") return [];
+    return [{ id: data.id ?? 0, lat: data.lat ?? 0, lng: data.lng ?? 0 }];
+  }, []);
+
+  const postLocation = useCallback(
+    async (lat: number, lng: number): Promise<void> => {
+      await fetch("/api/location/post-location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat, lng }),
+      });
+    },
+    [],
+  );
+
   const stopGps = useCallback(() => {
+    mapDeliveryRef.current?.stopTracking();
     if (watchIdRef.current != null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
@@ -80,6 +117,7 @@ export default function DeliveryRunClient({
       return;
     }
     setWithinRange(false);
+    mapDeliveryRef.current?.startTracking();
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         const lat = position.coords.latitude;
@@ -218,11 +256,14 @@ export default function DeliveryRunClient({
         </>
       )}
 
-      <div className="flex-1 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/30 p-6 min-h-[200px] flex items-center justify-center">
-        <p className="text-center text-sm text-amber-700">
-          Map placeholder — use Start GPS to track; you’ll be alerted when
-          within 100 m of the destination.
-        </p>
+      <div className="relative flex-1 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/30 p-6 min-h-[400px] flex items-center justify-center">
+        <DeliveryMapComponent
+          ref={mapDeliveryRef}
+          getLocation={getLocation}
+          postLocation={postLocation}
+          destinationLat={destinationLat}
+          destinationLng={destinationLng}
+        />
       </div>
     </div>
   );
