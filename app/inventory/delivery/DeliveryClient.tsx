@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { RequestedItemHistoryEntry } from "@/dal/inventory/get-requested-items";
 
-const DeliveryMap = dynamic(() => import("./DeliveryMap"), { ssr: false });
+const Map = dynamic(() => import("@/components/delivery-map/Map"), {
+  ssr: false,
+});
 
 function groupByStore(
   items: RequestedItemHistoryEntry[],
-): Map<string, RequestedItemHistoryEntry[]> {
-  const map = new Map<string, RequestedItemHistoryEntry[]>();
+): globalThis.Map<string, RequestedItemHistoryEntry[]> {
+  const map = new globalThis.Map<string, RequestedItemHistoryEntry[]>();
   for (const item of items) {
     const key = item.storeId;
     const list = map.get(key) ?? [];
@@ -211,7 +213,7 @@ export default function DeliveryClient({
               </p>
             </div>
             <div className="flex-1 min-h-[200px]">
-              <DeliveryMap />
+              <Map />
             </div>
           </div>
         </div>
@@ -219,3 +221,22 @@ export default function DeliveryClient({
     </div>
   );
 }
+
+// "use client";
+
+// import { useState, useEffect } from "react";
+
+// import dynamic from "next/dynamic";
+
+// const Map = dynamic(() => import("@/components/delivery-map/Map"), {
+//   ssr: false,
+// });
+
+// export default function Home() {
+//   return <Map />;
+// }
+
+export type Tcenter = {
+  lat: number;
+  lng: number;
+};
