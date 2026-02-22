@@ -1,5 +1,8 @@
 import Header from "@/template/header";
 import Link from "next/link";
+import BtnLogout from "../../components/logouts/btnLogout";
+import { logout } from "@/dal/login/get-user";
+import BtnLogoutSPA from "@/components/logouts/btnLogoutSPA";
 
 export default function DeliveryLayout({
   children,
@@ -13,12 +16,7 @@ export default function DeliveryLayout({
         <h2 className="text-sm font-semibold uppercase tracking-wider text-amber-800">
           Delivery
         </h2>
-        <Link
-          href="/login"
-          className="rounded-lg px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-100"
-        >
-          Logout
-        </Link>
+        <BtnLogoutSPA />
       </header>
       <main className="flex-1">{children}</main>
     </div>

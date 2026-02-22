@@ -3,7 +3,7 @@
 import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-import L from "leaflet";
+import L, { latLng } from "leaflet";
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import shadowUrl from "leaflet/dist/images/marker-shadow.png";
@@ -16,6 +16,7 @@ import {
   useImperativeHandle,
 } from "react";
 import AutoFollow from "./AutoFollow";
+import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
@@ -53,12 +54,15 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
   ({ getLocation, postLocation, destinationLat, destinationLng }, ref) => {
+    const latlngLastRef = useRef({ lat: 0, lng: 0 });
     const latlngRef = useRef({ lat: 0, lng: 0 });
     const [latlng, setLatlng] = useState({ lat: 0, lng: 0 });
     const [tracking, setTracking] = useState<boolean>(false);
     const watchId = useRef<number | null>(null);
+    const timeoutRef = useRef<number | null>(null);
+    const DEFAULT_CENTER = { lat: 14.5995, lng: 120.9842 };
     const [location, setLocation] = useState<MapLocation[]>([
-      { id: 0, lat: 0, lng: 0 },
+      { id: 0, lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng },
     ]);
 
     const showPosition = async (position: GeolocationPosition) => {
@@ -128,28 +132,49 @@ const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
         });
 
       return () => {
+        // console.log(location);
+
         console.log("unsubscribing");
         channels.unsubscribe();
       };
     }, [latlng.lat, latlng.lng, getLocation]);
 
+    const centerLat = location?.[0]?.lat ?? DEFAULT_CENTER.lat;
+    const centerLng = location?.[0]?.lng ?? DEFAULT_CENTER.lng;
+    const hasValidCenter =
+      Number.isFinite(centerLat) &&
+      Number.isFinite(centerLng) &&
+      (centerLat !== 0 || centerLng !== 0);
+    const mapCenter: [number, number] = hasValidCenter
+      ? [centerLat, centerLng]
+      : [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng];
+    const position = location?.[0]
+      ? { lat: location[0].lat, lng: location[0].lng }
+      : DEFAULT_CENTER;
+
     return (
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 min-h-[300px]">
         <MapContainer
-          center={[location?.[0]?.lat ?? 0, location?.[0]?.lng ?? 0]}
-          zoom={16}
+          center={mapCenter}
+          zoom={hasValidCenter ? 16 : 10}
           style={{
             height: "100%",
             width: "100%",
+            minHeight: "300px",
           }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <AutoFollow
-            position={location?.[0] ?? { lat: 0, lng: 0 }}
+            position={position}
             destinationLat={destinationLat}
             destinationLng={destinationLng}
           />
         </MapContainer>
+
+        <div className="p-4 space-y-2">
+          <p>Lat: {location?.[0]?.lat ?? "—"}</p>
+          <p>Lng: {location?.[0]?.lng ?? "—"}</p>
+        </div>
       </div>
     );
   },

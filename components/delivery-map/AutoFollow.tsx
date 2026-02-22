@@ -14,6 +14,10 @@ type Props = {
   destinationLng?: number | null;
 };
 
+// interface RefinedRoutingRef extends L.Routing.Control {
+//   createMarker: () => void;
+// }
+
 export default function AutoFollow({
   position,
   destinationLat,

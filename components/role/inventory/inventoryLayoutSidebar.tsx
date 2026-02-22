@@ -12,7 +12,7 @@ import { PiReceiptLight } from "react-icons/pi";
 import { FaRegUser } from "react-icons/fa";
 
 import { TypeNavList } from "@/index";
-import BtnLogout from "@/app/login/btnLogout";
+import BtnLogout from "@/components/logouts/btnLogout";
 
 export default function InventoryLayoutSidebar() {
   const path = usePathname();

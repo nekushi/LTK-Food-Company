@@ -52,7 +52,7 @@ function groupByStore(
   return map;
 }
 
-const METERS_NEAR_DESTINATION = 50;
+const METERS_NEAR_DESTINATION = 100;
 
 export default function DeliveryRunClient({
   onTheWayItems,
@@ -84,8 +84,13 @@ export default function DeliveryRunClient({
     const res = await fetch("/api/location/get-location");
     if (!res.ok) return [];
     const data = await res.json();
-    if (!data || typeof data !== "object") return [];
-    return [{ id: data.id ?? 0, lat: data.lat ?? 0, lng: data.lng ?? 0 }];
+    if (!data) return [];
+    const list = Array.isArray(data) ? data : [data];
+    return list.map((item: { id?: string; lat?: number; lng?: number }) => ({
+      id: item.id ?? "",
+      lat: Number(item.lat) || 0,
+      lng: Number(item.lng) || 0,
+    }));
   }, []);
 
   const postLocation = useCallback(
@@ -256,21 +261,16 @@ export default function DeliveryRunClient({
         </>
       )}
 
-      <div className="relative flex-1 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/30 p-6 min-h-[400px] flex items-center justify-center">
-        {!tracking ? (
-          <p className="text-center text-sm text-amber-700">
-            Use Start GPS to track; you'll be alerted when within{" "}
-            {METERS_NEAR_DESTINATION} m of the destination.
-          </p>
-        ) : (
+      <div className="relative flex-1 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/30 p-6 min-h-[400px] flex flex-col">
+        <div className="relative flex-1 min-h-[350px] w-full">
           <DeliveryMapComponent
-            ref={mapDeliveryRef}
-            getLocation={getLocation}
-            postLocation={postLocation}
-            destinationLat={destinationLat}
-            destinationLng={destinationLng}
-          />
-        )}
+          ref={mapDeliveryRef}
+          getLocation={getLocation}
+          postLocation={postLocation}
+          destinationLat={destinationLat}
+          destinationLng={destinationLng}
+        />
+        </div>
       </div>
     </div>
   );

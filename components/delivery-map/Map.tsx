@@ -30,15 +30,13 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 export default function Map() {
   const [latlng, setLatlng] = useState({ lat: 0, lng: 0 });
-  const [location, setLocation] = useState<MapLocation>({
-    id: "0",
-    lat: 0,
-    lng: 0,
-  });
+  const [location, setLocation] = useState<MapLocation[]>([
+    { id: "0", lat: 0, lng: 0 },
+  ]);
 
   const getLocation = async () => {
     const res = await fetch("/api/get-location/");
-    const locationData: MapLocation = await res.json();
+    const locationData: MapLocation[] = await res.json();
 
     setLocation(locationData);
   };
@@ -66,20 +64,18 @@ export default function Map() {
       console.log("unsubscribing");
       channels.unsubscribe();
     };
-    //   }, [latlng.lat, latlng.lng]);
-  }, [location.lat, location.lng]);
+  }, [latlng.lat, latlng.lng]);
+  //   }, [location.lat, location.lng]);
 
   return (
     <div>
       <MapContainer
-        // center={[location?.[0]?.lat ?? 0, location?.[0]?.lng ?? 0]}
-        center={[location?.lat ?? 0, location?.lng ?? 0]}
+        center={[location?.[0]?.lat ?? 0, location?.[0]?.lng ?? 0]}
         zoom={16}
         style={{ height: "400px", width: "100%" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {/* <AutoFollow position={location?.[0] ?? { lat: 0, lng: 0 }} /> */}
-        <AutoFollow position={location ?? { lat: 0, lng: 0 }} />
+        <AutoFollow position={location?.[0] ?? { lat: 0, lng: 0 }} />
       </MapContainer>
 
       {/* <div className="p-4 space-y-2">

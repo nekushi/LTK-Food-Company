@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-import { RxHamburgerMenu } from "react-icons/rx";
 import { usePathname } from "next/navigation";
 
 import { IoAnalytics, IoSettingsOutline } from "react-icons/io5";
@@ -12,7 +11,7 @@ import { PiReceiptLight } from "react-icons/pi";
 import { FaRegUser } from "react-icons/fa";
 
 import { TypeNavList } from "@/index";
-import BtnLogout from "@/app/login/btnLogout";
+import BtnLogout from "@/components/logouts/btnLogout";
 
 export default function HRLayoutSidebar() {
   const path = usePathname();
