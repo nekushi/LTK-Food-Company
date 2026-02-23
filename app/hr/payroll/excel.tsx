@@ -111,14 +111,13 @@ export default function ExcelForm() {
             onApprovedData={handleApprovedData}
           />
         ))}
-      {excelFilePila !== null &&
-        excelFilePila.pilaAttendanceCard.length !== 0 && (
-          <EmployeeWorkDataPila
-            store={store}
-            date={excelFilePila.date}
-            pilaAttendanceCard={excelFilePila.pilaAttendanceCard}
-          />
-        )}
+      {excelFilePila !== null && (
+        <EmployeeWorkDataPila
+          store={store}
+          date={excelFilePila.date}
+          pilaAttendanceCard={excelFilePila.pilaAttendanceCard}
+        />
+      )}
       <button
         // onClick={handleLinkDataClick}
         className="border px-2 py-1 rounded"
