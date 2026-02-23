@@ -1,4 +1,3 @@
-import { linkToEmployee } from "@/dal/geo";
 import { getMonth } from "@/utils/numberToMonth";
 import { MdDateRange, MdStars } from "react-icons/md";
 import { FaCircleXmark } from "react-icons/fa6";
@@ -9,6 +8,7 @@ import {
   TypeScheduleGeo,
   TypeSchedulesGeo,
 } from "@/index";
+import { useState } from "react";
 
 export default function EmployeeWorkDataGeo({
   store,
@@ -19,12 +19,43 @@ export default function EmployeeWorkDataGeo({
   data: TypeAttendanceCardGeo;
   onApprovedData: (data: TypeAttendanceCardGeo) => void;
 }) {
-  // const handleLinkDataClick = async () => {
-  //   console.log(data.id);
-
-  //   const res = await linkToEmployee(data);
-  //   console.log(res);
   // };
+
+  const [calculatedMinutesMap, setCalculatedMinutesMap] = useState<
+    Record<string, number>
+  >({});
+
+  const handleCalculateTotal = (dateId: string, minutes: number | null) => {
+    setCalculatedMinutesMap((prev) => {
+      const newMap = { ...prev };
+      if (minutes === null) {
+        delete newMap[dateId];
+      } else {
+        newMap[dateId] = minutes;
+      }
+      return newMap;
+    });
+  };
+
+  const totalCalculatedMinutes = Object.values(calculatedMinutesMap).reduce(
+    (acc, curr) => acc + curr,
+    0,
+  );
+
+  const handleShowTotalSum = () => {
+    if (totalCalculatedMinutes === 0) {
+      alert("0 hours");
+      return;
+    }
+    const sumHours = Math.floor(totalCalculatedMinutes / 60);
+    const sumMins = totalCalculatedMinutes % 60;
+
+    let timeStr = `${sumHours} hours`;
+    if (sumMins > 0) {
+      timeStr = `${sumHours} hours and ${sumMins} minutes`;
+    }
+    alert(timeStr);
+  };
 
   return (
     <div className="relative mt-8">
@@ -68,17 +99,6 @@ export default function EmployeeWorkDataGeo({
           <div className="border-r">
             <div className="ml-6 mt-6 flex flex-col">
               <div className="flex flex-row items-center gap-1 *:font-medium">
-                <FaCheckCircle className="text-green-400 inline align-middle text-xl" />{" "}
-                <p className="text-sm text-slate-600">Early Num:</p>
-              </div>
-              <p className="tabular-nums font-semibold text-2xl indent-6">
-                {data.earlyNum}
-              </p>
-            </div>
-          </div>
-          <div className="border-r">
-            <div className="ml-6 mt-6 flex flex-col">
-              <div className="flex flex-row items-center gap-1 *:font-medium">
                 <FaCircleXmark className="text-red-400 inline align-middle text-xl" />{" "}
                 <p className="text-sm text-slate-600">Absences Days:</p>
               </div>
@@ -87,7 +107,7 @@ export default function EmployeeWorkDataGeo({
               </p>
             </div>
           </div>
-          <div>
+          <div className="border-r">
             <div className="ml-6 mt-6 flex flex-col">
               <div className="flex flex-row items-center gap-1 *:font-medium *:text-slate-600">
                 <FaCircleNotch className="inline align-middle text-xl" />{" "}
@@ -95,6 +115,36 @@ export default function EmployeeWorkDataGeo({
               </div>
               <p className="tabular-nums font-semibold text-2xl indent-6">
                 {data.overtimeHours}
+              </p>
+            </div>
+          </div>
+          <div>
+            <div
+              className="ml-6 mt-6 flex flex-col cursor-pointer hover:underline text-blue-600"
+              onClick={handleShowTotalSum}
+              title="Click to show full calculation"
+            >
+              <div className="flex flex-row items-center gap-1 *:font-medium *:text-slate-600">
+                <MdDateRange className="inline align-middle text-xl" />{" "}
+                <p className="text-sm">Total Hours:</p>
+              </div>
+              <p className="tabular-nums font-semibold text-2xl indent-6">
+                {totalCalculatedMinutes}
+              </p>
+            </div>
+          </div>
+          <div>
+            <div
+              className="ml-6 mt-6 flex flex-col cursor-pointer hover:underline text-blue-600"
+              // onClick={handleShowTotalSum}
+              title="Click to show full calculation"
+            >
+              <div className="flex flex-row items-center gap-1 *:font-medium *:text-slate-600">
+                <MdDateRange className="inline align-middle text-xl" />{" "}
+                <p className="text-sm">Net Pay:</p>
+              </div>
+              <p className="tabular-nums font-semibold text-2xl indent-6">
+                {0}
               </p>
             </div>
           </div>
@@ -112,6 +162,7 @@ export default function EmployeeWorkDataGeo({
                 <th>Afternoon Out</th>
                 <th>Overtime In</th>
                 <th>Overtime Out</th>
+                <th>Total Hours</th>
               </tr>
             </thead>
             <tbody>
@@ -125,6 +176,7 @@ export default function EmployeeWorkDataGeo({
                   <WorkDataMonth
                     key={dateId}
                     scheduleData={[dateId, schedule]}
+                    onCalculate={handleCalculateTotal}
                   />
                 );
               })}
