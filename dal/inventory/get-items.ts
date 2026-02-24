@@ -5,7 +5,9 @@ import prisma from "@/lib/db";
 export async function getItemsInventory() {
   console.log(`Fetching items`);
 
-  const items = await prisma.inventory.findMany();
+  const items = await prisma.inventory.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
 
   const forIventory = items.map((item) => ({
     ...item,

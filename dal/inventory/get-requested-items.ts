@@ -93,7 +93,7 @@ export type RequestedItemHistoryEntry = {
   storeUsername: string;
   isRequestApproved: boolean;
   note: string | null;
-  deliveryStatus: string | null;
+  status: string | null;
 };
 
 export type OnTheWayItemEntry = RequestedItemHistoryEntry & {
@@ -109,7 +109,7 @@ export async function getOnTheWayItemsForDelivery(): Promise<
     where: {
       isRequestApproved: true,
       NOT: { note: null },
-      deliveryStatus: "on the way",
+      status: "on the way",
     },
     orderBy: { id: "desc" },
     include: {
@@ -131,7 +131,7 @@ export async function getOnTheWayItemsForDelivery(): Promise<
     storeUsername: item.store.user.username,
     isRequestApproved: item.isRequestApproved,
     note: item.note,
-    deliveryStatus: item.deliveryStatus,
+    status: item.status,
     storeLatitude: item.store.latitude,
     storeLongitude: item.store.longitude,
   }));
@@ -146,8 +146,8 @@ export async function getIssuedItemsForDelivery(): Promise<
       isRequestApproved: true,
       NOT: { note: null },
       OR: [
-        { deliveryStatus: null },
-        { deliveryStatus: "to be delivered" },
+        { status: null },
+        { status: "to be delivered" },
       ],
     },
     orderBy: { id: "desc" },
@@ -166,7 +166,7 @@ export async function getIssuedItemsForDelivery(): Promise<
     storeUsername: item.store.user.username,
     isRequestApproved: item.isRequestApproved,
     note: item.note,
-    deliveryStatus: item.deliveryStatus,
+    status: item.status,
   }));
 }
 
@@ -192,7 +192,7 @@ export async function getRequestedItemsHistoryForInventory(): Promise<
     storeUsername: item.store.user.username,
     isRequestApproved: item.isRequestApproved,
     note: item.note,
-    deliveryStatus: item.deliveryStatus,
+    status: item.status,
   }));
 }
 
@@ -227,7 +227,7 @@ export async function getRequestedItemsHistoryForStore(): Promise<
     storeUsername: item.store.user.username,
     isRequestApproved: item.isRequestApproved,
     note: item.note,
-    deliveryStatus: item.deliveryStatus,
+    status: item.status,
   }));
 }
 
@@ -347,7 +347,7 @@ export async function issueStock(
       data: {
         isRequestApproved: true,
         note: note.trim() || null,
-        deliveryStatus: "to be delivered",
+        status: "to be delivered",
       },
     });
 
@@ -380,7 +380,7 @@ export async function setDeliveryStatus(
     }
     await prisma.requestedItems.updateMany({
       where: { id: { in: requestedItemIds } },
-      data: { deliveryStatus },
+      data: { status: deliveryStatus },
     });
     return { success: true };
   } catch (error) {

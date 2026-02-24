@@ -187,6 +187,7 @@ model Store {
 
 model SalesReport {
   id          String   @id @default(uuid())
+  reportType  String   @default("Monthly") // Daily, Weekly, Monthly, Yearly
   periodMonth String
   periodYear  String
   totalSales  Float
@@ -196,7 +197,7 @@ model SalesReport {
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])
 
-  @@unique([storeId, periodMonth, periodYear])
+  @@unique([storeId, periodMonth, periodYear, reportType])
 }
 
 model Inventory {
@@ -220,7 +221,8 @@ model Inventory {
   ewt                 Float
   netPay              Float
   status              String?
-  category            String  @default("materials")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now()) @updatedAt
 }
 
 model RequestedItems {
@@ -245,9 +247,9 @@ model RequestedItems {
   netPay              Float
   isRequestApproved   Boolean @default(false)
   note                String?
-  deliveryStatus      String?
   status              String?
-  category            String  @default("materials")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now()) @updatedAt
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])

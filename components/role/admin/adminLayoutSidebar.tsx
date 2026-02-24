@@ -38,16 +38,17 @@ export default function AdminLayoutSidebar() {
 
   const navGroups: NavItemGroup[] = [
     {
-      name: "Branch",
+      name: "Branch MGT",
       icon: <IoIosGitBranch />,
       children: [
         { name: "Overview", href: "/admin/branch" },
+        { name: "Manage Branch", href: "/admin/branch/manage" },
         { name: "Inventory", href: "/admin/branch/inventory" },
         { name: "Requests & Approvals", href: "/admin/branch/requests" },
       ],
     },
     {
-      name: "Personnel",
+      name: "Personnel MGT",
       icon: <MdOutlinePeopleAlt />,
       children: [
         { name: "HR", href: "/admin/personnel/hr" },

@@ -100,6 +100,7 @@ export async function addItems(data: ItemFlowSchema) {
       vat: extras.vat,
       ewt: extras.ewt,
       netPay: extras.netPay,
+      createdAt: new Date(`${data.periodYear}-${data.periodMonth}-${data.periodDate}T00:00:00.000Z`),
     };
 
     const item = await prisma.inventory.create({
@@ -171,6 +172,7 @@ export async function addAdditionalStock(id: string, data: ItemFlowSchema) {
         vat: existing.vat + extras.vat,
         ewt: existing.ewt + extras.ewt,
         netPay: existing.netPay + extras.netPay,
+        createdAt: new Date(`${data.periodYear}-${data.periodMonth}-${data.periodDate}T00:00:00.000Z`),
       },
     });
 

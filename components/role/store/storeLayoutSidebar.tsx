@@ -61,6 +61,11 @@ const navLists: TypeNavList[] = [
     icon: <IoAnalytics />,
   },
   {
+    name: "Inventory",
+    href: "/store/inventory",
+    icon: <IoAnalytics />, // Or another appropriate icon, maybe PiReceiptLight
+  },
+  {
     name: "Request Items",
     href: "/store/request-items",
     icon: <FaRegUser />,

@@ -103,7 +103,7 @@ export default function Inventory() {
   >({});
   const [decisionModal, setDecisionModal] = useState<{
     open: boolean;
-    itemId: string;
+    itemIds: string[];
     productName: string;
   } | null>(null);
   const [decisionNote, setDecisionNote] = useState("");
@@ -231,21 +231,63 @@ export default function Inventory() {
 
   /** Group requests by store: { storeId -> items[] }; each group = 1 request */
   const byStore = useMemo(() => {
-    const map = new Map<string, RequestedItemWithStoreUI[]>();
+    // map: storeId -> { productNameGeneral -> { quantity, ids, isNew, storeUsername } }
+    const storeMap = new Map<
+      string,
+      Map<
+        string,
+        {
+          quantity: number;
+          ids: string[];
+          isNew: boolean;
+          storeUsername: string | undefined;
+        }
+      >
+    >();
+
     for (const n of notifications) {
-      const list = map.get(n.storeId) ?? [];
-      list.push(n);
-      map.set(n.storeId, list);
+      if (!storeMap.has(n.storeId)) {
+        storeMap.set(n.storeId, new Map());
+      }
+      const productMap = storeMap.get(n.storeId)!;
+
+      const existing = productMap.get(n.productNameGeneral);
+      if (existing) {
+        existing.quantity += n.quantity;
+        existing.ids.push(n.id);
+        if (!initialIds.has(n.id)) {
+          existing.isNew = true;
+        }
+      } else {
+        productMap.set(n.productNameGeneral, {
+          quantity: n.quantity,
+          ids: [n.id],
+          isNew: !initialIds.has(n.id),
+          storeUsername: n.storeUsername,
+        });
+      }
     }
-    return Array.from(map.entries()).map(([storeId, items]) => ({
-      storeId,
-      items,
-    }));
-  }, [notifications]);
+
+    // Convert back to Array format expected by render
+    return Array.from(storeMap.entries()).map(([storeId, productMap]) => {
+      const items = Array.from(productMap.entries()).map(
+        ([productNameGeneral, data]) => ({
+          id: data.ids[0], // primary id for key
+          allIds: data.ids, // array of ids for reject/delete
+          productNameGeneral,
+          quantity: data.quantity,
+          storeId,
+          storeUsername: data.storeUsername,
+          isNew: data.isNew,
+        }),
+      );
+      return { storeId, items };
+    });
+  }, [notifications, initialIds]);
 
   const totalRequests = byStore.length;
   const newRequests = byStore.filter((group) =>
-    group.items.some((n) => !initialIds.has(n.id)),
+    group.items.some((n) => n.isNew),
   ).length;
 
   return (
@@ -307,7 +349,7 @@ export default function Inventory() {
                     <li
                       key={n.id}
                       className={`flex items-center justify-between px-3 py-2 text-sm ${
-                        initialIds.has(n.id)
+                        !n.isNew
                           ? "bg-white hover:bg-gray-50"
                           : "bg-blue-50/70"
                       }`}
@@ -316,7 +358,7 @@ export default function Inventory() {
                         <span className="font-medium">
                           {n.productNameGeneral} x{n.quantity}
                         </span>
-                        {!initialIds.has(n.id) && (
+                        {n.isNew && (
                           <span className="ml-2 text-xs font-semibold text-blue-700">
                             New
                           </span>
@@ -329,7 +371,7 @@ export default function Inventory() {
                           onClick={() =>
                             setDecisionModal({
                               open: true,
-                              itemId: n.id,
+                              itemIds: n.allIds, // Pass the array of IDs
                               productName: n.productNameGeneral,
                             })
                           }
@@ -341,19 +383,23 @@ export default function Inventory() {
                           className="text-xs px-2 py-1 rounded border border-red-500 text-red-600 hover:bg-red-50"
                           onClick={async () => {
                             try {
-                              const response = await fetch(
-                                `/api/inventory/requested-items/${n.id}`,
-                                { method: "DELETE" },
-                              );
-                              if (!response.ok) {
-                                throw new Error("Failed to delete request");
+                              // Perform deletion sequentially for all IDs in this group
+                              for (const idToDelete of n.allIds) {
+                                const response = await fetch(
+                                  `/api/inventory/requested-items/${idToDelete}`,
+                                  { method: "DELETE" },
+                                );
+                                if (!response.ok) {
+                                  throw new Error(`Failed to delete request ${idToDelete}`);
+                                }
                               }
+
                               setNotifications((prev) =>
-                                prev.filter((item) => item.id !== n.id),
+                                prev.filter((item) => !n.allIds.includes(item.id))
                               );
                               setInitialIds((prev) => {
                                 const next = new Set(prev);
-                                next.delete(n.id);
+                                n.allIds.forEach((id: string) => next.delete(id));
                                 return next;
                               });
                             } catch (error) {
@@ -423,15 +469,15 @@ export default function Inventory() {
                 className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
                 onClick={async () => {
                   setDecisionSubmitting(true);
-                  const result = await rejectRequest([decisionModal.itemId], decisionNote);
+                  const result = await rejectRequest(decisionModal.itemIds, decisionNote);
                   setDecisionSubmitting(false);
                   if (result.success) {
                     setNotifications((prev) =>
-                      prev.filter((n) => n.id !== decisionModal.itemId)
+                      prev.filter((n) => !decisionModal.itemIds.includes(n.id))
                     );
                     setInitialIds((prev) => {
                       const next = new Set(prev);
-                      next.delete(decisionModal.itemId);
+                      decisionModal.itemIds.forEach((id) => next.delete(id));
                       return next;
                     });
                     setDecisionModal(null);

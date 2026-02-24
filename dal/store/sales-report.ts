@@ -37,6 +37,7 @@ export async function getSalesReports() {
 }
 
 export async function upsertSalesReport(data: {
+  reportType: string;
   periodMonth: string;
   periodYear: string;
   totalSales: number;
@@ -59,8 +60,9 @@ export async function upsertSalesReport(data: {
   try {
     const report = await prisma.salesReport.upsert({
       where: {
-        storeId_periodMonth_periodYear: {
+        storeId_periodMonth_periodYear_reportType: {
           storeId: store.id,
+          reportType: data.reportType,
           periodMonth: data.periodMonth,
           periodYear: data.periodYear,
         },
@@ -70,6 +72,7 @@ export async function upsertSalesReport(data: {
       },
       create: {
         storeId: store.id,
+        reportType: data.reportType,
         periodMonth: data.periodMonth,
         periodYear: data.periodYear,
         totalSales: data.totalSales,

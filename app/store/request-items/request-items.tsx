@@ -7,6 +7,7 @@ import {
 } from "@/dal/inventory/request-items";
 import { ItemsReturnTypeInventory } from "@/dal/inventory/get-items";
 import { toast } from "react-toastify";
+import { ACCOUNTING_RECOGNITION } from "@/schemas/items.schema";
 
 const inputClass =
   "w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500";
@@ -42,6 +43,17 @@ export default function StoreRequestItemPage({
   items: ItemsReturnTypeInventory[];
 }) {
   const [cart, setCart] = useState<MergedItemReturnTypeInventory[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterAccRecognition, setFilterAccRecognition] = useState("");
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchSearch = item.productNameGeneral.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchAcc = filterAccRecognition ? item.accountRecognition === filterAccRecognition : true;
+      return matchSearch && matchAcc;
+    });
+  }, [items, searchQuery, filterAccRecognition]);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalItem, setModalItem] = useState<ItemsReturnTypeInventory | null>(
     null,
@@ -100,36 +112,53 @@ export default function StoreRequestItemPage({
   const addToCart = () => {
     const qty = Number(formQuantity);
     if (Number.isNaN(qty) || qty <= 0) return;
-    const line: MergedItemReturnTypeInventory = {
-      id: formId,
-      productNameGeneral:
-        (formProductNameGeneral.trim() || modalItem?.productNameGeneral) ?? "",
-      productNameSpecific:
-        (formProductNameSpecific.trim() || modalItem?.productNameSpecific) ??
-        "",
-      quantity: qty,
-      unitOfMeasurement: (formUom.trim() || modalItem?.unitOfMeasurement) ?? "",
-      accountRecognition:
-        (formAccRecognition.trim() || modalItem?.accountRecognition) ?? "",
-      periodMonth: (formPeriodMonth.trim() || modalItem?.periodMonth) ?? "",
-      periodYear: (formPeriodYear.trim() || modalItem?.periodYear) ?? "",
-      supplierName: (formSupplierName.trim() || modalItem?.supplierName) ?? "",
-      tinNumber: (formTinNumber?.trim() || modalItem?.tinNumber) ?? "",
-      typeOfVatTaxpayer:
-        (formTypeOfVatTaxpayer?.trim() || modalItem?.typeOfVatTaxpayer) ?? "",
-      typeOfStocks: (formTypeOfStocks.trim() || modalItem?.typeOfStocks) ?? "",
-      itemCode: (formItemCode?.trim() || modalItem?.itemCode) ?? "",
-      unitPrice:
-        (Number(formUnitPrice.toFixed(2)) || modalItem?.unitPrice) ?? 0,
-      totalPrice:
-        (Number(formTotalPrice.toFixed(2)) || modalItem?.totalPrice) ?? 0,
-      vatable: (Number(formVatable.toFixed(2)) || modalItem?.vatable) ?? 0,
-      vat: (Number(formVat.toFixed(2)) || modalItem?.vat) ?? 0,
-      ewt: (Number(formEwt.toFixed(2)) || modalItem?.ewt) ?? 0,
-      netPay: (Number(formNetPay.toFixed(2)) || modalItem?.netPay) ?? 0,
-    };
 
-    setCart((prev) => [...prev, line]);
+    setCart((prev) => {
+      const existingItemIndex = prev.findIndex((item) => item.id === formId);
+
+      if (existingItemIndex !== -1) {
+        // Item exists, just update the quantity
+        const updatedCart = [...prev];
+        updatedCart[existingItemIndex] = {
+          ...updatedCart[existingItemIndex],
+          quantity: updatedCart[existingItemIndex].quantity + qty,
+        };
+        return updatedCart;
+      }
+
+      // New item, add to array
+      const line: MergedItemReturnTypeInventory = {
+        id: formId,
+        productNameGeneral:
+          (formProductNameGeneral.trim() || modalItem?.productNameGeneral) ?? "",
+        productNameSpecific:
+          (formProductNameSpecific.trim() || modalItem?.productNameSpecific) ??
+          "",
+        quantity: qty,
+        unitOfMeasurement: (formUom.trim() || modalItem?.unitOfMeasurement) ?? "",
+        accountRecognition:
+          (formAccRecognition.trim() || modalItem?.accountRecognition) ?? "",
+        periodMonth: (formPeriodMonth.trim() || modalItem?.periodMonth) ?? "",
+        periodYear: (formPeriodYear.trim() || modalItem?.periodYear) ?? "",
+        supplierName: (formSupplierName.trim() || modalItem?.supplierName) ?? "",
+        tinNumber: (formTinNumber?.trim() || modalItem?.tinNumber) ?? "",
+        typeOfVatTaxpayer:
+          (formTypeOfVatTaxpayer?.trim() || modalItem?.typeOfVatTaxpayer) ?? "",
+        typeOfStocks: (formTypeOfStocks.trim() || modalItem?.typeOfStocks) ?? "",
+        itemCode: (formItemCode?.trim() || modalItem?.itemCode) ?? "",
+        unitPrice:
+          (Number(formUnitPrice.toFixed(2)) || modalItem?.unitPrice) ?? 0,
+        totalPrice:
+          (Number(formTotalPrice.toFixed(2)) || modalItem?.totalPrice) ?? 0,
+        vatable: (Number(formVatable.toFixed(2)) || modalItem?.vatable) ?? 0,
+        vat: (Number(formVat.toFixed(2)) || modalItem?.vat) ?? 0,
+        ewt: (Number(formEwt.toFixed(2)) || modalItem?.ewt) ?? 0,
+        netPay: (Number(formNetPay.toFixed(2)) || modalItem?.netPay) ?? 0,
+      };
+
+      return [...prev, line];
+    });
+
     toast.success("Added to cart");
     closeModal();
   };
@@ -154,229 +183,162 @@ export default function StoreRequestItemPage({
   };
 
   return (
-    <div className="space-y-6 p-8">
-      <h1 className="text-xl font-semibold text-amber-900">Request item</h1>
-      <p className="text-amber-800/80">
-        Request available items from inventory. Click an item to add it to your
-        cart, then send request.
-      </p>
-
-      {/* Available items – product name (general), quantity, uom */}
-      <div className="overflow-hidden rounded-xl border border-amber-200 bg-white shadow-sm">
-        <div className="border-b border-amber-200 bg-amber-50 px-4 py-2">
-          <h2 className="text-sm font-semibold text-amber-900">
-            Available items (from inventory) (for reference)
-          </h2>
-          <p className="text-xs text-amber-700/80">
-            Click a row to open the form and add to cart
+    <div className="flex h-[calc(100vh-4rem)] flex-col bg-gray-50/50 p-4 lg:p-6 overflow-hidden">
+      {/* Header Area */}
+      <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
+        <div>
+          <h1 className="text-2xl font-bold text-amber-900">Point of Sale</h1>
+          <p className="text-sm text-amber-700/80 mt-1">
+            Browse inventory and add items to your request cart.
           </p>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-full table-auto text-left text-sm">
-            <thead>
-              <tr className="border-b border-amber-200 bg-amber-50/70">
-                <th className="whitespace-nowrap px-5 py-3 font-semibold text-amber-900">
-                  Product name (general)
-                </th>
-                <th className="whitespace-nowrap px-5 py-3 font-semibold text-amber-900">
-                  Account Recognition
-                </th>
-                <th className="whitespace-nowrap px-5 py-3 font-semibold text-amber-900">
-                  Quantity
-                </th>
-                <th className="whitespace-nowrap px-5 py-3 font-semibold text-amber-900">
-                  Unit of measurement
-                </th>
-                <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                  Action
-                </th>
-                <Activity mode="hidden">
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Product Name Specific
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Period Month
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Period Year
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Supplier Name
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    TIN Number
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Type of Vat Taxpayer
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Type of Stocks
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Item Code
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Unit Price
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Total Price
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Vatable
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    VAT
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    EWT
-                  </th>
-                  <th className="w-24 px-5 py-3 font-semibold text-amber-900">
-                    Net Pay
-                  </th>
-                </Activity>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr
-                  key={item.id}
-                  className="cursor-pointer border-b border-amber-100 hover:bg-amber-50/50"
-                  onClick={() => openModal(item)}
-                >
-                  <td className="px-5 py-3 text-amber-900">
-                    {item.productNameGeneral}
-                  </td>
-                  <td className="px-5 py-3 text-amber-900">
-                    {item.accountRecognition}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                    {item.quantity}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                    {item.unitOfMeasurement}
-                  </td>
-                  <td
-                    className="px-5 py-3"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => openModal(item)}
-                      className="rounded bg-amber-500 px-2 py-1 text-xs font-medium text-white hover:bg-amber-600"
-                    >
-                      Add to cart
-                    </button>
-                  </td>
-                  <Activity mode="hidden">
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.productNameSpecific}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.periodMonth}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.periodYear}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.supplierName}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.tinNumber}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.typeOfVatTaxpayer}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.typeOfStocks}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.itemCode}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.unitPrice}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.totalPrice}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.vatable}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.vat}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.ewt}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.netPay}
-                    </td>
-                  </Activity>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-xl border border-amber-200 bg-white pl-10 pr-4 py-2 text-sm text-amber-900 shadow-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-shadow"
+            />
+            <svg className="absolute left-3 top-2 h-5 w-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          
+          <select
+            value={filterAccRecognition}
+            onChange={(e) => setFilterAccRecognition(e.target.value)}
+            className="w-full sm:w-48 rounded-xl border border-amber-200 bg-white px-4 py-2 text-sm text-amber-900 shadow-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-shadow appearance-none cursor-pointer"
+          >
+            <option value="">All Categories</option>
+            {ACCOUNTING_RECOGNITION.map((rec) => (
+              <option key={rec} value={rec}>
+                {rec}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Cart and Send request */}
-      <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-amber-900">
-          Your request (cart)
-        </h2>
-        {cart.length === 0 ? (
-          <p className="text-sm text-amber-600/90">
-            Cart is empty. Click an item above to add.
-          </p>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-amber-200 text-amber-900">
-                    <th className="py-2 font-medium">Product name</th>
-                    <th className="py-2 font-medium">Account Recognition</th>
-                    <th className="py-2 font-medium">Quantity</th>
-                    <th className="py-2 font-medium">Unit of measurement</th>
-                    <th className="w-20" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {cart.map((line, index) => (
-                    <tr key={index} className="border-b border-amber-100">
-                      <td className="py-2 text-amber-900 hidden">{line.id}</td>
-                      <td className="py-2 text-amber-900">
-                        {line.productNameGeneral}
-                      </td>
-                      <td className="py-2 text-amber-900">
-                        {line.accountRecognition}
-                      </td>
-                      <td className="py-2 text-amber-900">{line.quantity}</td>
-                      <td className="py-2 text-amber-900">
-                        {line.unitOfMeasurement}
-                      </td>
-                      <td className="py-2">
-                        <button
-                          type="button"
-                          onClick={() => removeFromCart(index)}
-                          className="text-xs text-amber-600 hover:text-amber-800"
-                        >
-                          Remove
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
+        {/* Left Side: Product Grid (Takes up 8/12 cols on large screens) */}
+        <div className="lg:col-span-8 xl:col-span-9 overflow-y-auto pr-2 rounded-xl" style={{ scrollbarWidth: "thin" }}>
+          {filteredItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-12 text-amber-600 bg-white rounded-xl border border-amber-100 shadow-sm h-full">
+              <svg className="w-16 h-16 text-amber-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+              <p className="text-lg font-medium">No products found</p>
+              <p className="text-sm mt-1 text-amber-500">Try adjusting your search or filters.</p>
             </div>
-            <button
-              type="button"
-              onClick={sendRequest}
-              className="mt-4 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-            >
-              Send request
-            </button>
-          </>
-        )}
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => openModal(item)}
+                  className="group relative cursor-pointer overflow-hidden rounded-2xl border border-amber-100 bg-white shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 flex flex-col h-full"
+                >
+                  <div className="h-32 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center border-b border-amber-50 p-4">
+                     <span className="text-4xl">📦</span>
+                  </div>
+                  <div className="p-4 flex flex-col flex-1">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-500 mb-1 line-clamp-1">
+                      {item.accountRecognition}
+                    </span>
+                    <h3 className="text-sm font-bold text-amber-900 leading-tight mb-2 line-clamp-2">
+                       {item.productNameGeneral}
+                    </h3>
+                    
+                    <div className="mt-auto pt-3 flex items-center justify-between border-t border-gray-50">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-500 font-medium">AVAILABLE</span>
+                        <span className="text-sm font-semibold text-emerald-600">
+                          {item.quantity} <span className="text-xs font-normal text-gray-500">{item.unitOfMeasurement}</span>
+                        </span>
+                      </div>
+                      <div className="h-8 w-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors duration-200">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right Side: Cart Sidebar (Takes up 4/12 cols on large screens) */}
+        <div className="lg:col-span-4 xl:col-span-3 bg-white rounded-2xl border border-amber-200 shadow-xl flex flex-col overflow-hidden h-full min-h-[400px] lg:min-h-0 relative z-10">
+          <div className="p-4 border-b border-amber-100 bg-amber-50/50 shrink-0">
+            <h2 className="text-lg font-bold text-amber-900 flex items-center gap-2">
+               <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+               </svg>
+               Current Request
+            </h2>
+            <p className="text-xs text-amber-700/80 mt-1">{cart.length} item{cart.length !== 1 ? "s" : ""} in cart</p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50/30" style={{ scrollbarWidth: "none" }}>
+            {cart.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-amber-600/60 p-6 text-center">
+                 <svg className="w-12 h-12 mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                 </svg>
+                 <p className="text-sm font-medium text-amber-800">Your cart is empty</p>
+                 <p className="text-xs mt-1">Select products from the list to add them.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {cart.map((line, index) => (
+                  <div key={index} className="bg-white border border-amber-100 rounded-xl p-3 shadow-sm relative group flex items-start justify-between">
+                    <div className="pr-8">
+                       <p className="text-sm font-bold text-amber-900 leading-tight mb-1">{line.productNameGeneral}</p>
+                       <p className="text-[10px] font-semibold text-amber-500 uppercase tracking-widest mb-1.5">{line.accountRecognition}</p>
+                       <div className="flex items-center gap-1.5 bg-amber-50 px-2 py-0.5 rounded text-xs font-medium text-amber-800 w-max">
+                          <span>Qty: {line.quantity}</span>
+                          <span className="text-amber-400">|</span>
+                          <span>{line.unitOfMeasurement}</span>
+                       </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFromCart(index)}
+                      className="absolute top-3 right-3 text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-full transition-colors"
+                      title="Remove item"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 bg-white border-t border-amber-100 shrink-0">
+             <button
+               type="button"
+               onClick={sendRequest}
+               disabled={cart.length === 0}
+               className="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-amber-500/30 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
+             >
+               <span>Send Request</span>
+               {cart.length > 0 && (
+                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                 </svg>
+               )}
+             </button>
+          </div>
+        </div>
       </div>
 
       {/* Modal form */}

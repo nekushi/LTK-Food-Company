@@ -6,6 +6,7 @@ import {
   ItemsReturnTypeInventory,
 } from "@/dal/inventory/get-items";
 import { ManageItemModal } from "./ManageItemModal";
+import { ACCOUNTING_RECOGNITION } from "@/schemas/items.schema";
 
 const MONTH_NAMES = [
   "Jan",
@@ -52,6 +53,7 @@ export default function InventoryItemsPage({
 }) {
   const [filterMonth, setFilterMonth] = useState("");
   const [filterYear, setFilterYear] = useState("");
+  const [filterAccountRecognition, setFilterAccountRecognition] = useState("");
   const [filterProductGeneral, setFilterProductGeneral] = useState("");
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
 
@@ -65,9 +67,10 @@ export default function InventoryItemsPage({
       }
       if (filterMonth && item.periodMonth !== filterMonth) return false;
       if (filterYear && item.periodYear !== filterYear) return false;
+      if (filterAccountRecognition && item.accountRecognition !== filterAccountRecognition) return false;
       return true;
     });
-  }, [filterMonth, filterYear, filterProductGeneral]);
+  }, [filterMonth, filterYear, filterProductGeneral, filterAccountRecognition]);
 
   const metrics = useMemo(() => {
     const total = filtered.length;
@@ -75,6 +78,7 @@ export default function InventoryItemsPage({
     let operational = 0;
     let janitorial = 0;
     let marketing = 0;
+    let food = 0;
 
     for (const item of filtered) {
       // Robust case-insensitive check against accountRecognition
@@ -83,16 +87,17 @@ export default function InventoryItemsPage({
       else if (rec.includes("operational")) operational++;
       else if (rec.includes("janitorial")) janitorial++;
       else if (rec.includes("marketing")) marketing++;
+      else if (rec.includes("food")) food++;
     }
 
-    return { total, office, operational, janitorial, marketing };
+    return { total, office, operational, janitorial, marketing, food };
   }, [filtered]);
 
   return (
     <div className="space-y-6 p-8">
       <h1 className="text-xl font-semibold text-amber-900">Items</h1>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
           <span className="text-sm font-medium text-amber-700">
             Total items
@@ -123,6 +128,12 @@ export default function InventoryItemsPage({
           <span className="text-sm font-medium text-amber-700">Marketing Supplies</span>
           <p className="mt-1 text-2xl font-semibold text-amber-900">
             {metrics.marketing}
+          </p>
+        </div>
+        <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
+          <span className="text-sm font-medium text-amber-700">Food Supplies</span>
+          <p className="mt-1 text-2xl font-semibold text-amber-900">
+            {metrics.food}
           </p>
         </div>
       </div>
@@ -175,6 +186,24 @@ export default function InventoryItemsPage({
               {years.map((y) => (
                 <option key={y} value={String(y)}>
                   {y}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="sr-only" htmlFor="filter-account-recognition">
+              Account Recognition
+            </label>
+            <select
+              id="filter-account-recognition"
+              value={filterAccountRecognition}
+              onChange={(e) => setFilterAccountRecognition(e.target.value)}
+              className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            >
+              <option value="">All Account Recognitions</option>
+              {ACCOUNTING_RECOGNITION.map((rec) => (
+                <option key={rec} value={rec}>
+                  {rec}
                 </option>
               ))}
             </select>

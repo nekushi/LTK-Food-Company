@@ -25,12 +25,14 @@ export const ACCOUNTING_RECOGNITION = [
   "Operational Supplies",
   "Janitorials",
   "Marketing Supplies",
+  "Food Supplies",
 ] as const;
 export const MEASUREMENTS = ["kg", "pc", "packs", "bundles", "g"];
 
 export const itemsFlowSchema = z
   .object({
     periodMonth: z.string().min(1, "Required"),
+    periodDate: z.string().min(1, "Required"),
     periodYear: z.string().min(1, "Required"),
     typeOfStocks: z.enum(STOCK_TYPES),
     typeOfVatTaxpayer: z.enum(VAT_TYPES).optional(),
@@ -55,13 +57,6 @@ export const itemsFlowSchema = z
         ctx.addIssue({
           path: ["typeOfVatTaxpayer"],
           message: "Required when not Issued stocks",
-          code: z.ZodIssueCode.custom,
-        });
-      }
-      if (!data.tinNo || data.tinNo.trim() === "") {
-        ctx.addIssue({
-          path: ["tinNo"],
-          message: "TIN is required when not Issued stocks",
           code: z.ZodIssueCode.custom,
         });
       }

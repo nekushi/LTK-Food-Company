@@ -68,6 +68,7 @@ export function ManageItemModal({
     resolver: zodResolver(itemsFlowSchema) as Resolver<ItemsFlowFormValues>,
     defaultValues: {
       periodMonth: "",
+      periodDate: "",
       periodYear: "",
       typeOfStocks: "Beginning Stocks",
       typeOfVatTaxpayer: "VAT Registered",
@@ -87,9 +88,11 @@ export function ManageItemModal({
   const unitPrice = watch("unitPrice");
   const typeOfStocks = watch("typeOfStocks");
   const typeOfVatTaxpayer = watch("typeOfVatTaxpayer");
+  const accountingRecognition = watch("accountingRecognition");
   const showVatTin = typeOfStocks !== "Issued Stocks";
   const isVatRegistered = typeOfVatTaxpayer === "VAT Registered";
   const isIssuedStocks = typeOfStocks === "Issued Stocks";
+  const isFoodSupplies = accountingRecognition === "Food Supplies";
   const derived = computeDerived(
     Number(quantity) || 0,
     Number(unitPrice) || 0,
@@ -188,6 +191,9 @@ export function ManageItemModal({
   const monthValues = Array.from({ length: 12 }, (_, i) =>
     String(i + 1).padStart(2, "0"),
   );
+  const dateValues = Array.from({ length: 31 }, (_, i) =>
+    String(i + 1).padStart(2, "0"),
+  );
 
   const inputClass =
     "w-full rounded border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 placeholder:text-amber-500/60 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500";
@@ -197,7 +203,7 @@ export function ManageItemModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 sm:p-6 overflow-y-auto" onClick={onClose}>
-      <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-6xl bg-white rounded-xl shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex justify-between items-center bg-[var(--ltk-blue-100)] px-6 py-4 border-b border-amber-200 shrink-0">
           <h2 className="text-xl font-semibold text-amber-900">Manage Item</h2>
@@ -224,7 +230,7 @@ export function ManageItemModal({
         {/* Form Body - Scrollable */}
         <div className="overflow-y-auto p-6" style={{ scrollbarWidth: "thin" }}>
           <form id="manage-item-form" onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
               {/* Left Column */}
               <div className="space-y-4">
                 <div className="flex gap-3 border-b border-amber-100 pb-4">
@@ -241,6 +247,22 @@ export function ManageItemModal({
                     {errors.periodMonth && (
                       <p className="mt-1 text-xs text-red-600">
                         {errors.periodMonth.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <label className={labelClass}>Date</label>
+                    <select {...register("periodDate")} className={inputClass}>
+                      <option value="">Date</option>
+                      {dateValues.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.periodDate && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {errors.periodDate.message}
                       </p>
                     )}
                   </div>
@@ -287,6 +309,26 @@ export function ManageItemModal({
                         </label>
                       );
                     })}
+                  </div>
+                </div>
+
+                <div>
+                  <span className={labelClass}>Account Recognition:</span>
+                  <div className="mt-1.5 grid grid-cols-2 gap-2">
+                    {ACCOUNTING_RECOGNITION.map((value) => (
+                      <label
+                        key={value}
+                        className="flex cursor-pointer items-center text-sm text-amber-900"
+                      >
+                        <input
+                          type="radio"
+                          {...register("accountingRecognition")}
+                          value={value}
+                          className="h-4 w-4 border-amber-300 text-amber-600 focus:ring-amber-500 mr-2"
+                        />
+                        {value}
+                      </label>
+                    ))}
                   </div>
                 </div>
 
@@ -385,6 +427,8 @@ export function ManageItemModal({
                         );
                         if (item) {
                           setValue("periodMonth", item.periodMonth || "");
+                          // We might not have periodDate on existing records since it's newly added
+                          setValue("periodDate", dateValues[0]);
                           setValue("periodYear", item.periodYear || "");
                           setValue("typeOfStocks", "Additional Stocks");
                           setValue("supplierName", item.supplierName || "");
@@ -432,105 +476,128 @@ export function ManageItemModal({
                   </div>
                 )}
 
-                <div>
-                  <label className={labelClass}>Supplier Name:</label>
-                  <input
-                    type="text"
-                    {...register("supplierName")}
-                    className={inputClass}
-                    placeholder="Enter Supplier Name"
-                  />
-                  {errors.supplierName && (
-                    <p className="mt-1 text-xs text-red-600">
-                      {errors.supplierName.message}
-                    </p>
-                  )}
-                </div>
+                {!isAdditionalStocks && !isIssuedStocks && (
+                  <div className={`grid ${showVatTin && !isFoodSupplies ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
+                    <div>
+                      <label className={labelClass}>Supplier Name:</label>
+                      <input
+                        type="text"
+                        {...register("supplierName")}
+                        className={inputClass}
+                        placeholder="Enter Supplier Name"
+                      />
+                      {errors.supplierName && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {errors.supplierName.message}
+                        </p>
+                      )}
+                    </div>
 
-                {showVatTin && (
-                  <div>
-                    <label className={labelClass}>TIN no:</label>
-                    <input
-                      type="text"
-                      {...register("tinNo")}
-                      className={inputClass}
-                      placeholder="Enter Tin no."
-                    />
-                    {errors.tinNo && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {errors.tinNo.message}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {!isIssuedStocks && !isAdditionalStocks && (
-                  <div>
-                    <label className={labelClass}>Product Name (General):</label>
-                    <input
-                      type="text"
-                      {...register("productNameGeneral")}
-                      className={inputClass}
-                      placeholder="Enter general product name"
-                    />
-                    {errors.productNameGeneral && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {errors.productNameGeneral.message}
-                      </p>
+                    {showVatTin && !isFoodSupplies && (
+                      <div>
+                        <label className={labelClass}>TIN no:</label>
+                        <input
+                          type="text"
+                          {...register("tinNo")}
+                          className={inputClass}
+                          placeholder="Enter Tin no. (opt)"
+                        />
+                        {errors.tinNo && (
+                          <p className="mt-1 text-xs text-red-600">
+                            {errors.tinNo.message}
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
               </div>
 
               {/* Right Column */}
-              <div className="space-y-4 pt-4 md:pt-0">
-                {!isIssuedStocks && !isAdditionalStocks && (
-                  <div>
-                    <label className={labelClass}>Product Name (Specific):</label>
-                    <input
-                      type="text"
-                      {...register("productNameSpecific")}
-                      className={inputClass}
-                      placeholder="Enter specific product name"
-                    />
-                    {errors.productNameSpecific && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {errors.productNameSpecific.message}
-                      </p>
+              <div className="space-y-4 pt-4 lg:pt-0">
+                {(isAdditionalStocks || isIssuedStocks) && (
+                  <div className={`grid ${showVatTin && !isFoodSupplies ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
+                    <div>
+                      <label className={labelClass}>
+                        {isIssuedStocks ? "Branch:" : "Supplier Name:"}
+                      </label>
+                      <input
+                        type="text"
+                        {...register("supplierName")}
+                        className={inputClass}
+                        placeholder={isIssuedStocks ? "Enter Branch" : "Enter Supplier Name"}
+                      />
+                      {errors.supplierName && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {errors.supplierName.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {showVatTin && !isFoodSupplies && (
+                      <div>
+                        <label className={labelClass}>TIN no:</label>
+                        <input
+                          type="text"
+                          {...register("tinNo")}
+                          className={inputClass}
+                          placeholder="Enter Tin no. (opt)"
+                        />
+                        {errors.tinNo && (
+                          <p className="mt-1 text-xs text-red-600">
+                            {errors.tinNo.message}
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
 
-                <div>
-                  <span className={labelClass}>Account Recognition:</span>
-                  <div className="mt-1.5 grid grid-cols-2 gap-2">
-                    {ACCOUNTING_RECOGNITION.map((value) => (
-                      <label
-                        key={value}
-                        className="flex cursor-pointer items-center text-sm text-amber-900"
-                      >
-                        <input
-                          type="radio"
-                          {...register("accountingRecognition")}
-                          value={value}
-                          className="h-4 w-4 border-amber-300 text-amber-600 focus:ring-amber-500 mr-2"
-                        />
-                        {value}
-                      </label>
-                    ))}
-                  </div>
-                </div>
+                {!isIssuedStocks && !isAdditionalStocks && (
+                  <>
+                    <div>
+                      <label className={labelClass}>Product Name (General):</label>
+                      <input
+                        type="text"
+                        {...register("productNameGeneral")}
+                        className={inputClass}
+                        placeholder="Enter general product name"
+                      />
+                      {errors.productNameGeneral && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {errors.productNameGeneral.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className={labelClass}>Product Name (Specific):</label>
+                      <input
+                        type="text"
+                        {...register("productNameSpecific")}
+                        className={inputClass}
+                        placeholder="Enter specific product name"
+                      />
+                      {errors.productNameSpecific && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {errors.productNameSpecific.message}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClass}>Item Code:</label>
-                    <input
-                      type="text"
-                      {...register("itemCode")}
-                      className={inputClass}
-                      placeholder="Item code (opt)"
-                    />
-                  </div>
+                <div className={`grid ${!isFoodSupplies ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
+                  {!isFoodSupplies && (
+                    <div>
+                      <label className={labelClass}>Item Code:</label>
+                      <input
+                        type="text"
+                        {...register("itemCode")}
+                        className={inputClass}
+                        placeholder="Item code (opt)"
+                      />
+                    </div>
+                  )}
                   <div>
                     <label className={labelClass}>Unit of Measurement:</label>
                     <input

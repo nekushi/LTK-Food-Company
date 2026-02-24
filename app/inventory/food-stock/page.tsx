@@ -1,13 +1,12 @@
-import { FoodStockForm } from "./FoodStockForm";
+import { FoodStockList } from "./food-stock-list";
+import { getFoodStocks } from "@/dal/inventory/get-food-stocks";
 
-// export const metadata = {
-//   title: "LTK - Food Stock",
-// };
+export default async function FoodStockPage() {
+  const items = await getFoodStocks();
 
-export default function FoodStockPage() {
   return (
     <div className="h-full w-full bg-[var(--ltk-blue-gray)]">
-      <FoodStockForm />
+      <FoodStockList items={items} />
     </div>
   );
 }
