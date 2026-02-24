@@ -5,8 +5,6 @@ import {
   getItemsInventory,
   ItemsReturnTypeInventory,
 } from "@/dal/inventory/get-items";
-import { DUMMY_INVENTORY_ITEMS } from "./dummyData";
-import type { InventoryItem } from "./types";
 
 const MONTH_NAMES = [
   "Jan",
@@ -71,23 +69,28 @@ export default function InventoryItemsPage({
 
   const metrics = useMemo(() => {
     const total = filtered.length;
-    const beginning = filtered.filter(
-      (i) => i.typeOfStocks === "Beginning Stocks",
-    ).length;
-    const additional = filtered.filter(
-      (i) => i.typeOfStocks === "Additional Stocks",
-    ).length;
-    const issued = filtered.filter(
-      (i) => i.typeOfStocks === "Issued Stocks",
-    ).length;
-    return { total, beginning, additional, issued };
+    let office = 0;
+    let operational = 0;
+    let janitorial = 0;
+    let marketing = 0;
+
+    for (const item of filtered) {
+      // Robust case-insensitive check against accountRecognition
+      const rec = (item.accountRecognition || "").toLowerCase();
+      if (rec.includes("office")) office++;
+      else if (rec.includes("operational")) operational++;
+      else if (rec.includes("janitorial")) janitorial++;
+      else if (rec.includes("marketing")) marketing++;
+    }
+
+    return { total, office, operational, janitorial, marketing };
   }, [filtered]);
 
   return (
     <div className="space-y-6 p-8">
       <h1 className="text-xl font-semibold text-amber-900">Items</h1>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
           <span className="text-sm font-medium text-amber-700">
             Total items
@@ -97,21 +100,27 @@ export default function InventoryItemsPage({
           </p>
         </div>
         <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
-          <span className="text-sm font-medium text-amber-700">Beginning</span>
+          <span className="text-sm font-medium text-amber-700">Office Supplies</span>
           <p className="mt-1 text-2xl font-semibold text-amber-900">
-            {metrics.beginning}
+            {metrics.office}
           </p>
         </div>
         <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
-          <span className="text-sm font-medium text-amber-700">Additional</span>
+          <span className="text-sm font-medium text-amber-700">Operational Supplies</span>
           <p className="mt-1 text-2xl font-semibold text-amber-900">
-            {metrics.additional}
+            {metrics.operational}
           </p>
         </div>
         <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
-          <span className="text-sm font-medium text-amber-700">Issued</span>
+          <span className="text-sm font-medium text-amber-700">Janitorial Supplies</span>
           <p className="mt-1 text-2xl font-semibold text-amber-900">
-            {metrics.issued}
+            {metrics.janitorial}
+          </p>
+        </div>
+        <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
+          <span className="text-sm font-medium text-amber-700">Marketing Supplies</span>
+          <p className="mt-1 text-2xl font-semibold text-amber-900">
+            {metrics.marketing}
           </p>
         </div>
       </div>

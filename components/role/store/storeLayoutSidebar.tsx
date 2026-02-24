@@ -65,12 +65,17 @@ const navLists: TypeNavList[] = [
     href: "/store/request-items",
     icon: <FaRegUser />,
   },
-  {
-    name: "Chats",
-    href: "/store/chats",
-    icon: <PiReceiptLight />,
-  },
+  // {
+  //   name: "Chats",
+  //   href: "/store/chats",
+  //   icon: <PiReceiptLight />,
+  // },
   { name: "History", href: "/store/history", icon: <RiCalendarScheduleLine /> },
-  { name: "Department", href: "", icon: <IoIosGitBranch /> },
+  {
+    name: "Report",
+    href: "/store/sales-report",
+    icon: <RiCalendarScheduleLine />,
+  },
+  // { name: "Department", href: "", icon: <IoIosGitBranch /> },
   { name: "Settings", href: "", icon: <IoSettingsOutline /> },
 ] as const;

@@ -79,7 +79,7 @@ export async function getUser(data: UserData): Promise<any> {
   if (role === "HR") {
     redirect("/hr");
   } else if (role === "ADMIN") {
-    redirect("/inventory");
+    redirect("/admin");
   } else if (role === "INVENTORY") {
     redirect("/inventory");
   } else if (role === "DELIVERY") {

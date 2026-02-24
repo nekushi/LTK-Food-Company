@@ -52,7 +52,7 @@ function groupByStore(
   return map;
 }
 
-const METERS_NEAR_DESTINATION = 100;
+const METERS_NEAR_DESTINATION = 200;
 
 export default function DeliveryRunClient({
   onTheWayItems,

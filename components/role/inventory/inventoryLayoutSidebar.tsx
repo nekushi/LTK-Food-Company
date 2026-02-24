@@ -61,20 +61,25 @@ const navLists: TypeNavList[] = [
     icon: <IoAnalytics />,
   },
   {
-    name: "Inventory",
+    name: "Supplies Inventory",
     href: "/inventory/items",
     icon: <FaRegUser />,
   },
   {
-    name: "Add Inventory",
+    name: "Food Stock",
+    href: "/inventory/food-stock",
+    icon: <FaRegUser />,
+  },
+  {
+    name: "Manage Item",
     href: "/inventory/items-flow",
     icon: <PiReceiptLight />,
   },
-  {
-    name: "Chats",
-    href: "/inventory/chats",
-    icon: <RiCalendarScheduleLine />,
-  },
+  // {
+  //   name: "Chats",
+  //   href: "/inventory/chats",
+  //   icon: <RiCalendarScheduleLine />,
+  // },
   { name: "History", href: "/inventory/history", icon: <IoIosGitBranch /> },
   { name: "Delivery", href: "/inventory/delivery", icon: <IoIosGitBranch /> },
   { name: "Settings", href: "", icon: <IoSettingsOutline /> },
