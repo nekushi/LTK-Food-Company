@@ -4,7 +4,6 @@ import { ItemsReturnTypeStore } from "./get-items";
 import prisma from "@/lib/db";
 import { cookies } from "next/headers";
 import { decrypt, SessionPayload } from "@/lib/session";
-import { Prisma } from "@/app/generated/prisma/client";
 
 export type RestItemsReturnTypeInventory = {
   periodMonth: string;

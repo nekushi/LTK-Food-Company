@@ -3,14 +3,8 @@
 import prisma from "@/lib/db";
 import { NextResponse } from "next/server";
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
-export async function DELETE(_request: Request, { params }: RouteParams) {
-  const { id } = params;
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   try {
     await prisma.requestedItems.delete({

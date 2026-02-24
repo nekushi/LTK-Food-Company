@@ -1,5 +1,4 @@
 import { getUser, getUserWorkData } from "@/dal/get-user";
-import { TypeEmployeeWorkData } from "@/index";
 
 export default async function EmployeePage({
   params,
@@ -9,12 +8,16 @@ export default async function EmployeePage({
   const { id } = await params;
   console.log(`params: ${id}`);
 
-  const user = await getUser(id);
+  const user = (await getUser(id)) as {
+    id?: string;
+    role?: string;
+    [key: string]: unknown;
+  };
 
-  let employeeWorkData: TypeEmployeeWorkData | null = null;
+  let employeeWorkData: Record<string, unknown> | null = null;
 
   if (user.role === "EMPLOYEE") {
-    employeeWorkData = await getUserWorkData(user.id);
+    employeeWorkData = await getUserWorkData(user.id ?? "");
   }
 
   return (

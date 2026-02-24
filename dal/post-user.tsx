@@ -53,3 +53,12 @@
 //     return user;
 //   });
 // }
+
+// Legacy stub — addUser is a placeholder so hr/employee legacy pages compile
+// until those pages are removed or migrated to the current account system.
+export async function addUser(
+  _prevState: unknown,
+  _formdata: FormData,
+): Promise<Record<string, unknown>> {
+  return {};
+}

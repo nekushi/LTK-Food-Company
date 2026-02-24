@@ -162,6 +162,7 @@ export function ItemsFlowForm({
     const payload = { ...data, ...derived };
     const row: z.infer<typeof itemsFlowSchema> = {
       periodMonth: data.periodMonth,
+      periodDate: data.periodDate ?? "01",
       periodYear: data.periodYear,
       supplierName: data.supplierName,
       tinNo: data.tinNo,

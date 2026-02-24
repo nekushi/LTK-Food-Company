@@ -94,6 +94,7 @@ export type RequestedItemHistoryEntry = {
   isRequestApproved: boolean;
   note: string | null;
   status: string | null;
+  deliveryStatus: string | null;
 };
 
 export type OnTheWayItemEntry = RequestedItemHistoryEntry & {
@@ -132,6 +133,7 @@ export async function getOnTheWayItemsForDelivery(): Promise<
     isRequestApproved: item.isRequestApproved,
     note: item.note,
     status: item.status,
+    deliveryStatus: item.status,
     storeLatitude: item.store.latitude,
     storeLongitude: item.store.longitude,
   }));
@@ -167,6 +169,7 @@ export async function getIssuedItemsForDelivery(): Promise<
     isRequestApproved: item.isRequestApproved,
     note: item.note,
     status: item.status,
+    deliveryStatus: item.status,
   }));
 }
 
@@ -193,6 +196,7 @@ export async function getRequestedItemsHistoryForInventory(): Promise<
     isRequestApproved: item.isRequestApproved,
     note: item.note,
     status: item.status,
+    deliveryStatus: item.status,
   }));
 }
 
@@ -228,6 +232,7 @@ export async function getRequestedItemsHistoryForStore(): Promise<
     isRequestApproved: item.isRequestApproved,
     note: item.note,
     status: item.status,
+    deliveryStatus: item.status,
   }));
 }
 

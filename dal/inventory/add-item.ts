@@ -7,7 +7,6 @@ import z, { success } from "zod";
 
 import bcrypt from "bcrypt";
 
-import { Prisma } from "@/app/generated/prisma/client";
 import { itemsFlowSchema } from "@/schemas/items.schema";
 
 type ItemFlowSchema = z.infer<typeof itemsFlowSchema>;

@@ -12,11 +12,11 @@ export type EmployeeFormValues = {
   address: string;
 };
 
-// export type EmployeeRow = Omit<
-//   EmployeeFormValues,
-//   "includeInPayroll" | "linkAttendanceCard"
-// > & {
-//   id: string;
-//   includeInPayroll: boolean;
-//   linkAttendanceCard: boolean;
-// };
+export type EmployeeRow = Omit<
+  EmployeeFormValues,
+  "includeInPayroll" | "linkAttendanceCard"
+> & {
+  id: string;
+  includeInPayroll: boolean;
+  linkAttendanceCard: boolean;
+};

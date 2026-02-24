@@ -36,7 +36,6 @@ export async function addFoodStock(data: {
           ewt: 0,
           netPay: 0,
           status: data.status,
-          category: "food",
         },
       });
     }
@@ -61,7 +60,6 @@ export async function addFoodStock(data: {
           ewt: 0,
           netPay: 0,
           status: data.status,
-          category: "food",
         },
       });
     }
@@ -86,7 +84,6 @@ export async function addFoodStock(data: {
           ewt: 0,
           netPay: 0,
           status: data.status,
-          category: "food",
         },
       });
     }

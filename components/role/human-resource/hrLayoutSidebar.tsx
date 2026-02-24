@@ -74,6 +74,6 @@ const navLists: TypeNavList[] = [
     href: "/hr/payrolls",
     icon: <PiReceiptLight />,
   },
-  { name: "Chats", href: "/hr/chats", icon: <IoIosGitBranch /> },
+  // { name: "Chats", href: "/hr/chats", icon: <IoIosGitBranch /> },
   { name: "Settings", href: "", icon: <IoSettingsOutline /> },
 ] as const;

@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { ManageFoodStockModal } from "./ManageFoodStockModal";
-import type { Inventory } from "@/app/generated/prisma"; // Adjust import as per user's generated client
 
 interface FoodStockListProps {
   items: any[]; // Using any to sidestep TS typing issues since prisma client isn't fully synced

@@ -36,3 +36,16 @@
 //     return userWorkData;
 //   });
 // }
+// Legacy stub exports — functions below are unused placeholders
+// so legacy hr/employee pages compile until they are removed or migrated.
+export async function getAllUsers(): Promise<Record<string, unknown>[]> {
+  return [];
+}
+export async function getUser(_id: string): Promise<Record<string, unknown>> {
+  return {};
+}
+export async function getUserWorkData(
+  _id: string,
+): Promise<Record<string, unknown> | null> {
+  return null;
+}
