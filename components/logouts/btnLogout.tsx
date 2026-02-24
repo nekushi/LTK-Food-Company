@@ -2,21 +2,25 @@
 
 import { logout } from "@/dal/login/get-user";
 import { useTransition } from "react";
+import { FiLogOut } from "react-icons/fi";
 
 export default function BtnLogout() {
-  const [ispending, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const handleLogoutClick = () => {
     startTransition(async () => {
       await logout();
     });
   };
+
   return (
     <button
       onClick={handleLogoutClick}
-      className="py-2 rounded-md font-medium bg-blue-100 hover:bg-blue-200 active:bg-blue-300"
+      disabled={isPending}
+      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-amber-800 hover:bg-red-100 hover:text-red-700 transition-colors disabled:opacity-50"
     >
-      Log Out
+      <FiLogOut className="text-lg" />
+      {isPending ? "Logging out..." : "Log Out"}
     </button>
   );
 }

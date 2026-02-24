@@ -1,18 +1,17 @@
 import StoreLayoutSidebar from "@/components/role/store/storeLayoutSidebar";
-import Header from "@/template/header";
+import { getCurrentUser } from "@/dal/get-current-user";
 
-export default function StoreLayout({
+export default async function StoreLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getCurrentUser();
+
   return (
-    <div>
-      <Header />
-      <div className="h-screen grid grid-cols-12">
-        <StoreLayoutSidebar />
-        <div className="col-span-10">{children}</div>
-      </div>
+    <div className="h-screen grid grid-cols-12">
+      <StoreLayoutSidebar firstName={user.firstName} lastName={user.lastName} />
+      <main className="col-span-10 overflow-y-auto">{children}</main>
     </div>
   );
 }
