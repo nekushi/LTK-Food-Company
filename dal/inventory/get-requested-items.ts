@@ -241,9 +241,9 @@ export interface MergedItemReturnTypeInventoryWithStore extends MergedItemReturn
   storeUsername: string;
 }
 
-/** Get requested items available for issuing stocks (pending requests). */
+/** Get requested items available for issuing stocks — matches the dashboard filter. */
 export async function getApprovedRequestedItems(): Promise<
-  MergedItemReturnTypeInventoryWithStore[]
+  (MergedItemReturnTypeInventoryWithStore & { availableStock: number })[]
 > {
   const requestedItems = await prisma.requestedItems.findMany({
     where: { note: null },
@@ -257,6 +257,24 @@ export async function getApprovedRequestedItems(): Promise<
       },
     },
   });
+
+  const productNames = [
+    ...new Set(requestedItems.map((i) => i.productNameGeneral)),
+  ];
+  const inventoryItems = await prisma.inventory.findMany({
+    where: {
+      productNameGeneral: { in: productNames },
+      typeOfStocks: { not: "Issued Stocks" },
+      quantity: { gt: 0 },
+    },
+    select: { productNameGeneral: true, quantity: true },
+  });
+
+  const stockMap: Record<string, number> = {};
+  for (const inv of inventoryItems) {
+    stockMap[inv.productNameGeneral] =
+      (stockMap[inv.productNameGeneral] || 0) + inv.quantity;
+  }
 
   return requestedItems.map((item) => ({
     id: item.id,
@@ -282,6 +300,7 @@ export async function getApprovedRequestedItems(): Promise<
     storeUsername: item.store.user.username,
     isRequestApproved: item.isRequestApproved,
     note: item.note,
+    availableStock: stockMap[item.productNameGeneral] || 0,
   }));
 }
 
@@ -307,51 +326,53 @@ export async function issueStock(
     const inventoryItems = await prisma.inventory.findMany({
       where: {
         productNameGeneral: requestedItem.productNameGeneral,
-        quantity: { gte: requestedItem.quantity },
+        typeOfStocks: { not: "Issued Stocks" },
       },
       orderBy: { id: "asc" },
     });
 
-    if (inventoryItems.length === 0) {
+    const totalAvailable = inventoryItems.reduce((sum, i) => sum + i.quantity, 0);
+    if (totalAvailable < requestedItem.quantity) {
       return {
         success: false,
-        message: `Insufficient stock for "${requestedItem.productNameGeneral}".`,
+        message: `Insufficient stock for "${requestedItem.productNameGeneral}". Available: ${totalAvailable}, Requested: ${requestedItem.quantity}.`,
       };
     }
 
     let remainingToIssue = requestedItem.quantity;
+
     for (const invItem of inventoryItems) {
       if (remainingToIssue <= 0) break;
 
       const toDeduct = Math.min(remainingToIssue, invItem.quantity);
       const newQuantity = invItem.quantity - toDeduct;
-      
-      // If quantity reaches 0, delete the inventory item instead of updating
+
       if (newQuantity <= 0) {
         await prisma.inventory.delete({
           where: { id: invItem.id },
         });
       } else {
+        const ratio = newQuantity / invItem.quantity;
         await prisma.inventory.update({
           where: { id: invItem.id },
-          data: { quantity: newQuantity },
+          data: {
+            quantity: newQuantity,
+            totalPrice: invItem.totalPrice * ratio,
+            vatable: invItem.vatable * ratio,
+            vat: invItem.vat * ratio,
+            ewt: invItem.ewt * ratio,
+            netPay: invItem.netPay * ratio,
+          },
         });
       }
       remainingToIssue -= toDeduct;
-    }
-
-    if (remainingToIssue > 0) {
-      return {
-        success: false,
-        message: `Insufficient stock. Only ${requestedItem.quantity - remainingToIssue} of ${requestedItem.quantity} available.`,
-      };
     }
 
     await prisma.requestedItems.update({
       where: { id: requestedItemId },
       data: {
         isRequestApproved: true,
-        note: note.trim() || null,
+        note: note.trim() || "Stock issued",
         status: "to be delivered",
       },
     });

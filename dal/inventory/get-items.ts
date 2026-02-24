@@ -6,7 +6,8 @@ export async function getItemsInventory() {
   console.log(`Fetching items`);
 
   const items = await prisma.inventory.findMany({
-    orderBy: { createdAt: 'desc' }
+    where: { quantity: { gt: 0 } },
+    orderBy: { createdAt: 'desc' },
   });
 
   const forIventory = items.map((item) => ({

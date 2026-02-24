@@ -1,16 +1,62 @@
 import { getAdminStoreProfile } from "@/dal/admin/manage-branch";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import {
-  FiArrowLeft,
-  FiMapPin,
-  FiCalendar,
-  FiBox,
-  FiClock,
-  FiCheckCircle,
-} from "react-icons/fi";
+import { FiArrowLeft, FiMapPin, FiCalendar } from "react-icons/fi";
+import StoreTabs from "./store-tabs";
 
 export const dynamic = "force-dynamic";
+
+interface InventoryItem {
+  productNameGeneral: string;
+  productNameSpecific: string;
+  accountRecognition: string;
+  unitOfMeasurement: string;
+  quantity: number;
+  unitPrice: number;
+  netPay: number;
+  supplierName: string;
+}
+
+interface MergedInventory {
+  productName: string;
+  accountRecognition: string;
+  unitOfMeasurement: string;
+  quantity: number;
+  netPay: number;
+}
+
+function mergeInventoryItems(items: InventoryItem[]): MergedInventory[] {
+  const map = new Map<string, MergedInventory & { _totalSpend: number }>();
+
+  for (const item of items) {
+    const key = item.productNameGeneral;
+    const existing = map.get(key);
+    if (existing) {
+      existing._totalSpend += item.quantity * item.unitPrice;
+      existing.quantity += item.quantity;
+    } else {
+      map.set(key, {
+        productName: item.productNameGeneral,
+        accountRecognition: item.accountRecognition,
+        unitOfMeasurement: item.unitOfMeasurement,
+        quantity: item.quantity,
+        netPay: 0,
+        _totalSpend: item.quantity * item.unitPrice,
+      });
+    }
+  }
+
+  return Array.from(map.values()).map(({ _totalSpend, ...merged }) => {
+    const unitPrice = merged.quantity > 0 ? _totalSpend / merged.quantity : 0;
+    const totalPrice = merged.quantity * unitPrice;
+    const isVat = true;
+    const vatable = isVat ? totalPrice / 1.12 : totalPrice;
+    const ewt = isVat ? vatable * 0.01 : 0;
+    const netPay = isVat ? totalPrice - ewt : totalPrice;
+
+    return { ...merged, netPay };
+  });
+}
 
 export default async function ManageBranchProfilePage({
   params,
@@ -24,24 +70,32 @@ export default async function ManageBranchProfilePage({
     notFound();
   }
 
-  // Group sales reports by frequency
   const dailyReports = profile.salesReports.filter(
-    (r: any) => r.reportType === "Daily",
+    (r: InventoryItem & { reportType: string }) => r.reportType === "Daily",
   );
   const weeklyReports = profile.salesReports.filter(
-    (r: any) => r.reportType === "Weekly",
+    (r: InventoryItem & { reportType: string }) => r.reportType === "Weekly",
   );
   const monthlyReports = profile.salesReports.filter(
-    (r: any) => r.reportType === "Monthly",
+    (r: InventoryItem & { reportType: string }) => r.reportType === "Monthly",
   );
   const yearlyReports = profile.salesReports.filter(
-    (r: any) => r.reportType === "Yearly",
+    (r: InventoryItem & { reportType: string }) => r.reportType === "Yearly",
   );
 
-  // Separate completed requested items for "Inventory" versus pending/others for "Requests History"
-  const inventoryItems = profile.requestItems.filter(
-    (i: any) => i.status === "success" || i.deliveryStatus === "success",
+  const approvedItems = profile.requestItems.filter(
+    (i: InventoryItem & { isRequestApproved: boolean; status?: string }) =>
+      i.isRequestApproved &&
+      i.status &&
+      ["to be delivered", "on the way", "success"].includes(i.status),
   );
+  const mergedInventory = mergeInventoryItems(approvedItems as InventoryItem[]);
+
+  const lowStockCount = mergedInventory.filter(
+    (i) => i.quantity > 0 && i.quantity <= 15,
+  ).length;
+  const outOfStockCount = mergedInventory.filter((i) => i.quantity <= 0).length;
+
   const requestHistory = profile.requestItems;
 
   return (
@@ -66,33 +120,39 @@ export default async function ManageBranchProfilePage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Left Column: Sales Reports */}
-        <div className="xl:col-span-2 space-y-6">
-          <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
-              <FiCalendar className="text-amber-700" />
-              Sales Reports
-            </h2>
+      {/* Sales Reports - Full Width */}
+      <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
+          <FiCalendar className="text-amber-700" />
+          Sales Reports
+        </h2>
 
-            {/* Daily Reports Table */}
-            <div className="mb-8">
-              <h3 className="text-sm font-semibold text-amber-800 mb-3 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100">
-                Daily Sales
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="border-b border-amber-200 text-amber-900">
-                    <tr>
-                      <th className="py-2 px-1 font-semibold">Date</th>
-                      <th className="py-2 px-1 font-semibold text-right">
-                        Total Sales
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-amber-100">
-                    {dailyReports.length > 0 ? (
-                      dailyReports.slice(0, 10).map((r: any) => (
+        {/* Daily Reports Table */}
+        <div className="mb-8">
+          <h3 className="text-sm font-semibold text-amber-800 mb-3 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100">
+            Daily Sales
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-amber-200 text-amber-900">
+                <tr>
+                  <th className="py-2 px-1 font-semibold">Date</th>
+                  <th className="py-2 px-1 font-semibold text-right">
+                    Total Sales
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-amber-100">
+                {dailyReports.length > 0 ? (
+                  dailyReports
+                    .slice(0, 4)
+                    .map(
+                      (r: {
+                        id: string;
+                        periodMonth: string;
+                        periodYear: string;
+                        totalSales: number;
+                      }) => (
                         <tr key={r.id} className="hover:bg-amber-50/40">
                           <td className="py-2 px-1 text-amber-800">
                             {r.periodMonth} {r.periodYear}
@@ -101,41 +161,49 @@ export default async function ManageBranchProfilePage({
                             ₱{r.totalSales.toLocaleString()}
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={2}
-                          className="py-4 text-center text-amber-600/70 italic text-xs"
-                        >
-                          No daily reports
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                      ),
+                    )
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={2}
+                      className="py-4 text-center text-amber-600/70 italic text-xs"
+                    >
+                      No daily reports
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Weekly Reports Table */}
-              <div>
-                <h3 className="text-sm font-semibold text-amber-800 mb-3 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100">
-                  Weekly Sales
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="border-b border-amber-200 text-amber-900">
-                      <tr>
-                        <th className="py-2 px-1 font-semibold">Week</th>
-                        <th className="py-2 px-1 font-semibold text-right">
-                          Sales
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-amber-100">
-                      {weeklyReports.length > 0 ? (
-                        weeklyReports.slice(0, 5).map((r: any) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Weekly Reports Table */}
+          <div>
+            <h3 className="text-sm font-semibold text-amber-800 mb-3 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100">
+              Weekly Sales
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-amber-200 text-amber-900">
+                  <tr>
+                    <th className="py-2 px-1 font-semibold">Week</th>
+                    <th className="py-2 px-1 font-semibold text-right">
+                      Sales
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-amber-100">
+                  {weeklyReports.length > 0 ? (
+                    weeklyReports
+                      .slice(0, 5)
+                      .map(
+                        (r: {
+                          id: string;
+                          periodMonth: string;
+                          totalSales: number;
+                        }) => (
                           <tr key={r.id} className="hover:bg-amber-50/40">
                             <td className="py-2 px-1 text-amber-800 text-xs">
                               {r.periodMonth}
@@ -144,40 +212,49 @@ export default async function ManageBranchProfilePage({
                               ₱{r.totalSales.toLocaleString()}
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan={2}
-                            className="py-4 text-center text-amber-600/70 italic text-xs"
-                          >
-                            No reports
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                        ),
+                      )
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={2}
+                        className="py-4 text-center text-amber-600/70 italic text-xs"
+                      >
+                        No reports
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-              {/* Monthly Reports Table */}
-              <div>
-                <h3 className="text-sm font-semibold text-amber-800 mb-3 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100">
-                  Monthly Sales
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="border-b border-amber-200 text-amber-900">
-                      <tr>
-                        <th className="py-2 px-1 font-semibold">Month</th>
-                        <th className="py-2 px-1 font-semibold text-right">
-                          Sales
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-amber-100">
-                      {monthlyReports.length > 0 ? (
-                        monthlyReports.slice(0, 5).map((r: any) => (
+          {/* Monthly Reports Table */}
+          <div>
+            <h3 className="text-sm font-semibold text-amber-800 mb-3 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100">
+              Monthly Sales
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-amber-200 text-amber-900">
+                  <tr>
+                    <th className="py-2 px-1 font-semibold">Month</th>
+                    <th className="py-2 px-1 font-semibold text-right">
+                      Sales
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-amber-100">
+                  {monthlyReports.length > 0 ? (
+                    monthlyReports
+                      .slice(0, 5)
+                      .map(
+                        (r: {
+                          id: string;
+                          periodMonth: string;
+                          periodYear: string;
+                          totalSales: number;
+                        }) => (
                           <tr key={r.id} className="hover:bg-amber-50/40">
                             <td className="py-2 px-1 text-amber-800">
                               {r.periodMonth} {r.periodYear}
@@ -186,112 +263,117 @@ export default async function ManageBranchProfilePage({
                               ₱{r.totalSales.toLocaleString()}
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan={2}
-                            className="py-4 text-center text-amber-600/70 italic text-xs"
-                          >
-                            No reports
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Inventory & Requests */}
-        <div className="space-y-6">
-          {/* Inventory Overview */}
-          <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
-              <FiBox className="text-amber-700" />
-              Store Inventory
-            </h2>
-            <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
-              {inventoryItems.length > 0 ? (
-                inventoryItems.map((item: any) => (
-                  <div
-                    key={item.id}
-                    className="flex justify-between items-center border-b border-amber-100 pb-2 last:border-0 last:pb-0"
-                  >
-                    <div>
-                      <h4 className="text-sm font-semibold text-amber-800">
-                        {item.productNameSpecific}
-                      </h4>
-                      <p className="text-xs text-amber-600/70">
-                        {item.supplierName}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-sm font-bold text-amber-900">
-                        {item.quantity}
-                      </span>
-                      <span className="text-xs text-amber-700 ml-1">
-                        {item.unitOfMeasurement}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-amber-600/70 italic text-center py-6">
-                  No inventory data linked yet.
-                </p>
-              )}
+                        ),
+                      )
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={2}
+                        className="py-4 text-center text-amber-600/70 italic text-xs"
+                      >
+                        No reports
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          {/* Request History */}
-          <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
-              <FiClock className="text-amber-700" />
-              Request History
-            </h2>
-            <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-              {requestHistory.length > 0 ? (
-                requestHistory.map((req: any) => (
-                  <div
-                    key={req.id}
-                    className="group border border-amber-100 rounded-lg p-3 hover:bg-amber-50 transition-colors"
-                  >
-                    <div className="flex justify-between items-start mb-1">
-                      <h4 className="text-sm font-semibold text-amber-900 group-hover:text-amber-700 transition-colors">
-                        {req.productNameSpecific}
-                      </h4>
-                      {req.isRequestApproved ? (
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          <FiCheckCircle /> Approved
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200">
-                          Pending
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex justify-between items-end mt-2">
-                      <p className="text-xs text-amber-600">
-                        {new Date(req.createdAt).toLocaleDateString()}
-                      </p>
-                      <p className="text-xs font-medium text-amber-800">
-                        Qty: {req.quantity} {req.unitOfMeasurement}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-amber-600/70 italic text-center py-6">
-                  No requests made yet.
-                </p>
-              )}
+          {/* Yearly Reports Table */}
+          {/* <div>
+            <h3 className="text-sm font-semibold text-amber-800 mb-3 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100">
+              Yearly Sales
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-amber-200 text-amber-900">
+                  <tr>
+                    <th className="py-2 px-1 font-semibold">Year</th>
+                    <th className="py-2 px-1 font-semibold text-right">
+                      Sales
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-amber-100">
+                  {yearlyReports.length > 0 ? (
+                    yearlyReports.slice(0, 5).map((r: { id: string; periodYear: string; totalSales: number }) => (
+                      <tr key={r.id} className="hover:bg-amber-50/40">
+                        <td className="py-2 px-1 text-amber-800">
+                          {r.periodYear}
+                        </td>
+                        <td className="py-2 px-1 text-right font-medium text-emerald-700">
+                          ₱{r.totalSales.toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={2}
+                        className="py-4 text-center text-amber-600/70 italic text-xs"
+                      >
+                        No reports
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
+
+      {/* Tabbed Inventory & Requests - Full Width */}
+      <StoreTabs
+        mergedInventory={mergedInventory}
+        lowStockCount={lowStockCount}
+        outOfStockCount={outOfStockCount}
+        requestHistory={requestHistory.map(
+          (req: {
+            id: string;
+            productNameSpecific: string;
+            isRequestApproved: boolean;
+            quantity: number;
+            unitOfMeasurement: string;
+            createdAt: Date;
+          }) => ({
+            id: req.id,
+            productNameSpecific: req.productNameSpecific,
+            isRequestApproved: req.isRequestApproved,
+            quantity: req.quantity,
+            unitOfMeasurement: req.unitOfMeasurement,
+            createdAt: req.createdAt.toISOString(),
+          }),
+        )}
+        inventoryReports={(profile.inventoryReports ?? []).map(
+          (r: {
+            id: string;
+            reportType: string;
+            periodMonth: string;
+            periodYear: string;
+            productName: string;
+            accountRecognition: string;
+            unitOfMeasurement: string;
+            quantity: number;
+            itemsUsed: number;
+            itemsLeft: number;
+            createdAt: Date;
+          }) => ({
+            id: r.id,
+            reportType: r.reportType,
+            periodMonth: r.periodMonth,
+            periodYear: r.periodYear,
+            productName: r.productName,
+            accountRecognition: r.accountRecognition,
+            unitOfMeasurement: r.unitOfMeasurement,
+            quantity: r.quantity,
+            itemsUsed: r.itemsUsed,
+            itemsLeft: r.itemsLeft,
+            createdAt: r.createdAt.toISOString(),
+          }),
+        )}
+      />
     </div>
   );
 }

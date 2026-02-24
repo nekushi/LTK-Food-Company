@@ -4,6 +4,23 @@ import prisma from "@/lib/db";
 import { cookies } from "next/headers";
 import { decrypt } from "@/lib/session";
 
+export async function getAdminOverviewCounts() {
+  const myCookies = (await cookies()).get("session")?.value;
+  const payload = await decrypt(myCookies);
+
+  if (!payload?.userId) {
+    return { totalBranches: 0, totalPersonnel: 0, totalEmployees: 0 };
+  }
+
+  const [totalBranches, totalPersonnel, totalEmployees] = await Promise.all([
+    prisma.store.count(),
+    prisma.account.count(),
+    prisma.employee.count(),
+  ]);
+
+  return { totalBranches, totalPersonnel, totalEmployees };
+}
+
 export async function getBranchDailyMetrics() {
   const myCookies = (await cookies()).get("session")?.value;
   const payload = await decrypt(myCookies);
@@ -75,5 +92,69 @@ export async function getBranchDailyMetrics() {
   } catch (error) {
     console.error(error);
     return { success: false, data: [] };
+  }
+}
+
+export async function getAggregatedDailySales() {
+  const myCookies = (await cookies()).get("session")?.value;
+  const payload = await decrypt(myCookies);
+
+  if (!payload?.userId) {
+    return { success: false, data: { yesterdayTotal: 0, dayBeforeTotal: 0, percentageChange: 0, past7Days: [], past30Days: [] } };
+  }
+
+  try {
+    const dailyReports = await prisma.salesReport.findMany({
+      where: { reportType: "Daily" },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const dateMap = new Map<string, number>();
+    for (const r of dailyReports) {
+      const parsed = new Date(r.periodMonth);
+      if (isNaN(parsed.getTime())) continue;
+      const key = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+      dateMap.set(key, (dateMap.get(key) ?? 0) + r.totalSales);
+    }
+
+    const sortedDates = Array.from(dateMap.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]));
+
+    const yesterdayTotal = sortedDates[0]?.[1] ?? 0;
+    const dayBeforeTotal = sortedDates[1]?.[1] ?? 0;
+
+    let percentageChange = 0;
+    if (dayBeforeTotal > 0) {
+      percentageChange = ((yesterdayTotal - dayBeforeTotal) / dayBeforeTotal) * 100;
+    } else if (dayBeforeTotal === 0 && yesterdayTotal > 0) {
+      percentageChange = 100;
+    }
+
+    const today = new Date();
+    const generatePastDays = (count: number) => {
+      const result: { date: string; label: string; total: number }[] = [];
+      for (let i = count; i >= 1; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        const label = `${d.getMonth() + 1}/${d.getDate()}`;
+        result.push({ date: key, label, total: dateMap.get(key) ?? 0 });
+      }
+      return result;
+    };
+
+    return {
+      success: true,
+      data: {
+        yesterdayTotal,
+        dayBeforeTotal,
+        percentageChange,
+        past7Days: generatePastDays(7),
+        past30Days: generatePastDays(30),
+      },
+    };
+  } catch (error) {
+    console.error(error);
+    return { success: false, data: { yesterdayTotal: 0, dayBeforeTotal: 0, percentageChange: 0, past7Days: [], past30Days: [] } };
   }
 }

@@ -182,8 +182,9 @@ model Store {
   latitude  Float?
   longitude Float?
 
-  requestItems RequestedItems[]
-  salesReports SalesReport[]
+  requestItems     RequestedItems[]
+  salesReports     SalesReport[]
+  inventoryReports InventoryReport[]
 }
 
 model SalesReport {
@@ -254,6 +255,26 @@ model RequestedItems {
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])
+}
+
+model InventoryReport {
+  id                 String   @id @default(uuid())
+  reportType         String   @default("Monthly")
+  periodMonth        String
+  periodYear         String
+  productName        String
+  accountRecognition String
+  unitOfMeasurement  String
+  quantity           Int
+  itemsUsed          Int
+  itemsLeft          Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @default(now()) @updatedAt
+
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id])
+
+  @@unique([storeId, periodMonth, periodYear, reportType, productName])
 }
 
 model Location {

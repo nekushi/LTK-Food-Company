@@ -65,16 +65,16 @@ const navLists: TypeNavList[] = [
     href: "/inventory/items",
     icon: <FaRegUser />,
   },
-  {
-    name: "Food Stock",
-    href: "/inventory/food-stock",
-    icon: <FaRegUser />,
-  },
-  {
-    name: "Manage Item",
-    href: "/inventory/items-flow",
-    icon: <PiReceiptLight />,
-  },
+  // {
+  //   name: "Food Stock",
+  //   href: "/inventory/food-stock",
+  //   icon: <FaRegUser />,
+  // },
+  // {
+  //   name: "Manage Item",
+  //   href: "/inventory/items-flow",
+  //   icon: <PiReceiptLight />,
+  // },
   // {
   //   name: "Chats",
   //   href: "/inventory/chats",

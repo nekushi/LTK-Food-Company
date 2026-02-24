@@ -100,7 +100,7 @@ export function ManageItemModal({
   );
 
   const [requestedItems, setRequestedItems] = useState<
-    MergedItemReturnTypeInventoryWithStore[]
+    (MergedItemReturnTypeInventoryWithStore & { availableStock: number })[]
   >([]);
   const [selectedRequestedItemId, setSelectedRequestedItemId] = useState<
     string | null
@@ -397,18 +397,40 @@ export function ManageItemModal({
                       className={inputClass}
                     >
                       <option value="">Select a requested item...</option>
-                      {requestedItems.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.productNameGeneral} x{item.quantity}{" "}
-                          {item.unitOfMeasurement} (Store: {item.storeUsername})
-                        </option>
-                      ))}
+                      {requestedItems.map((item) => {
+                        const hasStock = item.availableStock >= item.quantity;
+                        return (
+                          <option
+                            key={item.id}
+                            value={item.id}
+                            disabled={!hasStock}
+                          >
+                            {item.productNameGeneral} x{item.quantity}{" "}
+                            {item.unitOfMeasurement} — Stock: {item.availableStock}{" "}
+                            (Store: {item.storeUsername})
+                            {!hasStock ? " [Insufficient]" : ""}
+                          </option>
+                        );
+                      })}
                     </select>
-                    {selectedRequestedItemId && (
-                      <p className="mt-1.5 text-xs text-amber-700 font-medium">
-                        Selected item will be issued from inventory.
-                      </p>
-                    )}
+                    {selectedRequestedItemId && (() => {
+                      const sel = requestedItems.find((i) => i.id === selectedRequestedItemId);
+                      return sel ? (
+                        <div className="mt-2 flex items-center gap-3 text-xs">
+                          <span className="text-amber-700 font-medium">
+                            Available: <span className="text-emerald-600 font-bold">{sel.availableStock}</span> {sel.unitOfMeasurement}
+                          </span>
+                          <span className="text-amber-500">|</span>
+                          <span className="text-amber-700 font-medium">
+                            Requested: <span className="text-amber-900 font-bold">{sel.quantity}</span> {sel.unitOfMeasurement}
+                          </span>
+                          <span className="text-amber-500">|</span>
+                          <span className="text-amber-700 font-medium">
+                            After Issue: <span className={`font-bold ${sel.availableStock - sel.quantity >= 0 ? "text-emerald-600" : "text-red-600"}`}>{sel.availableStock - sel.quantity}</span> {sel.unitOfMeasurement}
+                          </span>
+                        </div>
+                      ) : null;
+                    })()}
                   </div>
                 )}
                 
