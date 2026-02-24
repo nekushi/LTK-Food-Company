@@ -219,6 +219,8 @@ model Inventory {
   vat                 Float
   ewt                 Float
   netPay              Float
+  status              String?
+  category            String  @default("materials")
 }
 
 model RequestedItems {
@@ -244,6 +246,8 @@ model RequestedItems {
   isRequestApproved   Boolean @default(false)
   note                String?
   deliveryStatus      String?
+  status              String?
+  category            String  @default("materials")
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])

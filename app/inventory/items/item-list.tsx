@@ -5,6 +5,7 @@ import {
   getItemsInventory,
   ItemsReturnTypeInventory,
 } from "@/dal/inventory/get-items";
+import { ManageItemModal } from "./ManageItemModal";
 
 const MONTH_NAMES = [
   "Jan",
@@ -52,6 +53,7 @@ export default function InventoryItemsPage({
   const [filterMonth, setFilterMonth] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [filterProductGeneral, setFilterProductGeneral] = useState("");
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
 
   const filtered = useMemo(() => {
     return items.filter((item) => {
@@ -178,6 +180,12 @@ export default function InventoryItemsPage({
             </select>
           </div>
         </div>
+        <button
+          onClick={() => setIsManageModalOpen(true)}
+          className="ml-auto rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1 transition"
+        >
+          Manage Item
+        </button>
       </div>
 
       <div className="max-w-[1800px] overflow-hidden rounded-xl border border-amber-200 bg-white shadow-sm">
@@ -312,6 +320,12 @@ export default function InventoryItemsPage({
           </table>
         </div>
       </div>
+
+      <ManageItemModal
+        isOpen={isManageModalOpen}
+        onClose={() => setIsManageModalOpen(false)}
+        inventoryItems={items}
+      />
     </div>
   );
 }
