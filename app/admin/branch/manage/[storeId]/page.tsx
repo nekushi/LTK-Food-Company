@@ -6,6 +6,29 @@ import StoreTabs from "./store-tabs";
 
 export const dynamic = "force-dynamic";
 
+interface SalesReportItem {
+  id: string;
+  reportType: string;
+  periodMonth: string;
+  periodYear: string;
+  totalSales: number;
+}
+
+interface RequestItemRecord {
+  id: string;
+  productNameGeneral: string;
+  productNameSpecific: string;
+  accountRecognition: string;
+  unitOfMeasurement: string;
+  quantity: number;
+  unitPrice: number;
+  netPay: number;
+  supplierName: string;
+  isRequestApproved: boolean;
+  status?: string | null;
+  createdAt: Date;
+}
+
 interface InventoryItem {
   productNameGeneral: string;
   productNameSpecific: string;
@@ -71,20 +94,20 @@ export default async function ManageBranchProfilePage({
   }
 
   const dailyReports = profile.salesReports.filter(
-    (r: InventoryItem & { reportType: string }) => r.reportType === "Daily",
+    (r: SalesReportItem) => r.reportType === "Daily",
   );
   const weeklyReports = profile.salesReports.filter(
-    (r: InventoryItem & { reportType: string }) => r.reportType === "Weekly",
+    (r: SalesReportItem) => r.reportType === "Weekly",
   );
   const monthlyReports = profile.salesReports.filter(
-    (r: InventoryItem & { reportType: string }) => r.reportType === "Monthly",
+    (r: SalesReportItem) => r.reportType === "Monthly",
   );
   const yearlyReports = profile.salesReports.filter(
-    (r: InventoryItem & { reportType: string }) => r.reportType === "Yearly",
+    (r: SalesReportItem) => r.reportType === "Yearly",
   );
 
   const approvedItems = profile.requestItems.filter(
-    (i: InventoryItem & { isRequestApproved: boolean; status?: string }) =>
+    (i: RequestItemRecord) =>
       i.isRequestApproved &&
       i.status &&
       ["to be delivered", "on the way", "success"].includes(i.status),
