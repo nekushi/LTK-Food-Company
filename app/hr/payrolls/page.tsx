@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import EmployeeWorkDataGeo from "@/components/geo/workData";
 import EmployeeWorkDataPila from "@/components/pila/workData";
 import { TypeAttendanceCardGeo, TypeAttendanceCardReturnPila } from "@/index";
+import { linkToEmployees } from "@/dal/hr/linkToEmployee";
+import { toast } from "react-toastify";
 
 export default function HRPayrollsPage() {
   const [store, setStore] = useState("geo");
@@ -14,6 +16,19 @@ export default function HRPayrollsPage() {
   const [excelFilePila, setExcelFilePila] =
     useState<TypeAttendanceCardReturnPila | null>(null);
   const [approvedData, setApprovedData] = useState<TypeAttendanceCardGeo[]>([]);
+
+  const handleLinkToEmployee = async () => {
+    if (approvedData.length === 0) {
+      toast.warning("No approved cards to link. Approve cards first.");
+      return;
+    }
+    const result = await linkToEmployees(approvedData);
+    if (result.success) {
+      toast.success(result.message);
+    } else {
+      toast.error(result.message ?? "Failed to link data");
+    }
+  };
 
   const handleStoreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStore(e.target.value);
@@ -76,14 +91,13 @@ export default function HRPayrollsPage() {
   };
 
   return (
-    <div className="space-y-6 p-8">
+    <div className="p-8 space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-amber-900">
+        <h1 className="text-2xl font-bold text-amber-900">
           Payrolls Integration
         </h1>
-        <p className="text-amber-800/80">
-          Select store, upload Excel file, and preview the extracted biometrics
-          JSON payload.
+        <p className="text-sm text-amber-700/80 mt-1">
+          Select store, upload Excel file, and preview the extracted biometrics. Approve cards then link to employees.
         </p>
       </div>
 
@@ -129,14 +143,14 @@ export default function HRPayrollsPage() {
               type="button"
               onClick={handleUpload}
               disabled={!file || isUploading}
-              className="mt-5 rounded-lg bg-amber-500 px-4 py-2 font-medium text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 transition"
+              className="mt-5 rounded-lg bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 transition"
             >
               {isUploading ? "Processing..." : "Upload & Parse"}
             </button>
             <button
               type="button"
               onClick={handleClearForm}
-              className="mt-5 rounded-lg border border-red-200 bg-red-50 text-red-600 px-4 py-2 font-medium hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition"
+              className="mt-5 rounded-lg border border-amber-200 bg-white px-4 py-2.5 text-sm font-medium text-amber-800 hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition"
             >
               Clear
             </button>
@@ -166,6 +180,21 @@ export default function HRPayrollsPage() {
             date={excelFilePila.date}
             pilaAttendanceCard={excelFilePila.pilaAttendanceCard}
           />
+        </div>
+      )}
+
+      {store === "geo" && approvedData.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-amber-800 mb-3">
+            {approvedData.length} card{approvedData.length !== 1 ? "s" : ""} approved — link to employees
+          </p>
+          <button
+            type="button"
+            onClick={handleLinkToEmployee}
+            className="rounded-lg bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+          >
+            Link to employees
+          </button>
         </div>
       )}
     </div>

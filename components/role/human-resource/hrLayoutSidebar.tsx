@@ -15,7 +15,11 @@ const navLists: TypeNavList[] = [
   { name: "Dashboard", href: "/hr", icon: <IoAnalytics /> },
   { name: "Accounts", href: "/hr/accounts", icon: <RiCalendarScheduleLine /> },
   { name: "Employees", href: "/hr/employees", icon: <FaRegUser /> },
-  { name: "Payrolls", href: "/hr/payrolls", icon: <PiReceiptLight /> },
+  {
+    name: "Employee Attendance",
+    href: "/hr/payrolls",
+    icon: <PiReceiptLight />,
+  },
   { name: "Settings", href: "", icon: <IoSettingsOutline /> },
 ];
 

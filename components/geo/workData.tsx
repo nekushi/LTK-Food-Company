@@ -185,10 +185,11 @@ export default function EmployeeWorkDataGeo({
         </div>
       </div>
       <button
+        type="button"
         onClick={() => onApprovedData(data)}
-        className="px-2 py-1 border rounded hover:bg-blue-200 active:bg-blue-100"
+        className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 hover:border-amber-300 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
       >
-        Link to {data.name}
+        Link to {data.name ?? "employee"}
       </button>
     </div>
   );
