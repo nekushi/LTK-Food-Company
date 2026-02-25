@@ -22,12 +22,12 @@ export async function getAdminStores() {
 
     const formattedStores = stores.map((store) => ({
       id: store.id,
-      storeName: `${store.user.firstName} ${store.user.lastName}`.trim() || `Store ${store.id.substring(0, 6)}`,
+      storeName: store.user.username || `Store ${store.id.substring(0, 6)}`,
       username: store.user.username,
+      fullName: `${store.user.firstName} ${store.user.lastName}`.trim(),
       createdAt: store.createdAt,
     }));
 
-    // Sort alphabetically by name
     formattedStores.sort((a, b) => a.storeName.localeCompare(b.storeName));
 
     return { success: true, data: formattedStores };
@@ -73,8 +73,9 @@ export async function getAdminStoreProfile(storeId: string) {
       success: true,
       data: {
         id: store.id,
-        storeName: `${store.user.firstName} ${store.user.lastName}`.trim() || `Store ${store.id.substring(0, 6)}`,
+        storeName: store.user.username || `Store ${store.id.substring(0, 6)}`,
         username: store.user.username,
+        fullName: `${store.user.firstName} ${store.user.lastName}`.trim(),
         createdAt: store.createdAt,
         salesReports: store.salesReports,
         requestItems: store.requestItems,

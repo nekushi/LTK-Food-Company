@@ -22,13 +22,15 @@ const navLists: TypeNavList[] = [
 export default function StoreLayoutSidebar({
   firstName,
   lastName,
+  username,
 }: {
   firstName: string;
   lastName: string;
+  username: string;
 }) {
   const path = usePathname();
-  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "ST";
-  const fullName = `${firstName} ${lastName}`.trim() || "Store User";
+  const displayName = username || "Store User";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <aside className="h-full bg-amber-50 flex flex-col col-span-2 overflow-y-auto border-r border-amber-200">
@@ -41,7 +43,7 @@ export default function StoreLayoutSidebar({
           {initials}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-amber-900 truncate">{fullName}</p>
+          <p className="text-sm font-semibold text-amber-900 truncate">{displayName}</p>
           <p className="text-[11px] text-amber-600">Store</p>
         </div>
       </div>

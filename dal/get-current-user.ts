@@ -14,16 +14,17 @@ export async function getCurrentUser() {
 
   const account = await prisma.account.findUnique({
     where: { id: payload.userId as string },
-    select: { firstName: true, lastName: true, role: true },
+    select: { firstName: true, lastName: true, username: true, role: true },
   });
 
   if (!account) {
-    return { firstName: "", lastName: "", role: payload.role as string };
+    return { firstName: "", lastName: "", username: "", role: payload.role as string };
   }
 
   return {
     firstName: account.firstName,
     lastName: account.lastName,
+    username: account.username,
     role: account.role,
   };
 }

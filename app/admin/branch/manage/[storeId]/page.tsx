@@ -48,6 +48,68 @@ interface MergedInventory {
   netPay: number;
 }
 
+interface AggregatedSales {
+  label: string;
+  totalSales: number;
+}
+
+function getSundayOfWeek(date: Date): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() - d.getDay());
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function aggregateWeeklySales(dailyReports: SalesReportItem[]): AggregatedSales[] {
+  const weekMap = new Map<string, { sunday: Date; total: number }>();
+
+  for (const r of dailyReports) {
+    const parsed = new Date(r.periodMonth);
+    if (isNaN(parsed.getTime())) continue;
+
+    const sunday = getSundayOfWeek(parsed);
+    const key = sunday.toISOString().split("T")[0];
+    const existing = weekMap.get(key);
+    if (existing) {
+      existing.total += r.totalSales;
+    } else {
+      weekMap.set(key, { sunday, total: r.totalSales });
+    }
+  }
+
+  return Array.from(weekMap.values())
+    .sort((a, b) => b.sunday.getTime() - a.sunday.getTime())
+    .map(({ sunday, total }) => {
+      const sat = new Date(sunday);
+      sat.setDate(sat.getDate() + 6);
+      const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`;
+      return {
+        label: `${fmt(sunday)} – ${fmt(sat)}, ${sunday.getFullYear()}`,
+        totalSales: total,
+      };
+    });
+}
+
+function aggregateMonthlySales(dailyReports: SalesReportItem[]): AggregatedSales[] {
+  const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const monthMap = new Map<string, number>();
+
+  for (const r of dailyReports) {
+    const parsed = new Date(r.periodMonth);
+    if (isNaN(parsed.getTime())) continue;
+
+    const key = `${parsed.getFullYear()}-${String(parsed.getMonth()).padStart(2, "0")}`;
+    monthMap.set(key, (monthMap.get(key) ?? 0) + r.totalSales);
+  }
+
+  return Array.from(monthMap.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([key, total]) => {
+      const [y, m] = key.split("-");
+      return { label: `${MONTH_NAMES[parseInt(m)]} ${y}`, totalSales: total };
+    });
+}
+
 function mergeInventoryItems(items: InventoryItem[]): MergedInventory[] {
   const map = new Map<string, MergedInventory & { _totalSpend: number }>();
 
@@ -96,15 +158,8 @@ export default async function ManageBranchProfilePage({
   const dailyReports = profile.salesReports.filter(
     (r: SalesReportItem) => r.reportType === "Daily",
   );
-  const weeklyReports = profile.salesReports.filter(
-    (r: SalesReportItem) => r.reportType === "Weekly",
-  );
-  const monthlyReports = profile.salesReports.filter(
-    (r: SalesReportItem) => r.reportType === "Monthly",
-  );
-  const yearlyReports = profile.salesReports.filter(
-    (r: SalesReportItem) => r.reportType === "Yearly",
-  );
+  const computedWeekly = aggregateWeeklySales(dailyReports as SalesReportItem[]);
+  const computedMonthly = aggregateMonthlySales(dailyReports as SalesReportItem[]);
 
   const approvedItems = profile.requestItems.filter(
     (i: RequestItemRecord) =>
@@ -137,7 +192,7 @@ export default async function ManageBranchProfilePage({
             {profile.storeName}
           </h1>
           <p className="text-sm text-amber-700/80">
-            @{profile.username} &bull; Member since{" "}
+            {profile.fullName} &bull; Member since{" "}
             {new Date(profile.createdAt).toLocaleDateString()}
           </p>
         </div>
@@ -202,48 +257,33 @@ export default async function ManageBranchProfilePage({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Weekly Reports Table */}
+          {/* Weekly Sales (auto-calculated from daily, Sunday start) */}
           <div>
             <h3 className="text-sm font-semibold text-amber-800 mb-3 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100">
-              Weekly Sales
+              Weekly Sales <span className="font-normal text-amber-600 text-[11px] ml-1">(auto-calculated)</span>
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-amber-200 text-amber-900">
                   <tr>
                     <th className="py-2 px-1 font-semibold">Week</th>
-                    <th className="py-2 px-1 font-semibold text-right">
-                      Sales
-                    </th>
+                    <th className="py-2 px-1 font-semibold text-right">Sales</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-amber-100">
-                  {weeklyReports.length > 0 ? (
-                    weeklyReports
-                      .slice(0, 5)
-                      .map(
-                        (r: {
-                          id: string;
-                          periodMonth: string;
-                          totalSales: number;
-                        }) => (
-                          <tr key={r.id} className="hover:bg-amber-50/40">
-                            <td className="py-2 px-1 text-amber-800 text-xs">
-                              {r.periodMonth}
-                            </td>
-                            <td className="py-2 px-1 text-right font-medium text-emerald-700">
-                              ₱{r.totalSales.toLocaleString()}
-                            </td>
-                          </tr>
-                        ),
-                      )
+                  {computedWeekly.length > 0 ? (
+                    computedWeekly.slice(0, 5).map((w) => (
+                      <tr key={w.label} className="hover:bg-amber-50/40">
+                        <td className="py-2 px-1 text-amber-800 text-xs">{w.label}</td>
+                        <td className="py-2 px-1 text-right font-medium text-emerald-700">
+                          ₱{w.totalSales.toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
                   ) : (
                     <tr>
-                      <td
-                        colSpan={2}
-                        className="py-4 text-center text-amber-600/70 italic text-xs"
-                      >
-                        No reports
+                      <td colSpan={2} className="py-4 text-center text-amber-600/70 italic text-xs">
+                        No daily reports to aggregate
                       </td>
                     </tr>
                   )}
@@ -252,49 +292,33 @@ export default async function ManageBranchProfilePage({
             </div>
           </div>
 
-          {/* Monthly Reports Table */}
+          {/* Monthly Sales (auto-calculated from daily) */}
           <div>
             <h3 className="text-sm font-semibold text-amber-800 mb-3 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100">
-              Monthly Sales
+              Monthly Sales <span className="font-normal text-amber-600 text-[11px] ml-1">(auto-calculated)</span>
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-amber-200 text-amber-900">
                   <tr>
                     <th className="py-2 px-1 font-semibold">Month</th>
-                    <th className="py-2 px-1 font-semibold text-right">
-                      Sales
-                    </th>
+                    <th className="py-2 px-1 font-semibold text-right">Sales</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-amber-100">
-                  {monthlyReports.length > 0 ? (
-                    monthlyReports
-                      .slice(0, 5)
-                      .map(
-                        (r: {
-                          id: string;
-                          periodMonth: string;
-                          periodYear: string;
-                          totalSales: number;
-                        }) => (
-                          <tr key={r.id} className="hover:bg-amber-50/40">
-                            <td className="py-2 px-1 text-amber-800">
-                              {r.periodMonth} {r.periodYear}
-                            </td>
-                            <td className="py-2 px-1 text-right font-medium text-emerald-700">
-                              ₱{r.totalSales.toLocaleString()}
-                            </td>
-                          </tr>
-                        ),
-                      )
+                  {computedMonthly.length > 0 ? (
+                    computedMonthly.slice(0, 5).map((m) => (
+                      <tr key={m.label} className="hover:bg-amber-50/40">
+                        <td className="py-2 px-1 text-amber-800">{m.label}</td>
+                        <td className="py-2 px-1 text-right font-medium text-emerald-700">
+                          ₱{m.totalSales.toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
                   ) : (
                     <tr>
-                      <td
-                        colSpan={2}
-                        className="py-4 text-center text-amber-600/70 italic text-xs"
-                      >
-                        No reports
+                      <td colSpan={2} className="py-4 text-center text-amber-600/70 italic text-xs">
+                        No daily reports to aggregate
                       </td>
                     </tr>
                   )}
@@ -302,48 +326,6 @@ export default async function ManageBranchProfilePage({
               </table>
             </div>
           </div>
-
-          {/* Yearly Reports Table */}
-          {/* <div>
-            <h3 className="text-sm font-semibold text-amber-800 mb-3 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100">
-              Yearly Sales
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-amber-200 text-amber-900">
-                  <tr>
-                    <th className="py-2 px-1 font-semibold">Year</th>
-                    <th className="py-2 px-1 font-semibold text-right">
-                      Sales
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-amber-100">
-                  {yearlyReports.length > 0 ? (
-                    yearlyReports.slice(0, 5).map((r: { id: string; periodYear: string; totalSales: number }) => (
-                      <tr key={r.id} className="hover:bg-amber-50/40">
-                        <td className="py-2 px-1 text-amber-800">
-                          {r.periodYear}
-                        </td>
-                        <td className="py-2 px-1 text-right font-medium text-emerald-700">
-                          ₱{r.totalSales.toLocaleString()}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={2}
-                        className="py-4 text-center text-amber-600/70 italic text-xs"
-                      >
-                        No reports
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div> */}
         </div>
       </div>
 

@@ -28,7 +28,9 @@ export default async function ManageBranchListPage() {
                 <h3 className="text-lg font-bold text-amber-900 mb-1 group-hover:text-amber-700 transition-colors truncate">
                   {store.storeName}
                 </h3>
-                <p className="text-sm text-amber-600/80 truncate">@{store.username}</p>
+                {store.fullName && (
+                  <p className="text-sm text-amber-600/80 truncate">{store.fullName}</p>
+                )}
               </div>
 
               <div className="mt-6 flex items-center justify-between text-sm font-medium text-amber-500 group-hover:text-amber-600">

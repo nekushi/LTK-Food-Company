@@ -10,7 +10,7 @@ export default async function StoreLayout({
 
   return (
     <div className="h-screen grid grid-cols-12">
-      <StoreLayoutSidebar firstName={user.firstName} lastName={user.lastName} />
+      <StoreLayoutSidebar firstName={user.firstName} lastName={user.lastName} username={user.username} />
       <main className="col-span-10 overflow-y-auto">{children}</main>
     </div>
   );
