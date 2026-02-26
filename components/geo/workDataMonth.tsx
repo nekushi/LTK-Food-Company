@@ -14,7 +14,7 @@ function parseTimeToMinutes(t: string | null | undefined): number {
   return h * 60 + m;
 }
 
-function calculateTotalHours(values: any): { error?: string, minutes?: number, fullText?: string } {
+function calculateTotalHours(values: any): { error?: string; minutes?: number; fullText?: string; tardiness?: number } {
   const morIn = parseTimeToMinutes(values.morning_in);
   const morOut = parseTimeToMinutes(values.morning_out);
   const aftIn = parseTimeToMinutes(values.afternoon_in);
@@ -77,7 +77,7 @@ function calculateTotalHours(values: any): { error?: string, minutes?: number, f
     totalMinutes += effectiveOvOut - expectedOvIn;
   }
 
-  if (totalMinutes <= 0) return { minutes: 0, fullText: "0 hours" };
+  if (totalMinutes <= 0) return { minutes: 0, fullText: "0 hours", tardiness: 0 };
 
   const actualMinutes = Math.max(0, totalMinutes - tardiness);
   const hours = Math.floor(actualMinutes / 60);
@@ -89,9 +89,9 @@ function calculateTotalHours(values: any): { error?: string, minutes?: number, f
   }
   
   if (tardiness > 0) {
-    return { minutes: actualMinutes, fullText: `${timeStr} - tardiness: ${tardiness} minutes` };
+    return { minutes: actualMinutes, fullText: `${timeStr} - tardiness: ${tardiness} minutes`, tardiness };
   }
-  return { minutes: actualMinutes, fullText: timeStr };
+  return { minutes: actualMinutes, fullText: timeStr, tardiness };
 }
 
 export default function WorkDataMonth({
@@ -99,7 +99,7 @@ export default function WorkDataMonth({
   onCalculate,
 }: {
   scheduleData: [string, TypeScheduleGeo];
-  onCalculate?: (dateId: string, minutes: number | null) => void;
+  onCalculate?: (dateId: string, minutes: number | null, tardinessMinutes?: number) => void;
 }) {
   const [dateId, schedule] = scheduleData;
   const [contextMenu, setContextMenu] = useState<{
@@ -150,11 +150,14 @@ export default function WorkDataMonth({
     } else if (output.error) {
       setCalculatedTotal("");
       setCalculationDetails(output.error);
-      if (onCalculate) onCalculate(dateId, null);
+      if (onCalculate) onCalculate(dateId, null, undefined);
     } else {
-      setCalculatedTotal(String(output.minutes));
+      const mins = output.minutes ?? 0;
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      setCalculatedTotal(m > 0 ? `${h}h ${m}m` : `${h}h`);
       setCalculationDetails(output.fullText || "");
-      if (onCalculate) onCalculate(dateId, output.minutes ?? 0);
+      if (onCalculate) onCalculate(dateId, mins, output.tardiness ?? 0);
     }
     
     closeContextMenu();
