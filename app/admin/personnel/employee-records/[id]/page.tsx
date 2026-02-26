@@ -4,6 +4,7 @@ import { getEmployeeProfile } from "@/app/hr/employees/dal/get-employee-profile"
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { FaArrowLeft } from "react-icons/fa";
+import EmployeeSchedulesCard from "./employee-schedules-card";
 
 export default async function AdminEmployeeRecordProfilePage({
   params,
@@ -112,15 +113,13 @@ export default async function AdminEmployeeRecordProfilePage({
 
       <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-amber-900 border-b border-amber-100 pb-2">
-          Work Data (JSON Payload)
+          Schedules (Work Data)
         </h2>
-        <div className="rounded-md bg-amber-50 p-4 font-mono text-sm text-amber-800 overflow-x-auto">
-          {employeeWorkData?.data ? (
-            <pre>{JSON.stringify(employeeWorkData.data, null, 2)}</pre>
-          ) : (
-            <p className="italic text-amber-600">No work data recorded.</p>
-          )}
-        </div>
+        {employeeWorkData?.data ? (
+          <EmployeeSchedulesCard dataItems={employeeWorkData.data as unknown[]} />
+        ) : (
+          <p className="italic text-amber-600">No work data recorded.</p>
+        )}
       </div>
     </div>
   );
