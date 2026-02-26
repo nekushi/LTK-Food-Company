@@ -77,6 +77,8 @@ export async function getAdminStoreProfile(storeId: string) {
         username: store.user.username,
         fullName: `${store.user.firstName} ${store.user.lastName}`.trim(),
         createdAt: store.createdAt,
+        latitude: store.latitude,
+        longitude: store.longitude,
         salesReports: store.salesReports,
         requestItems: store.requestItems,
         inventoryReports: store.inventoryReports,
