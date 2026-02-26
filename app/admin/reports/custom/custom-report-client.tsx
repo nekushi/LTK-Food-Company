@@ -101,13 +101,27 @@ function aggregateMonthly(dailyReports: SalesRow[]): AggregatedSales[] {
     });
 }
 
-export default function CustomReportClient({ stores }: { stores: Store[] }) {
-  const [reportType, setReportType] = useState<ReportType>("sales");
+type ReportMode = "both" | "sales" | "inventory";
+
+interface CustomReportClientProps {
+  stores: Store[];
+  mode?: ReportMode;
+  initialType?: ReportType;
+}
+
+export default function CustomReportClient({
+  stores,
+  mode = "both",
+  initialType = "sales",
+}: CustomReportClientProps) {
+  const [reportType, setReportType] = useState<ReportType>(initialType);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
-  const [selectedStore, setSelectedStore] = useState("");
+  const [selectedStore, setSelectedStore] = useState(
+    stores.find((s) => s.id === "all") ? "all" : "",
+  );
   const [selectedMonth, setSelectedMonth] = useState("All");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [invRange, setInvRange] = useState<"daily" | "past7days">("daily");
@@ -188,51 +202,61 @@ export default function CustomReportClient({ stores }: { stores: Store[] }) {
   return (
     <div className="p-8 space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-amber-900">Custom Reports</h1>
-        <p className="text-sm text-amber-700/80">Generate sales or inventory reports for a specific branch and period.</p>
+        <h1 className="text-xl font-semibold text-amber-900">
+          {mode === "sales" ? "Sales Reports" : mode === "inventory" ? "Inventory Reports" : "Custom Reports"}
+        </h1>
+        <p className="text-sm text-amber-700/80">
+          {mode === "sales"
+            ? "Generate sales reports for all branches or a specific branch."
+            : mode === "inventory"
+            ? "Generate inventory reports for all branches or a specific branch."
+            : "Generate sales or inventory reports for a specific branch and period."}
+        </p>
       </div>
 
       {/* Form Card */}
       <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm max-w-2xl">
         <div className="space-y-5">
-          {/* Report Type Dropdown */}
-          <div>
-            <label className="block text-sm font-medium text-amber-900 mb-1">Report Type</label>
-            <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full flex items-center justify-between rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 hover:border-amber-400 transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <FiFileText className="text-amber-600" />
-                  {activeLabel}
-                </span>
-                <IoChevronDown className={`text-amber-600 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
-              </button>
-              {dropdownOpen && (
-                <div className="absolute z-10 mt-1 w-full rounded-lg border border-amber-200 bg-white shadow-lg overflow-hidden">
-                  {REPORT_TYPES.map((rt) => (
-                    <button
-                      key={rt.value}
-                      onClick={() => {
-                        setReportType(rt.value);
-                        setDropdownOpen(false);
-                        setGenerated(false);
-                      }}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                        reportType === rt.value
-                          ? "bg-amber-100 text-amber-900 font-medium"
-                          : "text-amber-800 hover:bg-amber-50"
-                      }`}
-                    >
-                      {rt.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+          {/* Report Type Dropdown (only when both modes are allowed) */}
+          {mode === "both" && (
+            <div>
+              <label className="block text-sm font-medium text-amber-900 mb-1">Report Type</label>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="w-full flex items-center justify-between rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 hover:border-amber-400 transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <FiFileText className="text-amber-600" />
+                    {activeLabel}
+                  </span>
+                  <IoChevronDown className={`text-amber-600 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute z-10 mt-1 w-full rounded-lg border border-amber-200 bg-white shadow-lg overflow-hidden">
+                    {REPORT_TYPES.map((rt) => (
+                      <button
+                        key={rt.value}
+                        onClick={() => {
+                          setReportType(rt.value);
+                          setDropdownOpen(false);
+                          setGenerated(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                          reportType === rt.value
+                            ? "bg-amber-100 text-amber-900 font-medium"
+                            : "text-amber-800 hover:bg-amber-50"
+                        }`}
+                      >
+                        {rt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Branch Picker */}
           <div>
@@ -242,7 +266,7 @@ export default function CustomReportClient({ stores }: { stores: Store[] }) {
               onChange={(e) => { setSelectedStore(e.target.value); setGenerated(false); }}
               className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
             >
-              <option value="">Select a branch</option>
+              <option value="all">All Branches</option>
               {stores.map((store) => (
                 <option key={store.id} value={store.id}>
                   {store.storeName}

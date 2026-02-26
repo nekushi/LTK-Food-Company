@@ -26,11 +26,19 @@ export async function getCustomSalesReport(storeId: string, month: string, year:
   if (!payload?.userId) return { success: false, data: [] };
 
   try {
+    const where: {
+      storeId?: string;
+      periodYear: string;
+    } = {
+      periodYear: year,
+    };
+
+    if (storeId !== "all") {
+      where.storeId = storeId;
+    }
+
     const reports = await prisma.salesReport.findMany({
-      where: {
-        storeId,
-        periodYear: year,
-      },
+      where,
       orderBy: [{ reportType: "asc" }, { createdAt: "desc" }],
     });
 
@@ -52,11 +60,19 @@ export async function getCustomInventoryReport(storeId: string, month: string, y
   if (!payload?.userId) return { success: false, data: [] };
 
   try {
+    const where: {
+      storeId?: string;
+      periodYear: string;
+    } = {
+      periodYear: year,
+    };
+
+    if (storeId !== "all") {
+      where.storeId = storeId;
+    }
+
     const reports = await prisma.inventoryReport.findMany({
-      where: {
-        storeId,
-        periodYear: year,
-      },
+      where,
       orderBy: [{ createdAt: "desc" }],
     });
 

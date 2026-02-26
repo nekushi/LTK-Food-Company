@@ -58,6 +58,8 @@ export default function AdminLayoutSidebar({
       name: "Reports",
       icon: <IoAnalytics />,
       children: [
+        { name: "Sales Reports", href: "/admin/reports/sales" },
+        { name: "Inventory Reports", href: "/admin/reports/inventory" },
         { name: "Custom Reports", href: "/admin/reports/custom" },
       ],
     },

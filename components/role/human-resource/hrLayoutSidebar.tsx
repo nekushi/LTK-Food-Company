@@ -12,7 +12,6 @@ import { TypeNavList } from "@/index";
 import BtnLogout from "@/components/logouts/btnLogout";
 
 const navLists: TypeNavList[] = [
-  { name: "Dashboard", href: "/hr", icon: <IoAnalytics /> },
   { name: "Accounts", href: "/hr/accounts", icon: <RiCalendarScheduleLine /> },
   { name: "Employees", href: "/hr/employees", icon: <FaRegUser /> },
   {

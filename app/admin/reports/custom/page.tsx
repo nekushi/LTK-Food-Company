@@ -6,6 +6,10 @@ export const dynamic = "force-dynamic";
 export default async function CustomReportsPage() {
   const storesResult = await getAdminStores();
   const stores = storesResult.success ? storesResult.data : [];
+  const enhancedStores = [
+    { id: "all", storeName: "All Branches", username: "all" },
+    ...stores,
+  ];
 
-  return <CustomReportClient stores={stores} />;
+  return <CustomReportClient stores={enhancedStores} mode="both" initialType="sales" />;
 }
