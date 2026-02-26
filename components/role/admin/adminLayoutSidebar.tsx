@@ -60,7 +60,7 @@ export default function AdminLayoutSidebar({
       children: [
         { name: "Sales Reports", href: "/admin/reports/sales" },
         { name: "Inventory Reports", href: "/admin/reports/inventory" },
-        { name: "Custom Reports", href: "/admin/reports/custom" },
+        { name: "Delivery Reports", href: "/admin/reports/delivery" },
       ],
     },
     {

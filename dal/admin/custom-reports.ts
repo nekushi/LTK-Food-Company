@@ -102,11 +102,19 @@ export async function getInventoryReportByRange(storeId: string, range: "daily" 
       cutoff.setHours(0, 0, 0, 0);
     }
 
+    const where: {
+      storeId?: string;
+      createdAt: { gte: Date };
+    } = {
+      createdAt: { gte: cutoff },
+    };
+
+    if (storeId !== "all") {
+      where.storeId = storeId;
+    }
+
     const reports = await prisma.inventoryReport.findMany({
-      where: {
-        storeId,
-        createdAt: { gte: cutoff },
-      },
+      where,
       orderBy: [{ createdAt: "desc" }],
     });
 
