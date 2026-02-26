@@ -116,7 +116,14 @@ export default async function AdminEmployeeRecordProfilePage({
           Schedules (Work Data)
         </h2>
         {employeeWorkData?.data ? (
-          <EmployeeSchedulesCard dataItems={employeeWorkData.data as unknown[]} />
+          <EmployeeSchedulesCard
+            dataItems={employeeWorkData.data as unknown[]}
+            deductionEligibility={{
+              hasSss: Boolean(employeeData?.sss?.trim()),
+              hasPagIbig: Boolean(employeeData?.pagIbig?.trim()),
+              hasPhilhealth: Boolean(employeeData?.philhealth?.trim()),
+            }}
+          />
         ) : (
           <p className="italic text-amber-600">No work data recorded.</p>
         )}

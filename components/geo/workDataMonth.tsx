@@ -14,7 +14,16 @@ function parseTimeToMinutes(t: string | null | undefined): number {
   return h * 60 + m;
 }
 
-function calculateTotalHours(values: any): { error?: string; minutes?: number; fullText?: string; tardiness?: number } {
+interface ScheduleTimeValues {
+  morning_in: string | null | undefined;
+  morning_out: string | null | undefined;
+  afternoon_in: string | null | undefined;
+  afternoon_out: string | null | undefined;
+  overtime_in: string | null | undefined;
+  overtime_out: string | null | undefined;
+}
+
+function calculateTotalHours(values: ScheduleTimeValues): { error?: string; minutes?: number; fullText?: string; tardiness?: number } {
   const morIn = parseTimeToMinutes(values.morning_in);
   const morOut = parseTimeToMinutes(values.morning_out);
   const aftIn = parseTimeToMinutes(values.afternoon_in);

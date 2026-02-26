@@ -13,8 +13,16 @@ interface WorkDataItemWithSchedules {
   id?: string;
 }
 
+export interface DeductionEligibility {
+  hasSss: boolean;
+  hasPagIbig: boolean;
+  hasPhilhealth: boolean;
+}
+
 interface EmployeeSchedulesCardProps {
   dataItems: unknown[];
+  /** Only deduct SSS/PhilHealth/PagIbig if the employee has that benefit. Omit or pass undefined to deduct all (legacy). */
+  deductionEligibility?: DeductionEligibility | null;
 }
 
 const DEDUCTION_SSS = 425;
@@ -33,7 +41,7 @@ interface RowResult {
   tardiness: number;
 }
 
-export default function EmployeeSchedulesCard({ dataItems }: EmployeeSchedulesCardProps) {
+export default function EmployeeSchedulesCard({ dataItems, deductionEligibility }: EmployeeSchedulesCardProps) {
   /** Key: `${cardIdx}-${dateId}` -> { minutes, tardiness } */
   const [rowResultsMap, setRowResultsMap] = useState<Record<string, RowResult>>({});
   const [ratePerDay, setRatePerDay] = useState<string>("");
@@ -84,6 +92,10 @@ export default function EmployeeSchedulesCard({ dataItems }: EmployeeSchedulesCa
   const hrsPerDayNum = parseFloat(hrsPerDay) || 8;
   const canComputePay = Number.isFinite(ratePerDayNum) && ratePerDayNum > 0 && hrsPerDayNum > 0;
 
+  const hasSss = deductionEligibility?.hasSss ?? true;
+  const hasPagIbig = deductionEligibility?.hasPagIbig ?? true;
+  const hasPhilhealth = deductionEligibility?.hasPhilhealth ?? true;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center gap-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
@@ -127,9 +139,18 @@ export default function EmployeeSchedulesCard({ dataItems }: EmployeeSchedulesCa
         const ratePerHour = canComputePay ? ratePerDayNum / hrsPerDayNum : 0;
         const grossSalary = ratePerHour * renderedHours;
         const tardinessDeduction = minsLates * 1.25;
-        const totalDeductions =
-          tardinessDeduction + DEDUCTION_SSS + DEDUCTION_PHILHEALTH + DEDUCTION_PAGIBIG;
+        const govDeductions =
+          (hasSss ? DEDUCTION_SSS : 0) +
+          (hasPhilhealth ? DEDUCTION_PHILHEALTH : 0) +
+          (hasPagIbig ? DEDUCTION_PAGIBIG : 0);
+        const totalDeductions = tardinessDeduction + govDeductions;
         const netPay = grossSalary - totalDeductions;
+
+        const deductionParts: string[] = [`tardiness ${minsLates} min × 1.25 = ₱${tardinessDeduction.toFixed(2)}`];
+        if (hasSss) deductionParts.push(`SSS ₱${DEDUCTION_SSS}`);
+        if (hasPhilhealth) deductionParts.push(`PhilHealth ₱${DEDUCTION_PHILHEALTH}`);
+        if (hasPagIbig) deductionParts.push(`PagIbig ₱${DEDUCTION_PAGIBIG}`);
+        deductionParts.push(`→ total ₱${totalDeductions.toFixed(2)}`);
 
         const handleHeaderClick = () => {
           const total = getCardTotalMinutes(cardIdx);
@@ -158,7 +179,7 @@ export default function EmployeeSchedulesCard({ dataItems }: EmployeeSchedulesCa
                     Gross: ₱{ratePerHour.toFixed(2)}/hr × {renderedHours}h = ₱{grossSalary.toFixed(2)}
                   </div>
                   <div>
-                    Deductions: tardiness {minsLates} min × 1.25 = ₱{tardinessDeduction.toFixed(2)}; SSS ₱{DEDUCTION_SSS}; PhilHealth ₱{DEDUCTION_PHILHEALTH}; PagIbig ₱{DEDUCTION_PAGIBIG} → total ₱{totalDeductions.toFixed(2)}
+                    Deductions: {deductionParts.join("; ")}
                   </div>
                 </div>
               </div>
