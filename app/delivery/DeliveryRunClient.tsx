@@ -56,8 +56,10 @@ const METERS_NEAR_DESTINATION = 200;
 
 export default function DeliveryRunClient({
   onTheWayItems,
+  showControls = true,
 }: {
   onTheWayItems: OnTheWayItemEntry[];
+  showControls?: boolean;
 }) {
   const router = useRouter();
   const [tracking, setTracking] = useState(false);
@@ -227,39 +229,41 @@ export default function DeliveryRunClient({
             </ul>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-amber-300 bg-amber-50/50 p-4">
-            <button
-              type="button"
-              onClick={handleStartGps}
-              disabled={tracking || !hasDestination}
-              className="rounded-lg border border-amber-400 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Start GPS
-            </button>
-            <button
-              type="button"
-              onClick={stopGps}
-              disabled={!tracking}
-              className="rounded-lg border border-amber-400 bg-white px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Stop
-            </button>
-            {withinRange && (
+          {showControls && (
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-amber-300 bg-amber-50/50 p-4">
               <button
                 type="button"
-                onClick={handleConfirmDelivery}
-                disabled={confirming}
-                className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                onClick={handleStartGps}
+                disabled={tracking || !hasDestination}
+                className="rounded-lg border border-amber-400 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {confirming ? "Updating…" : "Confirm delivery (mark success)"}
+                Start GPS
               </button>
-            )}
-            {!hasDestination && onTheWayItems.length > 0 && (
-              <p className="text-xs text-amber-700">
-                Add store latitude/longitude for GPS and distance check.
-              </p>
-            )}
-          </div>
+              <button
+                type="button"
+                onClick={stopGps}
+                disabled={!tracking}
+                className="rounded-lg border border-amber-400 bg-white px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Stop
+              </button>
+              {withinRange && (
+                <button
+                  type="button"
+                  onClick={handleConfirmDelivery}
+                  disabled={confirming}
+                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                >
+                  {confirming ? "Updating…" : "Confirm delivery (mark success)"}
+                </button>
+              )}
+              {!hasDestination && onTheWayItems.length > 0 && (
+                <p className="text-xs text-amber-700">
+                  Add store latitude/longitude for GPS and distance check.
+                </p>
+              )}
+            </div>
+          )}
         </>
       )}
 

@@ -64,6 +64,13 @@ export default function AdminLayoutSidebar({
       ],
     },
     {
+      name: "Delivery",
+      icon: <IoIosGitBranch />,
+      children: [
+        { name: "Delivery View", href: "/admin/delivery" },
+      ],
+    },
+    {
       name: "Settings",
       icon: <FaRegUser />,
       children: [
