@@ -31,7 +31,8 @@ export default function AdminLayoutSidebar({
   lastName: string;
 }) {
   const path = usePathname();
-  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "AD";
+  const initials =
+    `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "AD";
   const fullName = `${firstName} ${lastName}`.trim() || "Admin";
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -69,8 +70,7 @@ export default function AdminLayoutSidebar({
     {
       name: "Branch MGT",
       icon: <IoIosGitBranch />,
-      children: [
-      ],
+      children: [],
     },
     {
       name: "Personnel MGT",
@@ -87,8 +87,11 @@ export default function AdminLayoutSidebar({
       icon: <IoAnalytics />,
       children: [
         { name: "Item List", href: "/admin/inventory/item-list" },
-        { name: "Branch Request", href: "/admin/inventory/branch-request" },
-        { name: "Initial Stock Allocation", href: "/admin/inventory/initial-stock-allocation" },
+        { name: "Item Request", href: "/admin/inventory/item-request" },
+        {
+          name: "Initial Stock Allocation",
+          href: "/admin/inventory/initial-stock-allocation",
+        },
       ],
     },
     {
@@ -105,7 +108,10 @@ export default function AdminLayoutSidebar({
       icon: <FaRegUser />,
       children: [
         { name: "Admin Accounts", href: "/admin/settings/accounts" },
-        { name: "Branch Registration", href: "/admin/settings/branch-registration" },
+        {
+          name: "Branch Registration",
+          href: "/admin/settings/branch-registration",
+        },
         { name: "System Config", href: "/admin/settings/system-config" },
       ],
     },
@@ -114,7 +120,9 @@ export default function AdminLayoutSidebar({
   return (
     <aside className="h-full bg-amber-50 flex flex-col col-span-2 overflow-y-auto border-r border-amber-200">
       <div className="px-5 pt-5 pb-3">
-        <h2 className="text-sm font-bold font-serif text-amber-800 tracking-wide">LTK Food Company</h2>
+        <h2 className="text-sm font-bold font-serif text-amber-800 tracking-wide">
+          LTK Food Company
+        </h2>
       </div>
 
       <div className="px-5 py-4 flex items-center gap-3 border-b border-amber-200">
@@ -122,7 +130,9 @@ export default function AdminLayoutSidebar({
           {initials}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-amber-900 truncate">{fullName}</p>
+          <p className="text-sm font-semibold text-amber-900 truncate">
+            {fullName}
+          </p>
           <p className="text-[11px] text-amber-600">Admin</p>
         </div>
       </div>
@@ -170,11 +180,15 @@ export default function AdminLayoutSidebar({
 
             {expanded[group.name] && (
               <ul className="mt-1 space-y-0.5 pl-7">
-                {(group.name === "Branch MGT" ? branchStores.map((s) => ({
-                  name: s.storeName,
-                  href: `/admin/branch/manage/${s.id}`,
-                })) : group.children).map((child) => {
-                  const isActive = path === child.href || path.startsWith(`${child.href}/`);
+                {(group.name === "Branch MGT"
+                  ? branchStores.map((s) => ({
+                      name: s.storeName,
+                      href: `/admin/branch/manage/${s.id}`,
+                    }))
+                  : group.children
+                ).map((child) => {
+                  const isActive =
+                    path === child.href || path.startsWith(`${child.href}/`);
                   return (
                     <li key={child.name}>
                       <Link
