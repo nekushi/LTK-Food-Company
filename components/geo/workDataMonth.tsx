@@ -37,6 +37,8 @@ function calculateTotalHours(values: any): { error?: string, minutes?: number, f
   let totalMinutes = 0;
   let tardiness = 0;
 
+  const MINUTES_PER_DAY = 24 * 60;
+
   if (morIn !== -1 && morOut !== -1) {
     const expectedMorIn = Math.round(morIn / 60) * 60;
     const late = morIn - expectedMorIn;
@@ -45,7 +47,12 @@ function calculateTotalHours(values: any): { error?: string, minutes?: number, f
     } else if (late > 0) {
       tardiness += late;
     }
-    totalMinutes += (morOut - expectedMorIn);
+    // If morning out is <= rounded morning in, total morning is 0 (per instructions)
+    if (morOut <= expectedMorIn) {
+      totalMinutes += 0;
+    } else {
+      totalMinutes += morOut - expectedMorIn;
+    }
   }
 
   if (aftIn !== -1 && aftOut !== -1) {
@@ -54,7 +61,9 @@ function calculateTotalHours(values: any): { error?: string, minutes?: number, f
     if (late > 0) {
       tardiness += late;
     }
-    totalMinutes += (aftOut - expectedAftIn);
+    // If afternoon out is before afternoon in (e.g. 01:29 after 17:29), treat as next day: add 24h
+    const effectiveAftOut = aftOut < aftIn ? aftOut + MINUTES_PER_DAY : aftOut;
+    totalMinutes += effectiveAftOut - expectedAftIn;
   }
 
   if (ovIn !== -1 && ovOut !== -1) {
@@ -63,12 +72,14 @@ function calculateTotalHours(values: any): { error?: string, minutes?: number, f
     if (late > 0) {
       tardiness += late;
     }
-    totalMinutes += (ovOut - expectedOvIn);
+    // If overtime out is before overtime in (day reset), treat as next day
+    const effectiveOvOut = ovOut < ovIn ? ovOut + MINUTES_PER_DAY : ovOut;
+    totalMinutes += effectiveOvOut - expectedOvIn;
   }
 
-  if (totalMinutes === 0) return { minutes: 0, fullText: "0 hours" };
+  if (totalMinutes <= 0) return { minutes: 0, fullText: "0 hours" };
 
-  const actualMinutes = totalMinutes - tardiness;
+  const actualMinutes = Math.max(0, totalMinutes - tardiness);
   const hours = Math.floor(actualMinutes / 60);
   const mins = actualMinutes % 60;
   
