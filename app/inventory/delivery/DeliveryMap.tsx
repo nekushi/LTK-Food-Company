@@ -47,6 +47,7 @@ function MapContent({ locations }: { locations: LocationEntry[] }) {
 export default function DeliveryMap() {
   const [locations, setLocations] = useState<LocationEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [timerId, setTimerId] = useState<number | null>(null);
 
   const fetchLocations = async () => {
     try {
@@ -64,6 +65,13 @@ export default function DeliveryMap() {
 
   useEffect(() => {
     fetchLocations();
+    const id = window.setInterval(fetchLocations, 5000);
+    setTimerId(id as unknown as number);
+    return () => {
+      if (id) {
+        window.clearInterval(id);
+      }
+    };
   }, []);
 
   if (loading) {

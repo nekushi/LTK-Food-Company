@@ -131,11 +131,20 @@ const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
           console.log("Subscription status:", status);
         });
 
-      return () => {
-        // console.log(location);
+      // Fallback polling so the map still updates even if realtime fails
+      if (timeoutRef.current == null) {
+        timeoutRef.current = window.setInterval(() => {
+          fetchLocation();
+        }, 5000) as unknown as number;
+      }
 
+      return () => {
         console.log("unsubscribing");
         channels.unsubscribe();
+        if (timeoutRef.current != null) {
+          window.clearInterval(timeoutRef.current);
+          timeoutRef.current = null;
+        }
       };
     }, [latlng.lat, latlng.lng, getLocation]);
 

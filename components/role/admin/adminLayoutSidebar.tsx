@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { IoAnalytics } from "react-icons/io5";
 import { IoIosGitBranch } from "react-icons/io";
@@ -16,6 +16,11 @@ interface NavItemGroup {
   name: string;
   icon: React.ReactNode;
   children: { name: string; href: string }[];
+}
+
+interface BranchStoreNav {
+  id: string;
+  storeName: string;
 }
 
 export default function AdminLayoutSidebar({
@@ -33,6 +38,28 @@ export default function AdminLayoutSidebar({
     "Branch MGT": true,
     "Personnel MGT": true,
   });
+  const [branchStores, setBranchStores] = useState<BranchStoreNav[]>([]);
+
+  useEffect(() => {
+    async function fetchStores() {
+      try {
+        const res = await fetch("/api/admin/stores");
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setBranchStores(
+            json.data.map((s: { id: string; storeName: string }) => ({
+              id: s.id,
+              storeName: s.storeName,
+            })),
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load admin stores for sidebar", error);
+      }
+    }
+    fetchStores();
+  }, []);
 
   const toggleExpand = (menuName: string) => {
     setExpanded((prev) => ({ ...prev, [menuName]: !prev[menuName] }));
@@ -43,15 +70,25 @@ export default function AdminLayoutSidebar({
       name: "Branch MGT",
       icon: <IoIosGitBranch />,
       children: [
-        { name: "Manage Branch", href: "/admin/branch/manage" },
       ],
     },
     {
       name: "Personnel MGT",
       icon: <MdOutlinePeopleAlt />,
       children: [
-        { name: "HR", href: "/admin/personnel/hr" },
-        { name: "Staff", href: "/admin/personnel/staff" },
+        { name: "Admin Info", href: "/admin/personnel/admin-info" },
+        { name: "Employee Records", href: "/admin/personnel/employee-records" },
+        { name: "Attendance", href: "/admin/personnel/attendance" },
+        { name: "Payroll", href: "/admin/personnel/payroll" },
+      ],
+    },
+    {
+      name: "Inventory MGT",
+      icon: <IoAnalytics />,
+      children: [
+        { name: "Item List", href: "/admin/inventory/item-list" },
+        { name: "Branch Request", href: "/admin/inventory/branch-request" },
+        { name: "Initial Stock Allocation", href: "/admin/inventory/initial-stock-allocation" },
       ],
     },
     {
@@ -61,13 +98,6 @@ export default function AdminLayoutSidebar({
         { name: "Sales Reports", href: "/admin/reports/sales" },
         { name: "Inventory Reports", href: "/admin/reports/inventory" },
         { name: "Delivery Reports", href: "/admin/reports/delivery" },
-      ],
-    },
-    {
-      name: "Delivery",
-      icon: <IoIosGitBranch />,
-      children: [
-        { name: "Delivery View", href: "/admin/delivery" },
       ],
     },
     {
@@ -109,6 +139,17 @@ export default function AdminLayoutSidebar({
           <IoAnalytics className="text-lg" />
           Dashboard
         </Link>
+        <Link
+          href="/admin/delivery"
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+            path === "/admin/delivery"
+              ? "bg-amber-200 font-semibold text-amber-900"
+              : "text-amber-800 hover:bg-amber-100"
+          }`}
+        >
+          <IoIosGitBranch className="text-lg" />
+          Delivery View
+        </Link>
 
         {navGroups.map((group) => (
           <div key={group.name} className="pt-2">
@@ -129,7 +170,10 @@ export default function AdminLayoutSidebar({
 
             {expanded[group.name] && (
               <ul className="mt-1 space-y-0.5 pl-7">
-                {group.children.map((child) => {
+                {(group.name === "Branch MGT" ? branchStores.map((s) => ({
+                  name: s.storeName,
+                  href: `/admin/branch/manage/${s.id}`,
+                })) : group.children).map((child) => {
                   const isActive = path === child.href || path.startsWith(`${child.href}/`);
                   return (
                     <li key={child.name}>
