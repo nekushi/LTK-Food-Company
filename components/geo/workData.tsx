@@ -11,11 +11,9 @@ import {
 import { useState } from "react";
 
 export default function EmployeeWorkDataGeo({
-  store,
   data,
   onApprovedData,
 }: {
-  store: string;
   data: TypeAttendanceCardGeo;
   onApprovedData: (data: TypeAttendanceCardGeo) => void;
 }) {
@@ -66,7 +64,7 @@ export default function EmployeeWorkDataGeo({
         </div>
         <div>
           <p className="font-semibold text-2xl tracking-tight">
-            Month of {getMonth(data.dateRange, store)}
+            Month of {getMonth(data.dateRange)}
           </p>
         </div>
       </div>
