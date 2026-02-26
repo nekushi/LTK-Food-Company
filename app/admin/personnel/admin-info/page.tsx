@@ -29,7 +29,7 @@ export default async function AdminInfoPage() {
         </Link>
       </div>
 
-      <AccountsClient accounts={accounts} />
+      <AccountsClient accounts={accounts} accountDetailBasePath="/admin/personnel/admin-info" />
     </div>
   );
 }

@@ -22,7 +22,13 @@ const ROLE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
 
 const ROLES = ["All", "ADMIN", "HR", "INVENTORY", "STORE", "DELIVERY"];
 
-export default function AccountsClient({ accounts }: { accounts: Account[] }) {
+interface AccountsClientProps {
+  accounts: Account[];
+  /** Base path for account detail links (e.g. /admin/personnel/admin-info). Defaults to /hr/accounts */
+  accountDetailBasePath?: string;
+}
+
+export default function AccountsClient({ accounts, accountDetailBasePath = "/hr/accounts" }: AccountsClientProps) {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
 
@@ -155,7 +161,7 @@ export default function AccountsClient({ accounts }: { accounts: Account[] }) {
             return (
               <Link
                 key={account.id}
-                href={`/hr/accounts/${account.id}`}
+                href={`${accountDetailBasePath}/${account.id}`}
                 className="group flex items-center gap-4 rounded-xl border border-amber-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-amber-300 transition-all"
               >
                 <div className="rounded-full bg-amber-700 text-white size-12 flex items-center justify-center text-sm font-bold shrink-0">
