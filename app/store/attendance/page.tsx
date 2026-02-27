@@ -277,6 +277,7 @@ export default function StoreAttendancePage() {
   const [parsedCards, setParsedCards] = useState<TypeAttendanceCardGeo[]>([]);
   const [approvedCards, setApprovedCards] = useState<TypeAttendanceCardGeo[]>([]);
   const [isLinking, setIsLinking] = useState(false);
+  const [showLinked, setShowLinked] = useState(true);
 
   const loadEmployees = () => {
     const storeName = localStorage.getItem("username") || "";
@@ -357,8 +358,9 @@ export default function StoreAttendancePage() {
     }
     setIsLinking(true);
     try {
-      const result = await linkToEmployees(approvedCards);
-      if (result.success) {
+      const userId = localStorage.getItem("userId") || "";
+      const result = await linkToEmployees(approvedCards, userId || undefined);
+      if (result.success && result.linkedCount > 0) {
         toast.success(result.message);
         handleClear();
         setLoading(true);
@@ -462,33 +464,48 @@ export default function StoreAttendancePage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-700" />
         </div>
       ) : employees.length > 0 ? (
-        <div className="space-y-6">
-          <h2 className="text-lg font-bold text-amber-900">
-            Linked Attendance Records ({employees.length} employee{employees.length !== 1 ? "s" : ""})
-          </h2>
-          {employees.map((emp) => (
-            <div key={emp.id} className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-amber-700 text-white size-9 flex items-center justify-center text-xs font-bold shrink-0">
-                  {`${emp.firstName?.[0] ?? ""}${emp.lastName?.[0] ?? ""}`.toUpperCase() || "??"}
+        <div className="rounded-xl border border-amber-200 bg-white shadow-sm overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowLinked((v) => !v)}
+            className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-amber-50/50"
+          >
+            <h2 className="text-lg font-bold text-amber-900">
+              Linked Attendance Records ({employees.length} employee{employees.length !== 1 ? "s" : ""})
+            </h2>
+            <span className="flex items-center gap-1.5 text-xs font-medium text-amber-600">
+              {showLinked ? "Hide" : "Show"}
+              {showLinked ? <FiChevronUp className="text-sm" /> : <FiChevronDown className="text-sm" />}
+            </span>
+          </button>
+
+          {showLinked && (
+            <div className="px-6 pb-6 space-y-6">
+              {employees.map((emp) => (
+                <div key={emp.id} className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-amber-700 text-white size-9 flex items-center justify-center text-xs font-bold shrink-0">
+                      {`${emp.firstName?.[0] ?? ""}${emp.lastName?.[0] ?? ""}`.toUpperCase() || "??"}
+                    </div>
+                    <div>
+                      <p className="text-base font-semibold text-amber-900">
+                        {emp.lastName}, {emp.firstName}
+                      </p>
+                      <p className="text-xs text-amber-600">
+                        #{emp.employeeId || "N/A"} &middot; {emp.employeeWorkData!.data.length} card
+                        {emp.employeeWorkData!.data.length !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 pl-12">
+                    {emp.employeeWorkData!.data.map((card, idx) => (
+                      <LinkedCardView key={idx} card={card} />
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-base font-semibold text-amber-900">
-                    {emp.lastName}, {emp.firstName}
-                  </p>
-                  <p className="text-xs text-amber-600">
-                    #{emp.employeeId || "N/A"} &middot; {emp.employeeWorkData!.data.length} card
-                    {emp.employeeWorkData!.data.length !== 1 ? "s" : ""}
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-3 pl-12">
-                {emp.employeeWorkData!.data.map((card, idx) => (
-                  <LinkedCardView key={idx} card={card} />
-                ))}
-              </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       ) : (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-12 text-center flex flex-col items-center">

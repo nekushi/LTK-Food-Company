@@ -182,12 +182,13 @@ model Store {
   latitude  Float?
   longitude Float?
 
-  requestItems     RequestedItems[]
-  salesReports     SalesReport[]
-  inventoryReports InventoryReport[]
-  itemsForSale     ItemForSale[]
-  posReceipts      POSReceipt[]
-  posDailyReports  POSDailyReport[]
+  requestItems       RequestedItems[]
+  salesReports       SalesReport[]
+  inventoryReports   InventoryReport[]
+  itemsForSale       ItemForSale[]
+  posReceipts        POSReceipt[]
+  posDailyReports    POSDailyReport[]
+  storeNotifications StoreNotification[]
 }
 
 model SalesReport {
@@ -360,4 +361,13 @@ model POSDailyReport {
   createdAt  DateTime @default(now())
 
   @@unique([storeId, reportDate, reportType])
+}
+
+model StoreNotification {
+  id        String   @id @default(uuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  type      String
+  message   String
+  createdAt DateTime @default(now())
 }

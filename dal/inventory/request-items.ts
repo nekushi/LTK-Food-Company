@@ -3,6 +3,7 @@
 import { ItemsReturnTypeStore } from "./get-items";
 import prisma from "@/lib/db";
 import { currentNow } from "@/lib/current-now";
+import { createStoreNotification } from "@/dal/admin/store-notifications";
 
 export type RestItemsReturnTypeInventory = {
   periodMonth: string;
@@ -74,6 +75,12 @@ export async function requestItems(cart: MergedItemReturnTypeInventory[], userId
 
       console.log(reqItems);
     }
+
+    await createStoreNotification(
+      whoRequested.id,
+      "item_request",
+      `Requested ${cart.length} item${cart.length !== 1 ? "s" : ""}`,
+    );
 
     return {
       success: true,
