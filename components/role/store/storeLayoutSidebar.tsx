@@ -7,14 +7,17 @@ import { useEffect, useState } from "react";
 import { IoAnalytics, IoSettingsOutline } from "react-icons/io5";
 import { RiCalendarScheduleLine } from "react-icons/ri";
 import { FaRegUser } from "react-icons/fa";
+import { MdOutlinePointOfSale, MdOutlineFastfood } from "react-icons/md";
 
 import { TypeNavList } from "@/index";
 import BtnLogout from "@/components/logouts/btnLogout";
 
 const navLists: TypeNavList[] = [
   { name: "Dashboard", href: "/store", icon: <IoAnalytics /> },
+  { name: "POS", href: "/store/pos", icon: <MdOutlinePointOfSale /> },
   { name: "Inventory", href: "/store/inventory", icon: <IoAnalytics /> },
   { name: "Request Items", href: "/store/request-items", icon: <FaRegUser /> },
+  { name: "Issue Food Stocks", href: "/store/issue-food-stocks", icon: <MdOutlineFastfood /> },
   { name: "History", href: "/store/history", icon: <RiCalendarScheduleLine /> },
   { name: "Delivery view", href: "/store/delivery-view", icon: <RiCalendarScheduleLine /> },
   { name: "Report", href: "/store/sales-report", icon: <RiCalendarScheduleLine /> },

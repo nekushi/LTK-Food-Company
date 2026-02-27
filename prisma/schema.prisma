@@ -185,6 +185,7 @@ model Store {
   requestItems     RequestedItems[]
   salesReports     SalesReport[]
   inventoryReports InventoryReport[]
+  itemsForSale     ItemForSale[]
 }
 
 model SalesReport {
@@ -203,7 +204,7 @@ model SalesReport {
 }
 
 model Inventory {
-  id                  String  @id @default(uuid())
+  id                  String   @id @default(uuid())
   periodMonth         String
   periodYear          String
   supplierName        String
@@ -228,7 +229,7 @@ model Inventory {
 }
 
 model RequestedItems {
-  id                  String  @id @default(uuid())
+  id                  String   @id @default(uuid())
   periodMonth         String
   periodYear          String
   supplierName        String
@@ -247,7 +248,7 @@ model RequestedItems {
   vat                 Float
   ewt                 Float
   netPay              Float
-  isRequestApproved   Boolean @default(false)
+  isRequestApproved   Boolean  @default(false)
   note                String?
   status              String?
   createdAt           DateTime @default(now())
@@ -315,7 +316,21 @@ model EmployeeWorkData {
   id         String   @id @default(uuid())
   employeeId String   @unique
   employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  
-  data       Json[]
+
+  data Json[]
   // ...cardDatas
+}
+
+model ItemForSale {
+  id        String   @id @default(uuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  name      String
+  quantity  Float
+  price     Float
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@unique([storeId, name])
 }
