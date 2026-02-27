@@ -9,6 +9,50 @@ export default function BtnLogout() {
 
   const handleLogoutClick = () => {
     startTransition(async () => {
+      // Clear localStorage-based auth/account data for the *current* account only.
+      if (typeof window !== "undefined") {
+        try {
+          const currentId = window.localStorage.getItem("ltk:currentAccountId");
+
+          // Flat keys always represent the active session; safe to clear.
+          window.localStorage.removeItem("userId");
+          window.localStorage.removeItem("username");
+          window.localStorage.removeItem("role");
+          window.localStorage.removeItem("storeId");
+
+          if (currentId) {
+            // Remove this account's namespaced payload only.
+            const accountKey = `ltk:account:${currentId}`;
+            window.localStorage.removeItem(accountKey);
+
+            // Update registry to remove just this account, keep others.
+            const registryKey = "ltk:accounts";
+            const raw = window.localStorage.getItem(registryKey);
+            if (raw) {
+              try {
+                const parsed = JSON.parse(raw) as {
+                  userId: string;
+                  username: string | null;
+                  role: string | null;
+                }[];
+                const filtered = parsed.filter((a) => a.userId !== currentId);
+                window.localStorage.setItem(
+                  registryKey,
+                  JSON.stringify(filtered),
+                );
+              } catch {
+                // ignore parse errors; leave registry as-is
+              }
+            }
+          }
+
+          // Clear current pointer; other accounts remain intact.
+          window.localStorage.removeItem("ltk:currentAccountId");
+        } catch {
+          // ignore localStorage errors
+        }
+      }
+
       await logout();
     });
   };

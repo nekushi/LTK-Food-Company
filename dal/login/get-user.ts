@@ -2,13 +2,10 @@
 
 import { loginSchema } from "@/schemas/login.schema";
 import prisma from "@/lib/db";
-import { redirect } from "next/navigation";
-// import { redirect } from "next/dist/server/api-utils";
-import z, { success } from "zod";
-
+import z from "zod";
 import bcrypt from "bcrypt";
 import { createSession, deleteSession } from "@/lib/session";
-import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 type UserData = z.infer<typeof loginSchema>;
 
@@ -68,27 +65,45 @@ export async function getUser(data: UserData): Promise<any> {
       message: "No user found",
     };
   }
-  // await createSession(findUser.id, findUser.username, findUser.email);
   const role = findUser.role;
 
   console.log(`role`);
   console.log(role);
 
-  await createSession(findUser.id, findUser.username, findUser.role);
+  // Keep server-side session for existing flows.
+  // await createSession(findUser.id, findUser.username, findUser.role);
 
-  if (role === "HR") {
-    redirect("/hr");
-  } else if (role === "ADMIN") {
-    redirect("/admin");
-  } else if (role === "INVENTORY") {
-    redirect("/inventory");
-  } else if (role === "DELIVERY") {
-    redirect("/delivery");
-  } else if (role === "STORE") {
-    redirect("/store");
-  } else {
-    redirect("/");
+  // Find storeId (if any) so the client can persist it in localStorage.
+  let storeId: string | null = null;
+  if (role === "STORE") {
+    const store = await prisma.store.findUnique({
+      where: { userId: findUser.id },
+      select: { id: true },
+    });
+    storeId = store?.id ?? null;
   }
+
+  let redirectUrl = "/";
+  if (role === "HR") {
+    redirectUrl = "/hr";
+  } else if (role === "ADMIN") {
+    redirectUrl = "/admin";
+  } else if (role === "INVENTORY") {
+    redirectUrl = "/inventory";
+  } else if (role === "DELIVERY") {
+    redirectUrl = "/delivery";
+  } else if (role === "STORE") {
+    redirectUrl = "/store";
+  }
+
+  return {
+    success: true,
+    userId: findUser.id,
+    username: findUser.username,
+    role,
+    storeId,
+    redirectUrl,
+  };
 }
 
 export async function logout() {
@@ -97,7 +112,7 @@ export async function logout() {
   // const username = myCookie.get("username")?.value;
   // const role = myCookie.get("role")?.value;
 
-  await deleteSession();
+  // await deleteSession();
 
   redirect("/login");
 }

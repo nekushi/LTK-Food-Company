@@ -1,9 +1,8 @@
 "use server";
 
-import { ItemsReturnTypeStore } from "./get-items";
 import prisma from "@/lib/db";
 import { cookies } from "next/headers";
-import { decrypt, SessionPayload } from "@/lib/session";
+import { decrypt } from "@/lib/session";
 
 export type RestItemsReturnTypeInventory = {
   periodMonth: string;
@@ -30,49 +29,49 @@ export interface MergedItemReturnTypeInventory extends RestItemsReturnTypeInvent
   quantity: number;
 }
 
-// export async function requestItems(cart: ItemsReturnTypeStore[]) {
-export async function requestItems(cart: MergedItemReturnTypeInventory[]) {
-  console.log(`Requesting items`);
+// Normalize optional string fields for Prisma (empty string -> null for optional fields)
+function optStr(val: string | null | undefined): string | null {
+  if (val == null || val === "") return null;
+  return val;
+}
 
-  console.log(cart);
+export async function requestItems(cart: MergedItemReturnTypeInventory[]) {
+  if (!cart || cart.length === 0) {
+    return { success: false, message: "Cart is empty." };
+  }
 
   const myCookies = (await cookies()).get("session")?.value;
   const payload = await decrypt(myCookies);
 
-  //   if (!payload)
-  //     return {
-  //       success: false,
-  //       message: "Something went wrong",
-  //     };
-
-  //   const userId = payload?.userId
-
-  const whoRequested = await prisma.store.findUnique({
-    where: {
-      userId: payload?.userId,
-    },
-  });
-
-  console.log(`whoRequested`);
-  console.log(whoRequested);
-
-  if (!whoRequested)
+  if (!payload?.userId) {
     return {
       success: false,
-      message: "Account not found.",
+      message: "Session expired. Please log in again.",
     };
+  }
+
+  const whoRequested = await prisma.store.findUnique({
+    where: { userId: payload.userId as string },
+  });
+
+  if (!whoRequested) {
+    return {
+      success: false,
+      message: "Store account not found. Please log in again.",
+    };
+  }
 
   try {
     for (const c of cart) {
-      const reqItems = await prisma.requestedItems.create({
+      await prisma.requestedItems.create({
         data: {
           periodMonth: c.periodMonth,
           periodYear: c.periodYear,
           supplierName: c.supplierName,
-          tinNumber: c.tinNumber,
-          typeOfVatTaxpayer: c.typeOfVatTaxpayer,
+          tinNumber: optStr(c.tinNumber),
+          typeOfVatTaxpayer: optStr(c.typeOfVatTaxpayer),
           typeOfStocks: c.typeOfStocks,
-          itemCode: c.itemCode,
+          itemCode: optStr(c.itemCode),
           unitPrice: c.unitPrice,
           totalPrice: c.totalPrice,
           vatable: c.vatable,
@@ -87,8 +86,6 @@ export async function requestItems(cart: MergedItemReturnTypeInventory[]) {
           storeId: whoRequested.id,
         },
       });
-
-      console.log(reqItems);
     }
 
     return {
@@ -96,12 +93,14 @@ export async function requestItems(cart: MergedItemReturnTypeInventory[]) {
       message: "Items requested successfully",
     };
   } catch (error) {
-    // throw new Error (error)
-    console.log(error);
-
+    console.error("requestItems error:", error);
+    const errMsg =
+      error instanceof Error ? error.message : "Unknown error";
     return {
       success: false,
-      message: "Something went wrong. Try again.",
+      message: process.env.NODE_ENV === "development"
+        ? `Request failed: ${errMsg}`
+        : "Something went wrong. Try again.",
     };
   }
 }
