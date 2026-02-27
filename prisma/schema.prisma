@@ -5,8 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../app/generated/prisma"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -184,7 +185,6 @@ model Store {
   requestItems     RequestedItems[]
   salesReports     SalesReport[]
   inventoryReports InventoryReport[]
-  itemsForSale     ItemsForSale[]
 }
 
 model SalesReport {
@@ -203,7 +203,7 @@ model SalesReport {
 }
 
 model Inventory {
-  id                  String   @id @default(uuid())
+  id                  String  @id @default(uuid())
   periodMonth         String
   periodYear          String
   supplierName        String
@@ -228,7 +228,7 @@ model Inventory {
 }
 
 model RequestedItems {
-  id                  String   @id @default(uuid())
+  id                  String  @id @default(uuid())
   periodMonth         String
   periodYear          String
   supplierName        String
@@ -247,7 +247,7 @@ model RequestedItems {
   vat                 Float
   ewt                 Float
   netPay              Float
-  isRequestApproved   Boolean  @default(false)
+  isRequestApproved   Boolean @default(false)
   note                String?
   status              String?
   createdAt           DateTime @default(now())
@@ -315,20 +315,7 @@ model EmployeeWorkData {
   id         String   @id @default(uuid())
   employeeId String   @unique
   employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-  data Json[]
+  
+  data       Json[]
   // ...cardDatas
-}
-
-model ItemsForSale {
-  id        String   @id @default(uuid())
-  storeId   String
-  store     Store    @relation(fields: [storeId], references: [id])
-  name      String
-  quantity  Int      @default(0)
-  price     Float    @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@unique([storeId, name])
 }

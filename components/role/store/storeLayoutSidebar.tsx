@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 
 import { IoAnalytics, IoSettingsOutline } from "react-icons/io5";
 import { RiCalendarScheduleLine } from "react-icons/ri";
@@ -14,24 +13,10 @@ import BtnLogout from "@/components/logouts/btnLogout";
 const navLists: TypeNavList[] = [
   { name: "Dashboard", href: "/store", icon: <IoAnalytics /> },
   { name: "Inventory", href: "/store/inventory", icon: <IoAnalytics /> },
-  { name: "POS", href: "/store/pos", icon: <FaRegUser /> },
   { name: "Request Items", href: "/store/request-items", icon: <FaRegUser /> },
-  {
-    name: "Issue Food Stock",
-    href: "/store/issue-food-stock",
-    icon: <RiCalendarScheduleLine />,
-  },
   { name: "History", href: "/store/history", icon: <RiCalendarScheduleLine /> },
-  {
-    name: "Delivery view",
-    href: "/store/delivery-view",
-    icon: <RiCalendarScheduleLine />,
-  },
-  {
-    name: "Report",
-    href: "/store/sales-report",
-    icon: <RiCalendarScheduleLine />,
-  },
+  { name: "Delivery view", href: "/store/delivery-view", icon: <RiCalendarScheduleLine /> },
+  { name: "Report", href: "/store/sales-report", icon: <RiCalendarScheduleLine /> },
   { name: "Settings", href: "", icon: <IoSettingsOutline /> },
 ];
 
@@ -45,29 +30,13 @@ export default function StoreLayoutSidebar({
   username: string;
 }) {
   const path = usePathname();
-  const [localUsername, setLocalUsername] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const stored = window.localStorage.getItem("username");
-      if (stored) {
-        setLocalUsername(stored);
-      }
-    } catch {
-      // ignore localStorage errors
-    }
-  }, []);
-
-  const displayName = username || localUsername || "User";
+  const displayName = username || "Store User";
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <aside className="h-full bg-amber-50 flex flex-col col-span-2 overflow-y-auto border-r border-amber-200">
       <div className="px-5 pt-5 pb-3">
-        <h2 className="text-sm font-bold font-serif text-amber-800 tracking-wide">
-          LTK Food Company
-        </h2>
+        <h2 className="text-sm font-bold font-serif text-amber-800 tracking-wide">LTK Food Company</h2>
       </div>
 
       <div className="px-5 py-4 flex items-center gap-3 border-b border-amber-200">
@@ -75,18 +44,14 @@ export default function StoreLayoutSidebar({
           {initials}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-amber-900 truncate">
-            {displayName}
-          </p>
+          <p className="text-sm font-semibold text-amber-900 truncate">{displayName}</p>
           <p className="text-[11px] text-amber-600">Store</p>
         </div>
       </div>
 
       <nav className="px-3 py-4 space-y-1">
         {navLists.map((navList: TypeNavList) => {
-          const isActive =
-            path === navList.href ||
-            (navList.href !== "" && path.startsWith(`${navList.href}/`));
+          const isActive = path === navList.href || (navList.href !== "" && path.startsWith(`${navList.href}/`));
           return (
             <Link
               key={navList.name}

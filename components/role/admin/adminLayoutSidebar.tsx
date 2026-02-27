@@ -31,23 +31,9 @@ export default function AdminLayoutSidebar({
   lastName: string;
 }) {
   const path = usePathname();
-  const [localUsername, setLocalUsername] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const stored = window.localStorage.getItem("username");
-      if (stored) {
-        setLocalUsername(stored);
-      }
-    } catch {
-      // ignore localStorage errors
-    }
-  }, []);
-
-  const displayName =
-    localUsername || `${firstName} ${lastName}`.trim() || "User";
-  const initials = displayName.slice(0, 2).toUpperCase() || "AD";
+  const initials =
+    `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "AD";
+  const fullName = `${firstName} ${lastName}`.trim() || "Admin";
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     "Branch MGT": true,
@@ -145,7 +131,7 @@ export default function AdminLayoutSidebar({
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-amber-900 truncate">
-            {displayName}
+            {fullName}
           </p>
           <p className="text-[11px] text-amber-600">Admin</p>
         </div>

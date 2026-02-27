@@ -3,11 +3,7 @@ import Link from "next/link";
 
 /** Weekly/monthly/year totals are computed from daily reports only. */
 function computeFromDaily(
-  dailyReports: {
-    periodMonth: string;
-    periodYear: string;
-    totalSales: number;
-  }[],
+  dailyReports: { periodMonth: string; periodYear: string; totalSales: number }[],
 ) {
   const now = new Date();
   const currentYear = now.getFullYear().toString();
@@ -37,8 +33,7 @@ function computeFromDaily(
     if (r.periodYear === currentYear) {
       yearSales += r.totalSales;
       if (parsed >= monthStart && parsed <= now) monthSales += r.totalSales;
-      if (parsed >= thisSunday && parsed < nextSunday)
-        weekSales += r.totalSales;
+      if (parsed >= thisSunday && parsed < nextSunday) weekSales += r.totalSales;
     }
   }
 
@@ -61,9 +56,7 @@ export default async function StoreDashboardPage() {
   return (
     <div className="space-y-6 p-8">
       <div>
-        <h1 className="text-xl font-semibold text-amber-900">
-          Store Dashboard
-        </h1>
+        <h1 className="text-xl font-semibold text-amber-900">Store Dashboard</h1>
         <p className="text-amber-800/80">
           Overview of your store's performance.
         </p>
@@ -76,19 +69,15 @@ export default async function StoreDashboardPage() {
               Today&apos;s Sales
             </h2>
             <div className="text-3xl font-bold text-amber-900">
-              ₱
-              {todaySales.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              ₱{todaySales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div className="mt-4 pt-4 border-t border-amber-100 flex justify-between items-center">
             <span className="text-sm text-amber-700/70">
               {todayReport ? "Report submitted" : "No report today"}
             </span>
-            <Link
-              href="/store/sales-report"
+            <Link 
+              href="/store/sales-report" 
               className="text-xs text-amber-600 font-medium hover:text-amber-800 transition-colors"
             >
               Add Daily
@@ -102,11 +91,7 @@ export default async function StoreDashboardPage() {
               This Week
             </h2>
             <div className="text-3xl font-bold text-amber-900">
-              ₱
-              {weekSales.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              ₱{weekSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <p className="mt-4 pt-4 border-t border-amber-100 text-xs text-amber-700/80">
@@ -120,35 +105,27 @@ export default async function StoreDashboardPage() {
               This Month
             </h2>
             <div className="text-3xl font-bold text-amber-900">
-              ₱
-              {monthSales.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              ₱{monthSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <p className="mt-4 pt-4 border-t border-amber-100 text-xs text-amber-700/80">
             From daily reports
           </p>
         </div>
-
+        
         <div className="rounded-xl border border-amber-200 bg-amber-500 text-white p-6 shadow-sm flex flex-col justify-between">
           <div>
             <h2 className="text-sm font-medium text-amber-100 uppercase tracking-wider mb-1">
               {currentYear} Total
             </h2>
             <div className="text-3xl font-bold">
-              ₱
-              {yearSales.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              ₱{yearSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div className="mt-4 pt-4 border-t border-amber-400/30 flex justify-between items-center">
             <span className="text-sm text-amber-100">From daily reports</span>
-            <Link
-              href="/store/sales-report"
+            <Link 
+              href="/store/sales-report" 
               className="text-xs bg-white text-amber-600 px-3 py-1.5 rounded-full font-medium hover:bg-amber-50 transition-colors"
             >
               Update Sales
@@ -162,8 +139,8 @@ export default async function StoreDashboardPage() {
           <h2 className="text-base font-semibold text-amber-900">
             Recent Sales Reports
           </h2>
-          <Link
-            href="/store/sales-report"
+          <Link 
+            href="/store/sales-report" 
             className="text-sm text-amber-600 hover:text-amber-800 font-medium"
           >
             Manage Reports →
@@ -173,8 +150,8 @@ export default async function StoreDashboardPage() {
           {dailyOnly.length === 0 ? (
             <div className="p-8 text-center text-amber-600/80">
               <p>No sales data available yet.</p>
-              <Link
-                href="/store/sales-report"
+              <Link 
+                href="/store/sales-report" 
                 className="inline-block mt-3 px-4 py-2 bg-amber-100 text-amber-800 rounded-lg text-sm font-medium hover:bg-amber-200"
               >
                 Submit First Report
@@ -189,29 +166,17 @@ export default async function StoreDashboardPage() {
               <thead className="bg-white">
                 <tr className="border-b border-amber-100 text-amber-900">
                   <th className="px-6 py-3 font-medium">Date</th>
-                  <th className="px-6 py-3 font-medium text-right">
-                    Sales (₱)
-                  </th>
+                  <th className="px-6 py-3 font-medium text-right">Sales (₱)</th>
                 </tr>
               </thead>
               <tbody>
                 {dailyOnly.slice(0, 5).map((report) => (
-                  <tr
-                    key={report.id}
-                    className="border-b border-amber-50 hover:bg-amber-50/50"
-                  >
+                  <tr key={report.id} className="border-b border-amber-50 hover:bg-amber-50/50">
                     <td className="px-6 py-3 text-amber-900 font-medium whitespace-nowrap">
-                      {new Date(report.periodMonth).toLocaleDateString(
-                        undefined,
-                        { dateStyle: "medium" },
-                      )}
+                      {new Date(report.periodMonth).toLocaleDateString(undefined, { dateStyle: "medium" })}
                     </td>
                     <td className="px-6 py-3 text-emerald-700 text-right font-bold">
-                      ₱
-                      {Number(report.totalSales).toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      ₱{Number(report.totalSales).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
                 ))}

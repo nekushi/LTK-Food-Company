@@ -7,12 +7,10 @@ import { z } from "zod";
 import { loginSchema } from "../../schemas/login.schema";
 import { getUser } from "@/dal/login/get-user";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -40,114 +38,13 @@ export default function LoginPage() {
     if (!result.success) {
       toast.error(result.message);
       reset();
-      return;
     }
 
-    // Persist login info in localStorage so flows can rely on it.
-    if (typeof window !== "undefined") {
-      try {
-        const { userId, username, role, storeId } = result;
-
-        // Flat keys for existing consumers
-        if (result.userId) {
-          window.localStorage.setItem("userId", result.userId);
-        }
-        if (username) {
-          window.localStorage.setItem("username", username);
-        }
-        if (role) {
-          window.localStorage.setItem("role", role);
-        }
-        if (storeId) {
-          window.localStorage.setItem("storeId", storeId);
-        }
-
-        // Namespaced storage per account so multiple logins can coexist.
-        if (userId) {
-          const accountKey = `ltk:account:${userId}`;
-          const accountPayload = {
-            userId,
-            username: username ?? null,
-            role: role ?? null,
-            storeId: storeId ?? null,
-            lastLoginAt: new Date().toISOString(),
-          };
-          window.localStorage.setItem(
-            accountKey,
-            JSON.stringify(accountPayload),
-          );
-
-          // Track current active account id
-          window.localStorage.setItem("ltk:currentAccountId", userId);
-
-          // Maintain a simple registry of known accounts
-          const registryKey = "ltk:accounts";
-          const existingRaw = window.localStorage.getItem(registryKey);
-          let registry: { userId: string; username: string | null; role: string | null }[] =
-            [];
-          if (existingRaw) {
-            try {
-              registry = JSON.parse(existingRaw);
-            } catch {
-              registry = [];
-            }
-          }
-          if (!registry.some((a) => a.userId === userId)) {
-            registry.push({
-              userId,
-              username: username ?? null,
-              role: role ?? null,
-            });
-          }
-          window.localStorage.setItem(registryKey, JSON.stringify(registry));
-        }
-      } catch {
-        // ignore localStorage errors
-      }
-    }
-
-    // Redirect based on role using localStorage as the source of truth.
-    if (typeof window !== "undefined") {
-      const storedRole = window.localStorage.getItem("role");
-      let target = "/";
-      switch (storedRole) {
-        case "HR":
-          target = "/hr";
-          break;
-        case "ADMIN":
-          target = "/admin";
-          break;
-        case "INVENTORY":
-          target = "/inventory";
-          break;
-        case "DELIVERY":
-          target = "/delivery";
-          break;
-        case "STORE":
-          target = "/store";
-          break;
-        default:
-          // fallback to server-suggested redirect if any
-          if (result.redirectUrl) {
-            target = result.redirectUrl;
-          }
-      }
-      router.push(target);
-    } else {
-      router.push(result.redirectUrl || "/");
-    }
+    // if (result)
   };
 
   return (
-    <div
-      className="flex min-h-screen items-center justify-center px-4"
-      style={{
-        backgroundImage: "url('/bg.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
+    <div className="flex min-h-screen items-center justify-center bg-[var(--ltk-blue-white)] px-4">
       <div className="w-full max-w-sm rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
         <h1 className="mb-6 text-xl font-semibold text-amber-900">
           LTK Food Corporation

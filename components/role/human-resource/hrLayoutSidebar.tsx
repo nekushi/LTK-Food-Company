@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 
 import { IoAnalytics, IoSettingsOutline } from "react-icons/io5";
 import { RiCalendarScheduleLine } from "react-icons/ri";
@@ -31,23 +30,9 @@ export default function HRLayoutSidebar({
   lastName: string;
 }) {
   const path = usePathname();
-  const [localUsername, setLocalUsername] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const stored = window.localStorage.getItem("username");
-      if (stored) {
-        setLocalUsername(stored);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  const displayName =
-    localUsername || `${firstName} ${lastName}`.trim() || "User";
-  const initials = displayName.slice(0, 2).toUpperCase() || "HR";
+  const initials =
+    `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "HR";
+  const fullName = `${firstName} ${lastName}`.trim() || "HR User";
 
   return (
     <aside className="h-full bg-amber-50 flex flex-col col-span-2 overflow-y-auto border-r border-amber-200">
@@ -63,7 +48,7 @@ export default function HRLayoutSidebar({
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-amber-900 truncate">
-            {displayName}
+            {fullName}
           </p>
           <p className="text-[11px] text-amber-600">Human Resource</p>
         </div>
