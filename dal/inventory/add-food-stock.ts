@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 import { revalidatePath } from "next/cache";
 
 export async function addFoodStock(data: {
@@ -36,6 +37,7 @@ export async function addFoodStock(data: {
           ewt: 0,
           netPay: 0,
           status: data.status,
+          createdAt: new Date(currentNow()),
         },
       });
     }
@@ -60,6 +62,7 @@ export async function addFoodStock(data: {
           ewt: 0,
           netPay: 0,
           status: data.status,
+          createdAt: new Date(currentNow()),
         },
       });
     }
@@ -84,6 +87,7 @@ export async function addFoodStock(data: {
           ewt: 0,
           netPay: 0,
           status: data.status,
+          createdAt: new Date(currentNow()),
         },
       });
     }

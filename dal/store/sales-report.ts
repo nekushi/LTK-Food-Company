@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 
 export async function getSalesReports(userId: string) {
   if (!userId) {
@@ -61,6 +62,7 @@ export async function upsertSalesReport(userId: string, data: {
       },
       update: {
         totalSales: data.totalSales,
+        updatedAt: new Date(currentNow()),
       },
       create: {
         storeId: store.id,
@@ -68,6 +70,7 @@ export async function upsertSalesReport(userId: string, data: {
         periodMonth: data.periodMonth,
         periodYear: data.periodYear,
         totalSales: data.totalSales,
+        createdAt: new Date(currentNow()),
       },
     });
 

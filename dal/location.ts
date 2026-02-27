@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 
 export type LocationEntry = {
   id: string;
@@ -21,7 +22,7 @@ export async function getLocations(): Promise<LocationEntry[]> {
 
 export async function createLocation(lat: number, lng: number): Promise<LocationEntry> {
   const row = await prisma.location.create({
-    data: { lat, lng },
+    data: { lat, lng, createdAt: new Date(currentNow()) },
   });
   return {
     id: row.id,

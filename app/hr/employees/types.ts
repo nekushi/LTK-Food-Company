@@ -2,6 +2,7 @@ export type EmployeeFormValues = {
   firstName: string;
   lastName: string;
   employeeId: string;
+  branch: string;
   dateHired: string;
   sss: string;
   pagIbig: string;

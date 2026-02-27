@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 
 async function getStoreForUser(userId: string) {
   if (!userId) return null;
@@ -58,6 +59,7 @@ export async function upsertInventoryReport(userId: string, data: {
         quantity: data.quantity,
         itemsUsed: data.itemsUsed,
         itemsLeft: data.itemsLeft,
+        updatedAt: new Date(currentNow()),
       },
       create: {
         storeId: store.id,
@@ -70,6 +72,7 @@ export async function upsertInventoryReport(userId: string, data: {
         quantity: data.quantity,
         itemsUsed: data.itemsUsed,
         itemsLeft: data.itemsLeft,
+        createdAt: new Date(currentNow()),
       },
     });
 

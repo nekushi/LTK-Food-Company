@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 import { EmployeeFormValues } from "../../types";
 
 export async function createEmployee(data: EmployeeFormValues) {
@@ -9,6 +10,7 @@ export async function createEmployee(data: EmployeeFormValues) {
       firstName,
       lastName,
       employeeId,
+      branch,
       dateHired,
       sss,
       pagIbig,
@@ -19,13 +21,14 @@ export async function createEmployee(data: EmployeeFormValues) {
       address,
     } = data;
 
-    // We create the employee and immediately create the related employeeData
     const newEmployee = await prisma.employee.create({
       data: {
         firstName,
         lastName,
         employeeId,
-        // Prisma will handle createdAt and updatedAt defaults
+        branch: branch || null,
+        createdAt: new Date(currentNow()),
+        updatedAt: new Date(currentNow()),
         employeeData: {
           create: {
             dateHired: new Date(dateHired),

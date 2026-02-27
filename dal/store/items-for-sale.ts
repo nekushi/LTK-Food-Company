@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 
 export interface ItemForSaleRow {
   id: string;
@@ -97,7 +98,7 @@ export async function upsertItemForSale(
       update: {
         quantity: { increment: data.quantity },
         price: data.price,
-        updatedAt: new Date(),
+        updatedAt: new Date(currentNow()),
       },
       create: {
         storeId: store.id,
@@ -141,7 +142,7 @@ export async function sellItemForSale(
     } else {
       await prisma.itemForSale.update({
         where: { id: itemId },
-        data: { quantity: newQty, updatedAt: new Date() },
+        data: { quantity: newQty, updatedAt: new Date(currentNow()) },
       });
     }
     return { success: true, message: "Sale recorded" };

@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 
 interface UpdateProfileData {
   accountId: string;
@@ -60,6 +61,7 @@ export async function updateAccountProfile(data: UpdateProfileData) {
         await prisma.employeeData.create({
           data: {
             employeeId: employee.id,
+            dateHired: new Date(currentNow()),
             sss: data.sss || null,
             pagIbig: data.pagIbig || null,
             philhealth: data.philhealth || null,

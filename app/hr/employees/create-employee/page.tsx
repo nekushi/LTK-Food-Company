@@ -15,6 +15,7 @@ const employeeSchema = z.object({
   firstName: z.string().min(1, "Required"),
   lastName: z.string().min(1, "Required"),
   employeeId: z.string().min(1, "Required"),
+  branch: z.string(),
   dateHired: z.string().min(1, "Required"),
   sss: z.string(),
   pagIbig: z.string(),
@@ -49,6 +50,7 @@ export default function HREmployeeForm() {
       firstName: "",
       lastName: "",
       employeeId: "",
+      branch: "",
       dateHired: todayISO(),
       sss: "",
       pagIbig: "",
@@ -136,14 +138,12 @@ export default function HREmployeeForm() {
             )}
           </div>
           <div>
-            <label className={labelClass}>Date hired (auto generated)</label>
+            <label className={labelClass}>Branch</label>
             <input
-              type="date"
-              {...register("dateHired")}
+              type="text"
+              {...register("branch")}
               className={inputClass}
-              onFocus={(e) => {
-                if (!e.target.value) setValue("dateHired", todayISO());
-              }}
+              placeholder="e.g. Main, Calamba"
             />
           </div>
         </div>
@@ -193,19 +193,30 @@ export default function HREmployeeForm() {
               </p>
             )}
           </div>
-          <div>
-            <label className={labelClass}>Email</label>
-            <input
-              type="email"
-              {...register("address")}
-              className={inputClass}
-            />
-            {errors.address && (
-              <p className="mt-1 text-xs text-red-600">
-                {errors.address.message}
-              </p>
-            )}
-          </div>
+        </div>
+        <div className="mt-4">
+          <label className={labelClass}>Address</label>
+          <input
+            type="text"
+            {...register("address")}
+            className={inputClass}
+          />
+          {errors.address && (
+            <p className="mt-1 text-xs text-red-600">
+              {errors.address.message}
+            </p>
+          )}
+        </div>
+        <div className="mt-4">
+          <label className={labelClass}>Date Hired</label>
+          <input
+            type="date"
+            {...register("dateHired")}
+            className={inputClass}
+            onFocus={(e) => {
+              if (!e.target.value) setValue("dateHired", todayISO());
+            }}
+          />
         </div>
 
         <button

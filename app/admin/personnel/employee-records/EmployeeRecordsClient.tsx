@@ -10,6 +10,7 @@ type EmployeeRow = {
   firstName: string;
   lastName: string;
   employeeId: string | null;
+  branch: string | null;
   employeeData: {
     dateHired?: Date;
     contactNo?: string | null;
@@ -66,10 +67,10 @@ export default function EmployeeRecordsClient({ employees }: EmployeeRecordsClie
                     ID
                   </th>
                   <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
-                    Contact
+                    Branch
                   </th>
                   <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
-                    Email
+                    Contact
                   </th>
                   <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
                     Date Hired
@@ -114,12 +115,8 @@ export default function EmployeeRecordsClient({ employees }: EmployeeRecordsClie
                       </td>
                       <td className="px-5 py-3.5">
                         <Link href={`/admin/personnel/employee-records/${row.id}`} className="block">
-                          <span
-                            className={`text-sm ${
-                              row.employeeData?.contactNo ? "text-amber-900" : "text-amber-400 italic"
-                            }`}
-                          >
-                            {row.employeeData?.contactNo || "N/A"}
+                          <span className={`text-sm ${row.branch ? "text-amber-900" : "text-amber-400 italic"}`}>
+                            {row.branch || "N/A"}
                           </span>
                         </Link>
                       </td>
@@ -127,10 +124,10 @@ export default function EmployeeRecordsClient({ employees }: EmployeeRecordsClie
                         <Link href={`/admin/personnel/employee-records/${row.id}`} className="block">
                           <span
                             className={`text-sm ${
-                              row.employeeData?.email ? "text-amber-900" : "text-amber-400 italic"
+                              row.employeeData?.contactNo ? "text-amber-900" : "text-amber-400 italic"
                             }`}
                           >
-                            {row.employeeData?.email || "N/A"}
+                            {row.employeeData?.contactNo || "N/A"}
                           </span>
                         </Link>
                       </td>

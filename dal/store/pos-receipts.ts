@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 
 export interface POSReceiptLine {
   itemName: string;
@@ -37,6 +38,7 @@ export async function savePOSReceipt(
         quantity: l.quantity,
         price: l.price,
         total: l.total,
+        createdAt: new Date(currentNow()),
       })),
     });
     return { success: true, message: "Receipt saved" };
@@ -198,13 +200,14 @@ export async function sendPOSDailyReport(
       },
       update: {
         reportData: reportData as object,
-        createdAt: new Date(),
+        createdAt: new Date(currentNow()),
       },
       create: {
         storeId: store.id,
         reportDate,
         reportType,
         reportData: reportData as object,
+        createdAt: new Date(currentNow()),
       },
     });
 
@@ -224,7 +227,7 @@ export async function sendPOSDailyReport(
         },
         update: {
           totalSales,
-          updatedAt: new Date(),
+          updatedAt: new Date(currentNow()),
         },
         create: {
           storeId: store.id,
@@ -232,6 +235,7 @@ export async function sendPOSDailyReport(
           periodMonth: dateStr,
           periodYear: yearStr,
           totalSales,
+          createdAt: new Date(currentNow()),
         },
       });
     }

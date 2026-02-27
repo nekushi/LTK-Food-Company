@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 import { supabase } from "@/lib/supabase";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -11,6 +12,7 @@ export async function POST(req: NextRequest) {
     data: {
       lat: receivedDataLocation.lat,
       lng: receivedDataLocation.lng,
+      createdAt: new Date(currentNow()),
     },
   });
   // .insert({

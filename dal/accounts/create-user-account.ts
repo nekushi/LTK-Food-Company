@@ -2,6 +2,7 @@
 
 import z, { success } from "zod";
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 import { CreateAccountResponse } from "@/index";
 
 import bcrypt from "bcrypt";
@@ -47,24 +48,32 @@ export async function createUserAccount(data: TypeUserAccount): Promise<any> {
         await ctx.humanResource.create({
           data: {
             userId: user.id,
+            createdAt: new Date(currentNow()),
+            updatedAt: new Date(currentNow()),
           },
         });
       } else if (user.role === "INVENTORY") {
         await ctx.inventoryManager.create({
           data: {
             userId: user.id,
+            createdAt: new Date(currentNow()),
+            updatedAt: new Date(currentNow()),
           },
         });
       } else if (user.role === "STORE") {
         await ctx.store.create({
           data: {
             userId: user.id,
+            createdAt: new Date(currentNow()),
+            updatedAt: new Date(currentNow()),
           },
         });
       } else if (user.role === "DELIVERY") {
         await ctx.delivery.create({
           data: {
             userId: user.id,
+            createdAt: new Date(currentNow()),
+            updatedAt: new Date(currentNow()),
           },
         });
       }

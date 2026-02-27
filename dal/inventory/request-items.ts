@@ -2,6 +2,7 @@
 
 import { ItemsReturnTypeStore } from "./get-items";
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 
 export type RestItemsReturnTypeInventory = {
   periodMonth: string;
@@ -67,6 +68,7 @@ export async function requestItems(cart: MergedItemReturnTypeInventory[], userId
           accountRecognition: c.accountRecognition,
           unitOfMeasurement: c.unitOfMeasurement,
           storeId: whoRequested.id,
+          createdAt: new Date(currentNow()),
         },
       });
 

@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 
 export interface UpdateEmployeeDataInput {
   employeeId: string;
@@ -47,7 +48,7 @@ export async function updateAdminEmployeeData(data: UpdateEmployeeDataInput) {
       await prisma.employeeData.create({
         data: {
           employeeId: employee.id,
-          ...(data.dateHired != null && { dateHired: new Date(data.dateHired) }),
+          dateHired: data.dateHired ? new Date(data.dateHired) : new Date(currentNow()),
           ...scalar,
         },
       });
