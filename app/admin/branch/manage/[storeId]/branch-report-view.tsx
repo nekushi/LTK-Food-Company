@@ -263,7 +263,19 @@ export default function BranchReportView({
                 <tbody className="divide-y divide-amber-100">
                   {dailyReports.length > 0 ? (
                     dailyReports.slice(0, 4).map((r) => (
-                      <tr key={r.id} className="hover:bg-amber-50/40">
+                      <tr
+                        key={r.id}
+                        onClick={() => {
+                          const parsed = new Date(r.periodMonth);
+                          if (!isNaN(parsed.getTime())) {
+                            const dateStr = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+                            setTxDateFilter(dateStr);
+                          }
+                          setReportType("pos_transactions");
+                        }}
+                        className="cursor-pointer hover:bg-amber-100/60 transition-colors"
+                        title="View POS transactions for this date"
+                      >
                         <td className="px-1 py-2 text-amber-800">
                           {r.periodMonth} {r.periodYear}
                         </td>
