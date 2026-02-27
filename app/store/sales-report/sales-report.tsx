@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
 import { upsertSalesReport, getSalesReports } from "@/dal/store/sales-report";
-import { upsertInventoryReport, getInventoryReports } from "@/dal/store/inventory-report";
+import { upsertInventoryReport } from "@/dal/store/inventory-report";
 import { IoChevronDown } from "react-icons/io5";
 import type { POSReceiptGroup, POSInventoryItem } from "@/dal/store/pos-receipts";
 import { sendPOSDailyReport } from "@/dal/store/pos-receipts";
@@ -160,13 +160,8 @@ export default function StoreSalesReportClient({
     const result = await sendPOSDailyReport(uid, "stock_tracker", {
       items: posInventory,
     });
-    if (result.success) {
-      toast.success("POS Stock Tracker report sent");
-      const refreshed = await getInventoryReports(uid);
-      if (refreshed.success) setInventoryReports(refreshed.data);
-    } else {
-      toast.error(result.message);
-    }
+    if (result.success) toast.success("POS Stock Tracker report sent");
+    else toast.error(result.message);
     setSendingStock(false);
   };
 

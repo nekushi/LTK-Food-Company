@@ -236,44 +236,6 @@ export async function sendPOSDailyReport(
       });
     }
 
-    if (reportType === "stock_tracker") {
-      const items = (reportData as { items?: POSInventoryItem[] }).items ?? [];
-      const dateStr = reportDate.toISOString().split("T")[0];
-      const yearStr = now.getFullYear().toString();
-
-      for (const item of items) {
-        await prisma.inventoryReport.upsert({
-          where: {
-            storeId_periodMonth_periodYear_reportType_productName: {
-              storeId: store.id,
-              reportType: "Daily",
-              periodMonth: dateStr,
-              periodYear: yearStr,
-              productName: item.itemName,
-            },
-          },
-          update: {
-            quantity: item.initialStock,
-            itemsUsed: item.soldQty,
-            itemsLeft: item.remainingStock,
-            updatedAt: new Date(),
-          },
-          create: {
-            storeId: store.id,
-            reportType: "Daily",
-            periodMonth: dateStr,
-            periodYear: yearStr,
-            productName: item.itemName,
-            accountRecognition: "Food Supplies",
-            unitOfMeasurement: "pcs",
-            quantity: item.initialStock,
-            itemsUsed: item.soldQty,
-            itemsLeft: item.remainingStock,
-          },
-        });
-      }
-    }
-
     return { success: true, message: "Report sent successfully" };
   } catch (error) {
     console.error("sendPOSDailyReport", error);
