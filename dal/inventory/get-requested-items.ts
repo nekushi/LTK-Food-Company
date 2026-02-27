@@ -238,16 +238,12 @@ export async function getRequestedItemsHistoryForInventory(): Promise<
   }));
 }
 
-/** Decided requests for one store (for /store/history). Uses session to resolve store. */
-export async function getRequestedItemsHistoryForStore(): Promise<
+/** Decided requests for one store (for /store/history). */
+export async function getRequestedItemsHistoryForStore(userId: string): Promise<
   RequestedItemHistoryEntry[]
 > {
-  const { cookies } = await import("next/headers");
-  const { decrypt } = await import("@/lib/session");
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
   const store = await prisma.store.findUnique({
-    where: { userId: payload?.userId },
+    where: { userId },
     select: { id: true },
   });
   if (!store) return [];

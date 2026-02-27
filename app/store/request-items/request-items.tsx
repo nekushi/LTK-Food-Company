@@ -170,7 +170,8 @@ export default function StoreRequestItemPage({
   const sendRequest = async () => {
     if (cart.length === 0) return;
     console.log("Send request", cart);
-    const result = await requestItems(cart);
+    const userId = localStorage.getItem("userId") || "";
+    const result = await requestItems(cart, userId);
 
     if (result.success) {
       toast.success(result.message);

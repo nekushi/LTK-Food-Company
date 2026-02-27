@@ -1,17 +1,12 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { cookies } from "next/headers";
-import { decrypt } from "@/lib/session";
 
-export async function getBranchInventory() {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  if (!payload?.userId) return [];
+export async function getBranchInventory(userId: string) {
+  if (!userId) return [];
 
   const store = await prisma.store.findUnique({
-    where: { userId: payload.userId as string },
+    where: { userId },
   });
 
   if (!store) return [];

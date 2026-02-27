@@ -1,16 +1,19 @@
 "use client";
 
-import { logout } from "@/dal/login/get-user";
-import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 export default function BtnLogoutSPA() {
-  const [ispending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleLogoutClick = () => {
-    startTransition(async () => {
-      await logout();
-    });
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
+    localStorage.removeItem("firstName");
+    localStorage.removeItem("lastName");
+    localStorage.removeItem("role");
+    router.push("/login");
   };
+
   return (
     <button
       onClick={handleLogoutClick}

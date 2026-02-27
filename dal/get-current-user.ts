@@ -1,24 +1,19 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { cookies } from "next/headers";
-import { decrypt } from "@/lib/session";
 
-export async function getCurrentUser() {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  if (!payload?.userId) {
-    return { firstName: "", lastName: "", role: "" };
+export async function getCurrentUser(userId: string) {
+  if (!userId) {
+    return { firstName: "", lastName: "", username: "", role: "" };
   }
 
   const account = await prisma.account.findUnique({
-    where: { id: payload.userId as string },
+    where: { id: userId },
     select: { firstName: true, lastName: true, username: true, role: true },
   });
 
   if (!account) {
-    return { firstName: "", lastName: "", username: "", role: payload.role as string };
+    return { firstName: "", lastName: "", username: "", role: "" };
   }
 
   return {

@@ -1,14 +1,32 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { getCurrentStore } from "@/dal/store/get-current-store";
 import { getOnTheWayItemsForStore } from "@/dal/inventory/get-requested-items";
 import DeliveryRunClient from "@/app/delivery/DeliveryRunClient";
 
-export const dynamic = "force-dynamic";
+export default function StoreDeliveryViewPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [onTheWayItems, setOnTheWayItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function StoreDeliveryViewPage() {
-  const store = await getCurrentStore();
-  const onTheWayItems = store
-    ? await getOnTheWayItemsForStore(store.id)
-    : [];
+  useEffect(() => {
+    const userId = localStorage.getItem("userId") || "";
+    getCurrentStore(userId).then((store) => {
+      if (store) {
+        getOnTheWayItemsForStore(store.id).then((items) => {
+          setOnTheWayItems(items);
+          setLoading(false);
+        });
+      } else {
+        setLoading(false);
+      }
+    });
+  }, []);
+
+  if (loading) {
+    return <div className="p-8 text-amber-900">Loading...</div>;
+  }
 
   return (
     <div className="p-4">

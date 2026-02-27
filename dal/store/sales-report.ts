@@ -1,19 +1,14 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { cookies } from "next/headers";
-import { decrypt } from "@/lib/session";
 
-export async function getSalesReports() {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  if (!payload?.userId) {
+export async function getSalesReports(userId: string) {
+  if (!userId) {
     return { success: false, data: [] };
   }
 
   const store = await prisma.store.findUnique({
-    where: { userId: payload.userId as string },
+    where: { userId },
   });
 
   if (!store) {
@@ -36,21 +31,18 @@ export async function getSalesReports() {
   }
 }
 
-export async function upsertSalesReport(data: {
+export async function upsertSalesReport(userId: string, data: {
   reportType: string;
   periodMonth: string;
   periodYear: string;
   totalSales: number;
 }) {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  if (!payload?.userId) {
+  if (!userId) {
     return { success: false, message: "Unauthorized" };
   }
 
   const store = await prisma.store.findUnique({
-    where: { userId: payload.userId as string },
+    where: { userId },
   });
 
   if (!store) {

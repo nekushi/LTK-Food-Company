@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { IoAnalytics, IoSettingsOutline } from "react-icons/io5";
 import { IoIosGitBranch } from "react-icons/io";
@@ -18,14 +19,16 @@ const navLists: TypeNavList[] = [
   { name: "Settings", href: "", icon: <IoSettingsOutline /> },
 ];
 
-export default function InventoryLayoutSidebar({
-  firstName,
-  lastName,
-}: {
-  firstName: string;
-  lastName: string;
-}) {
+export default function InventoryLayoutSidebar() {
   const path = usePathname();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  useEffect(() => {
+    setFirstName(localStorage.getItem("firstName") || "");
+    setLastName(localStorage.getItem("lastName") || "");
+  }, []);
+
   const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "IN";
   const fullName = `${firstName} ${lastName}`.trim() || "Inventory User";
 

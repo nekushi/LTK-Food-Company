@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { IoAnalytics, IoSettingsOutline } from "react-icons/io5";
 import { RiCalendarScheduleLine } from "react-icons/ri";
@@ -20,16 +21,14 @@ const navLists: TypeNavList[] = [
   { name: "Settings", href: "", icon: <IoSettingsOutline /> },
 ];
 
-export default function StoreLayoutSidebar({
-  firstName,
-  lastName,
-  username,
-}: {
-  firstName: string;
-  lastName: string;
-  username: string;
-}) {
+export default function StoreLayoutSidebar() {
   const path = usePathname();
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    setUsername(localStorage.getItem("username") || "");
+  }, []);
+
   const displayName = username || "Store User";
   const initials = displayName.slice(0, 2).toUpperCase();
 

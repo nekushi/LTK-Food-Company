@@ -181,7 +181,8 @@ export default function StoreSalesReportClient({
     const finalMonth = formDate;
     const finalYear = new Date(formDate).getFullYear().toString();
 
-    const result = await upsertSalesReport({
+    const userId = localStorage.getItem("userId") || "";
+    const result = await upsertSalesReport(userId, {
       reportType: SALES_REPORT_TYPE,
       periodMonth: finalMonth,
       periodYear: finalYear,
@@ -225,8 +226,9 @@ export default function StoreSalesReportClient({
       const periodYear = batch[0].periodYear;
       const saved: typeof inventoryReports = [];
       let failed = 0;
+      const userId = localStorage.getItem("userId") || "";
       for (const line of batch) {
-        const result = await upsertInventoryReport({
+        const result = await upsertInventoryReport(userId, {
           reportType: "Daily",
           periodMonth: line.periodMonth,
           periodYear: line.periodYear,
@@ -268,7 +270,8 @@ export default function StoreSalesReportClient({
       finalYear = invFormYear;
     }
 
-    const result = await upsertInventoryReport({
+    const invUserId = localStorage.getItem("userId") || "";
+    const result = await upsertInventoryReport(invUserId, {
       reportType: invReportType,
       periodMonth: finalMonth,
       periodYear: finalYear,

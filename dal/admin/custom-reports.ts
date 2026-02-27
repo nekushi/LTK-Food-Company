@@ -1,8 +1,6 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { cookies } from "next/headers";
-import { decrypt } from "@/lib/session";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -21,10 +19,6 @@ function matchesMonth(periodMonth: string, targetMonth: string): boolean {
 }
 
 export async function getCustomSalesReport(storeId: string, month: string, year: string) {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-  if (!payload?.userId) return { success: false, data: [] };
-
   try {
     const where: {
       storeId?: string;
@@ -55,10 +49,6 @@ export async function getCustomSalesReport(storeId: string, month: string, year:
 }
 
 export async function getCustomInventoryReport(storeId: string, month: string, year: string) {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-  if (!payload?.userId) return { success: false, data: [] };
-
   try {
     const where: {
       storeId?: string;
@@ -92,10 +82,6 @@ export async function getInventoryReportByRange(
   storeId: string,
   range: "today" | "yesterday" | "past7days",
 ) {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-  if (!payload?.userId) return { success: false, data: [] };
-
   try {
     const now = new Date();
     let where: {

@@ -23,14 +23,16 @@ interface BranchStoreNav {
   storeName: string;
 }
 
-export default function AdminLayoutSidebar({
-  firstName,
-  lastName,
-}: {
-  firstName: string;
-  lastName: string;
-}) {
+export default function AdminLayoutSidebar() {
   const path = usePathname();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  useEffect(() => {
+    setFirstName(localStorage.getItem("firstName") || "");
+    setLastName(localStorage.getItem("lastName") || "");
+  }, []);
+
   const initials =
     `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "AD";
   const fullName = `${firstName} ${lastName}`.trim() || "Admin";

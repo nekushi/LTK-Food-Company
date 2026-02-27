@@ -2,8 +2,6 @@
 
 import { ItemsReturnTypeStore } from "./get-items";
 import prisma from "@/lib/db";
-import { cookies } from "next/headers";
-import { decrypt, SessionPayload } from "@/lib/session";
 
 export type RestItemsReturnTypeInventory = {
   periodMonth: string;
@@ -30,26 +28,10 @@ export interface MergedItemReturnTypeInventory extends RestItemsReturnTypeInvent
   quantity: number;
 }
 
-// export async function requestItems(cart: ItemsReturnTypeStore[]) {
-export async function requestItems(cart: MergedItemReturnTypeInventory[]) {
-  console.log(`Requesting items`);
-
-  console.log(cart);
-
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  //   if (!payload)
-  //     return {
-  //       success: false,
-  //       message: "Something went wrong",
-  //     };
-
-  //   const userId = payload?.userId
-
+export async function requestItems(cart: MergedItemReturnTypeInventory[], userId: string) {
   const whoRequested = await prisma.store.findUnique({
     where: {
-      userId: payload?.userId,
+      userId,
     },
   });
 

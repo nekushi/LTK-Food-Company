@@ -7,10 +7,23 @@ import { z } from "zod";
 import { loginSchema } from "../../schemas/login.schema";
 import { getUser } from "@/dal/login/get-user";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+function getRedirectForRole(role: string): string {
+  switch (role) {
+    case "HR": return "/hr";
+    case "ADMIN": return "/admin";
+    case "INVENTORY": return "/inventory";
+    case "DELIVERY": return "/delivery";
+    case "STORE": return "/store";
+    default: return "/";
+  }
+}
+
 export default function LoginPage() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -18,16 +31,10 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema) as Resolver<LoginFormValues>,
-    // defaultValues: { username: "", password: "", role: "INVENTORY" as const },
     defaultValues: { username: "", password: "" as const },
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    // const url = getRedirectForRole(data.role);
-    // router.push(url);
-
-    // alert("dsdad");
-
     const row: z.infer<typeof loginSchema> = {
       username: data.username,
       password: data.password,
@@ -38,9 +45,16 @@ export default function LoginPage() {
     if (!result.success) {
       toast.error(result.message);
       reset();
+      return;
     }
 
-    // if (result)
+    localStorage.setItem("userId", result.userId);
+    localStorage.setItem("username", result.username);
+    localStorage.setItem("firstName", result.firstName);
+    localStorage.setItem("lastName", result.lastName);
+    localStorage.setItem("role", result.role);
+
+    router.push(getRedirectForRole(result.role));
   };
 
   return (

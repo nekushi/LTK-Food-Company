@@ -1,22 +1,17 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { cookies } from "next/headers";
-import { decrypt } from "@/lib/session";
 
-async function getStoreForCurrentUser() {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  if (!payload?.userId) return null;
+async function getStoreForUser(userId: string) {
+  if (!userId) return null;
 
   return prisma.store.findUnique({
-    where: { userId: payload.userId as string },
+    where: { userId },
   });
 }
 
-export async function getInventoryReports() {
-  const store = await getStoreForCurrentUser();
+export async function getInventoryReports(userId: string) {
+  const store = await getStoreForUser(userId);
   if (!store) return { success: false, data: [] };
 
   try {
@@ -32,7 +27,7 @@ export async function getInventoryReports() {
   }
 }
 
-export async function upsertInventoryReport(data: {
+export async function upsertInventoryReport(userId: string, data: {
   reportType: string;
   periodMonth: string;
   periodYear: string;
@@ -43,7 +38,7 @@ export async function upsertInventoryReport(data: {
   itemsUsed: number;
   itemsLeft: number;
 }) {
-  const store = await getStoreForCurrentUser();
+  const store = await getStoreForUser(userId);
   if (!store) return { success: false, message: "Store not found" };
 
   try {

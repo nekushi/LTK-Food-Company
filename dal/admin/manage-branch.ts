@@ -1,18 +1,8 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { cookies } from "next/headers";
-import { decrypt } from "@/lib/session";
 
 export async function getAdminStores() {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  // Quick check for standard admin logic (optional for your schema, but basic safety measure)
-  if (!payload?.userId) {
-    return { success: false, data: [] };
-  }
-
   try {
     const stores = await prisma.store.findMany({
       include: {
@@ -38,13 +28,6 @@ export async function getAdminStores() {
 }
 
 export async function getAdminStoreProfile(storeId: string) {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  if (!payload?.userId) {
-    return { success: false, data: null };
-  }
-
   try {
     const store = await prisma.store.findUnique({
       where: { id: storeId },

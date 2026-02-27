@@ -1,13 +1,14 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { getSalesReports } from "@/dal/store/sales-report";
 import Link from "next/link";
 
-/** Weekly/monthly/year totals are computed from daily reports only. */
 function computeFromDaily(
   dailyReports: { periodMonth: string; periodYear: string; totalSales: number }[],
 ) {
   const now = new Date();
   const currentYear = now.getFullYear().toString();
-  const todayIso = now.toISOString().split("T")[0];
 
   const getSundayOfWeek = (d: Date) => {
     const day = d.getDay();
@@ -19,6 +20,7 @@ function computeFromDaily(
   let weekSales = 0;
   let monthSales = 0;
   let yearSales = 0;
+  const todayIso = now.toISOString().split("T")[0];
 
   const thisSunday = getSundayOfWeek(now);
   const nextSunday = new Date(thisSunday);
@@ -40,10 +42,23 @@ function computeFromDaily(
   return { todaySales, weekSales, monthSales, yearSales };
 }
 
-export default async function StoreDashboardPage() {
-  const result = await getSalesReports();
+export default function StoreDashboardPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const salesReports: any[] = result.success ? result.data : [];
+  const [salesReports, setSalesReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("userId") || "";
+    getSalesReports(userId).then((result) => {
+      if (result.success) setSalesReports(result.data);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return <div className="p-8 text-amber-900">Loading...</div>;
+  }
+
   const dailyOnly = salesReports.filter((r) => r.reportType === "Daily");
   const { todaySales, weekSales, monthSales, yearSales } =
     computeFromDaily(dailyOnly);
@@ -58,7 +73,7 @@ export default async function StoreDashboardPage() {
       <div>
         <h1 className="text-xl font-semibold text-amber-900">Store Dashboard</h1>
         <p className="text-amber-800/80">
-          Overview of your store's performance.
+          Overview of your store&apos;s performance.
         </p>
       </div>
 

@@ -1,17 +1,8 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { cookies } from "next/headers";
-import { decrypt } from "@/lib/session";
 
 export async function getAdminOverviewCounts() {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  if (!payload?.userId) {
-    return { totalBranches: 0, totalPersonnel: 0, totalEmployees: 0 };
-  }
-
   const [totalBranches, totalPersonnel, totalEmployees] = await Promise.all([
     prisma.store.count(),
     prisma.account.count(),
@@ -22,13 +13,6 @@ export async function getAdminOverviewCounts() {
 }
 
 export async function getBranchDailyMetrics() {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  if (!payload?.userId) {
-    return { success: false, data: [] };
-  }
-
   try {
     const stores = await prisma.store.findMany({
       include: {
@@ -96,13 +80,6 @@ export async function getBranchDailyMetrics() {
 }
 
 export async function getAggregatedDailySales() {
-  const myCookies = (await cookies()).get("session")?.value;
-  const payload = await decrypt(myCookies);
-
-  if (!payload?.userId) {
-    return { success: false, data: { yesterdayTotal: 0, dayBeforeTotal: 0, percentageChange: 0, past7Days: [], past30Days: [] } };
-  }
-
   try {
     const dailyReports = await prisma.salesReport.findMany({
       where: { reportType: "Daily" },
