@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { FiArrowLeft, FiMapPin, FiUser } from "react-icons/fi";
 import BranchReportView from "./branch-report-view";
+import StoreDetailsToggle from "./store-details-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -273,28 +274,10 @@ export default async function ManageBranchProfilePage({
         </div>
       </div>
 
-      {/* Store details: location, who manages */}
-      <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-bold text-amber-900">Store details</h2>
-        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="flex items-center gap-2 text-sm font-medium text-amber-700">
-              <FiMapPin className="text-amber-600" />
-              Location
-            </dt>
-            <dd className="mt-1 text-amber-900">{locationText}</dd>
-          </div>
-          <div>
-            <dt className="flex items-center gap-2 text-sm font-medium text-amber-700">
-              <FiUser className="text-amber-600" />
-              Managed by
-            </dt>
-            <dd className="mt-1 text-amber-900">
-              {profile.fullName || profile.storeName || "—"}
-            </dd>
-          </div>
-        </dl>
-      </div>
+      <StoreDetailsToggle
+        locationText={locationText}
+        managedBy={profile.fullName || profile.storeName || "—"}
+      />
 
       {/* Dropdown: Sales report | Stocks report */}
       <BranchReportView
@@ -315,6 +298,7 @@ export default async function ManageBranchProfilePage({
         inventoryReports={inventoryReportsSerialized}
         posTransactions={posReports.transactions}
         posStockTracker={posReports.stockTracker}
+        storeName={profile.storeName}
       />
     </div>
   );
