@@ -15,6 +15,7 @@ const navLists: TypeNavList[] = [
   { name: "Inventory", href: "/store/inventory", icon: <IoAnalytics /> },
   { name: "Request Items", href: "/store/request-items", icon: <FaRegUser /> },
   { name: "History", href: "/store/history", icon: <RiCalendarScheduleLine /> },
+  { name: "Delivery view", href: "/store/delivery-view", icon: <RiCalendarScheduleLine /> },
   { name: "Report", href: "/store/sales-report", icon: <RiCalendarScheduleLine /> },
   { name: "Settings", href: "", icon: <IoSettingsOutline /> },
 ];

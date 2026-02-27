@@ -25,7 +25,16 @@ const MONTHS = [
   "December",
 ];
 
+/** Store can only submit daily sales; weekly/monthly are computed from daily. */
+const SALES_REPORT_TYPE = "Daily" as const;
 const REPORT_TYPES = ["Daily", "Weekly", "Monthly", "Yearly"];
+
+/** Format daily period for display (periodMonth may be YYYY-MM-DD or legacy locale string). */
+function formatDailyPeriod(periodMonth: string, periodYear: string): string {
+  const d = new Date(periodMonth);
+  if (isNaN(d.getTime())) return `${periodMonth} ${periodYear}`;
+  return d.toLocaleDateString(undefined, { dateStyle: "medium" });
+}
 
 const REPORT_VIEWS = [
   { value: "sales", label: "Sales Report" },
@@ -43,6 +52,18 @@ const ACCOUNT_RECOGNITIONS = [
 ];
 
 const UNITS = ["pcs", "kg", "g", "L", "mL", "packs", "boxes", "rolls", "bottles", "bags"];
+
+/** One line in the daily inventory report batch (cart). */
+interface InvBatchLine {
+  productName: string;
+  accountRecognition: string;
+  unitOfMeasurement: string;
+  quantity: number;
+  itemsUsed: number;
+  itemsLeft: number;
+  periodMonth: string;
+  periodYear: string;
+}
 
 interface BranchInventoryItem {
   id: string;
@@ -67,8 +88,7 @@ export default function StoreSalesReportClient({
 }) {
   const [reports, setReports] = useState(initialReports);
   const [inventoryReports, setInventoryReports] = useState(initialInventoryReports);
-  const [reportType, setReportType] = useState("Monthly");
-
+  /** Sales: only Daily is submitted; weekly/monthly are auto-generated from daily. */
   const [formDate, setFormDate] = useState(
     new Date().toISOString().split("T")[0],
   );
@@ -91,6 +111,8 @@ export default function StoreSalesReportClient({
   const [invFormWeek, setInvFormWeek] = useState("");
   const [invFormMonth, setInvFormMonth] = useState(MONTHS[new Date().getMonth()]);
   const [invFormYear, setInvFormYear] = useState(new Date().getFullYear().toString());
+  /** Daily inventory: cart of lines to submit in batch */
+  const [invBatchCart, setInvBatchCart] = useState<InvBatchLine[]>([]);
 
   const [activeView, setActiveView] = useState<ReportView>("sales");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -155,25 +177,12 @@ export default function StoreSalesReportClient({
     e.preventDefault();
     setSubmitting(true);
 
-    let finalMonth = "";
-    let finalYear = "";
-
-    if (reportType === "Daily") {
-      finalMonth = new Date(formDate).toLocaleDateString();
-      finalYear = new Date(formDate).getFullYear().toString();
-    } else if (reportType === "Weekly") {
-      finalMonth = getWeekString(formWeek);
-      finalYear = formWeek.split("-W")[0] || formYear;
-    } else if (reportType === "Monthly") {
-      finalMonth = formMonth;
-      finalYear = formYear;
-    } else if (reportType === "Yearly") {
-      finalMonth = "All Year";
-      finalYear = formYear;
-    }
+    // Store only submits daily; use YYYY-MM-DD for periodMonth so weekly/monthly can be computed elsewhere
+    const finalMonth = formDate;
+    const finalYear = new Date(formDate).getFullYear().toString();
 
     const result = await upsertSalesReport({
-      reportType,
+      reportType: SALES_REPORT_TYPE,
       periodMonth: finalMonth,
       periodYear: finalYear,
       totalSales: Number(formSales),
@@ -209,13 +218,46 @@ export default function StoreSalesReportClient({
     e.preventDefault();
     setInvSubmitting(true);
 
+    if (invReportType === "Daily" && invBatchCart.length > 0) {
+      const batch = [...invBatchCart];
+      setInvBatchCart([]);
+      const periodMonth = batch[0].periodMonth;
+      const periodYear = batch[0].periodYear;
+      const saved: typeof inventoryReports = [];
+      let failed = 0;
+      for (const line of batch) {
+        const result = await upsertInventoryReport({
+          reportType: "Daily",
+          periodMonth: line.periodMonth,
+          periodYear: line.periodYear,
+          productName: line.productName,
+          accountRecognition: line.accountRecognition,
+          unitOfMeasurement: line.unitOfMeasurement,
+          quantity: line.quantity,
+          itemsUsed: line.itemsUsed,
+          itemsLeft: line.itemsLeft,
+        });
+        if (result.success && result.data) saved.push(result.data);
+        else failed += 1;
+      }
+      if (saved.length) {
+        setInventoryReports((prev) => [...saved, ...prev]);
+        toast.success(`Saved ${saved.length} daily report(s).${failed ? ` ${failed} failed.` : ""}`);
+      }
+      if (failed === batch.length) toast.error("Failed to save batch");
+      setInvSubmitting(false);
+      return;
+    }
+
+    if (invReportType === "Daily" && invBatchCart.length === 0) {
+      setInvSubmitting(false);
+      return;
+    }
+
     let finalMonth = "";
     let finalYear = "";
 
-    if (invReportType === "Daily") {
-      finalMonth = new Date(invFormDate).toLocaleDateString();
-      finalYear = new Date(invFormDate).getFullYear().toString();
-    } else if (invReportType === "Weekly") {
+    if (invReportType === "Weekly") {
       finalMonth = getWeekString(invFormWeek);
       finalYear = invFormWeek.split("-W")[0] || invFormYear;
     } else if (invReportType === "Monthly") {
@@ -326,94 +368,21 @@ export default function StoreSalesReportClient({
           {/* Form Section */}
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 shadow-sm h-fit">
             <h2 className="mb-4 text-sm font-semibold text-amber-900">
-              Submit Sales Reference
+              Submit Daily Sales
             </h2>
+            <p className="mb-4 text-xs text-amber-700/80">
+              Only daily reports are submitted. Weekly and monthly totals are generated from your daily entries.
+            </p>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className={labelClass}>Frequency</label>
-                <select
-                  value={reportType}
-                  onChange={(e) => setReportType(e.target.value)}
+                <label className={labelClass}>Date</label>
+                <input
+                  type="date"
+                  required
+                  value={formDate}
+                  onChange={(e) => setFormDate(e.target.value)}
                   className={inputClass}
-                >
-                  {REPORT_TYPES.map((rt) => (
-                    <option key={rt} value={rt}>
-                      {rt}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {reportType === "Daily" && (
-                  <div className="sm:col-span-2">
-                    <label className={labelClass}>Date</label>
-                    <input
-                      type="date"
-                      required
-                      value={formDate}
-                      onChange={(e) => setFormDate(e.target.value)}
-                      className={inputClass}
-                    />
-                  </div>
-                )}
-
-                {reportType === "Weekly" && (
-                  <div className="sm:col-span-2">
-                    <label className={labelClass}>Week</label>
-                    <input
-                      type="week"
-                      required
-                      value={formWeek}
-                      onChange={(e) => setFormWeek(e.target.value)}
-                      className={inputClass}
-                    />
-                  </div>
-                )}
-
-                {reportType === "Monthly" && (
-                  <>
-                    <div>
-                      <label className={labelClass}>Month</label>
-                      <select
-                        value={formMonth}
-                        onChange={(e) => setFormMonth(e.target.value)}
-                        className={inputClass}
-                      >
-                        {MONTHS.map((m) => (
-                          <option key={m} value={m}>
-                            {m}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelClass}>Year</label>
-                      <input
-                        type="number"
-                        min="2000"
-                        max="2100"
-                        value={formYear}
-                        onChange={(e) => setFormYear(e.target.value)}
-                        className={inputClass}
-                      />
-                    </div>
-                  </>
-                )}
-
-                {reportType === "Yearly" && (
-                  <div className="sm:col-span-2">
-                    <label className={labelClass}>Year</label>
-                    <input
-                      type="number"
-                      min="2000"
-                      max="2100"
-                      value={formYear}
-                      onChange={(e) => setFormYear(e.target.value)}
-                      className={inputClass}
-                    />
-                  </div>
-                )}
+                />
               </div>
 
               <div>
@@ -435,7 +404,7 @@ export default function StoreSalesReportClient({
                 disabled={submitting}
                 className="w-full mt-4 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
               >
-                {submitting ? "Saving..." : `Save ${reportType} Sales Report`}
+                {submitting ? "Saving..." : "Save Daily Sales Report"}
               </button>
             </form>
           </div>
@@ -448,36 +417,30 @@ export default function StoreSalesReportClient({
               </h2>
             </div>
             <div className="overflow-y-auto flex-1 p-0">
-              {reports.length === 0 ? (
+              {reports.filter((r) => r.reportType === "Daily").length === 0 ? (
                 <p className="p-6 text-center text-sm text-amber-600/80 mt-10">
-                  No sales reports submitted yet.
+                  No daily sales reports yet. Submit one above.
                 </p>
               ) : (
                 <table className="w-full text-left text-sm">
                   <thead className="sticky top-0 bg-white shadow-sm border-b border-amber-200 z-10">
                     <tr className="text-amber-900 text-xs uppercase tracking-wider">
-                      <th className="px-6 py-3 font-semibold">Type</th>
-                      <th className="px-6 py-3 font-semibold">Period</th>
+                      <th className="px-6 py-3 font-semibold">Date</th>
                       <th className="px-6 py-3 font-semibold text-right">
-                        Added Sales
+                        Sales (₱)
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-amber-50">
-                    {reports.map((report) => (
+                    {reports
+                      .filter((r) => r.reportType === "Daily")
+                      .map((report) => (
                       <tr
                         key={report.id}
                         className="hover:bg-amber-50/50 transition-colors"
                       >
-                        <td className="px-6 py-3 text-amber-700 font-medium">
-                          <span className="bg-amber-100 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider border border-amber-200">
-                            {report.reportType || "Monthly"}
-                          </span>
-                        </td>
                         <td className="px-6 py-3 text-amber-900 font-medium whitespace-nowrap">
-                          {report.reportType === "Yearly"
-                            ? report.periodYear
-                            : `${report.periodMonth} ${report.periodYear}`}
+                          {formatDailyPeriod(report.periodMonth, report.periodYear)}
                         </td>
                         <td className="px-6 py-3 text-emerald-700 font-bold text-right">
                           ₱
@@ -500,6 +463,11 @@ export default function StoreSalesReportClient({
             <h2 className="mb-4 text-sm font-semibold text-amber-900">
               Submit Inventory Report
             </h2>
+            {invReportType === "Daily" && (
+              <p className="mb-4 text-xs text-amber-700/80">
+                Add multiple products for the same day to the batch, then submit once.
+              </p>
+            )}
             <form onSubmit={handleInventorySubmit} className="space-y-5">
               <div>
                 <label className={labelClass}>Frequency</label>
@@ -643,12 +611,12 @@ export default function StoreSalesReportClient({
                 <label className={labelClass}>Total Quantity</label>
                 <input
                   type="number"
-                  min="0"
+                  min={0}
                   step="1"
                   required
                   placeholder="Total quantity received"
-                  readOnly={isProductFromInventory}
-                  value={invQuantity === 0 ? "" : invQuantity}
+                  disabled={isProductFromInventory}
+                  value={invQuantity}
                   onChange={(e) => {
                     const qty = Number(e.target.value);
                     setInvQuantity(qty);
@@ -656,6 +624,9 @@ export default function StoreSalesReportClient({
                   }}
                   className={`${inputClass} ${isProductFromInventory ? "bg-amber-50/50 cursor-not-allowed" : ""}`}
                 />
+                {isProductFromInventory && (
+                  <p className="mt-1 text-xs text-amber-600/80">From branch inventory (0 is allowed)</p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -663,12 +634,12 @@ export default function StoreSalesReportClient({
                   <label className={labelClass}>Items Used</label>
                   <input
                     type="number"
-                    min="0"
-                    max={invQuantity || undefined}
+                    min={0}
+                    max={invQuantity >= 0 ? invQuantity : undefined}
                     step="1"
                     required
                     placeholder="How many were used"
-                    value={invItemsUsed === 0 ? "" : invItemsUsed}
+                    value={invItemsUsed}
                     onChange={(e) => {
                       const used = Number(e.target.value);
                       setInvItemsUsed(used);
@@ -681,26 +652,98 @@ export default function StoreSalesReportClient({
                   <label className={labelClass}>Items Left</label>
                   <input
                     type="number"
-                    min="0"
+                    min={0}
                     step="1"
                     required
                     placeholder="Auto-calculated"
-                    value={invItemsLeft === 0 ? "" : invItemsLeft}
+                    disabled={isProductFromInventory}
+                    value={invItemsLeft}
                     onChange={(e) => setInvItemsLeft(Number(e.target.value))}
-                    className={`${inputClass} bg-amber-50/50`}
+                    className={`${inputClass} ${isProductFromInventory ? "bg-amber-50/50 cursor-not-allowed" : "bg-amber-50/50"}`}
                   />
+                  {isProductFromInventory && (
+                    <p className="mt-1 text-xs text-amber-600/80">Calculated from quantity − used (0 is allowed)</p>
+                  )}
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={invSubmitting}
-                className="w-full mt-4 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
-              >
-                {invSubmitting
-                  ? "Saving..."
-                  : `Save ${invReportType} Inventory Report`}
-              </button>
+              {invReportType === "Daily" ? (
+                <div className="mt-4 space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!invProductName.trim()) {
+                        toast.error("Select a product");
+                        return;
+                      }
+                      const periodMonth = invFormDate;
+                      const periodYear = new Date(invFormDate).getFullYear().toString();
+                      setInvBatchCart((prev) => [
+                        ...prev,
+                        {
+                          productName: invProductName.trim(),
+                          accountRecognition: invAccountRecognition,
+                          unitOfMeasurement: invUnit,
+                          quantity: invQuantity,
+                          itemsUsed: invItemsUsed,
+                          itemsLeft: invItemsLeft,
+                          periodMonth,
+                          periodYear,
+                        },
+                      ]);
+                      toast.success("Added to batch");
+                      setInvProductName("");
+                      setInvQuantity(0);
+                      setInvItemsUsed(0);
+                      setInvItemsLeft(0);
+                    }}
+                    className="w-full rounded-lg border-2 border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-colors"
+                  >
+                    Add to batch
+                  </button>
+                  {invBatchCart.length > 0 && (
+                    <>
+                      <div className="rounded-lg border border-amber-200 bg-white max-h-40 overflow-y-auto">
+                        <div className="px-3 py-2 border-b border-amber-100 text-xs font-semibold text-amber-800">
+                          Batch — {invBatchCart.length} item(s) for {new Date(invBatchCart[0].periodMonth).toLocaleDateString(undefined, { dateStyle: "short" })}
+                        </div>
+                        <ul className="divide-y divide-amber-50">
+                          {invBatchCart.map((line, idx) => (
+                            <li key={idx} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                              <span className="text-amber-900 truncate">{line.productName}</span>
+                              <span className="text-amber-600 shrink-0">Used: {line.itemsUsed} · Left: {line.itemsLeft}</span>
+                              <button
+                                type="button"
+                                onClick={() => setInvBatchCart((prev) => prev.filter((_, i) => i !== idx))}
+                                className="shrink-0 text-rose-600 hover:text-rose-700 text-xs font-medium"
+                              >
+                                Remove
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={invSubmitting}
+                        className="w-full rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+                      >
+                        {invSubmitting ? "Submitting..." : `Submit batch (${invBatchCart.length} items)`}
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={invSubmitting}
+                  className="w-full mt-4 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+                >
+                  {invSubmitting
+                    ? "Saving..."
+                    : `Save ${invReportType} Inventory Report`}
+                </button>
+              )}
             </form>
           </div>
 

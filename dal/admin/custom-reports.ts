@@ -88,26 +88,38 @@ export async function getCustomInventoryReport(storeId: string, month: string, y
   }
 }
 
-export async function getInventoryReportByRange(storeId: string, range: "daily" | "past7days") {
+export async function getInventoryReportByRange(
+  storeId: string,
+  range: "today" | "yesterday" | "past7days",
+) {
   const myCookies = (await cookies()).get("session")?.value;
   const payload = await decrypt(myCookies);
   if (!payload?.userId) return { success: false, data: [] };
 
   try {
-    const cutoff = new Date();
-    if (range === "daily") {
-      cutoff.setHours(0, 0, 0, 0);
+    const now = new Date();
+    let where: {
+      storeId?: string;
+      createdAt: { gte: Date; lte?: Date } | { gte: Date };
+    };
+
+    if (range === "today") {
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      where = { createdAt: { gte: start } };
+    } else if (range === "yesterday") {
+      const start = new Date(now);
+      start.setDate(start.getDate() - 1);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setHours(23, 59, 59, 999);
+      where = { createdAt: { gte: start, lte: end } };
     } else {
+      const cutoff = new Date(now);
       cutoff.setDate(cutoff.getDate() - 7);
       cutoff.setHours(0, 0, 0, 0);
+      where = { createdAt: { gte: cutoff } };
     }
-
-    const where: {
-      storeId?: string;
-      createdAt: { gte: Date };
-    } = {
-      createdAt: { gte: cutoff },
-    };
 
     if (storeId !== "all") {
       where.storeId = storeId;

@@ -102,6 +102,44 @@ export type OnTheWayItemEntry = RequestedItemHistoryEntry & {
   storeLongitude: number | null;
 };
 
+/** Items with deliveryStatus "on the way" for a specific store (store delivery view). */
+export async function getOnTheWayItemsForStore(
+  storeId: string,
+): Promise<OnTheWayItemEntry[]> {
+  const items = await prisma.requestedItems.findMany({
+    where: {
+      storeId,
+      isRequestApproved: true,
+      NOT: { note: null },
+      status: "on the way",
+    },
+    orderBy: { id: "desc" },
+    include: {
+      store: {
+        select: {
+          user: { select: { username: true } },
+          latitude: true,
+          longitude: true,
+        },
+      },
+    },
+  });
+  return items.map((item) => ({
+    id: item.id,
+    productNameGeneral: item.productNameGeneral,
+    quantity: item.quantity,
+    unitOfMeasurement: item.unitOfMeasurement,
+    storeId: item.storeId,
+    storeUsername: item.store.user.username,
+    isRequestApproved: item.isRequestApproved,
+    note: item.note,
+    status: item.status,
+    deliveryStatus: item.status,
+    storeLatitude: item.store.latitude,
+    storeLongitude: item.store.longitude,
+  }));
+}
+
 /** Items with deliveryStatus "on the way" for /delivery page (driver view). */
 export async function getOnTheWayItemsForDelivery(): Promise<
   OnTheWayItemEntry[]
