@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
-import { upsertSalesReport } from "@/dal/store/sales-report";
-import { upsertInventoryReport } from "@/dal/store/inventory-report";
+import { upsertSalesReport, getSalesReports } from "@/dal/store/sales-report";
+import { upsertInventoryReport, getInventoryReports } from "@/dal/store/inventory-report";
 import { IoChevronDown } from "react-icons/io5";
 import type { POSReceiptGroup, POSInventoryItem } from "@/dal/store/pos-receipts";
+import { sendPOSDailyReport } from "@/dal/store/pos-receipts";
+import { FiSend } from "react-icons/fi";
 
 const inputClass =
   "w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500";
@@ -124,6 +126,49 @@ export default function StoreSalesReportClient({
   const [activeView, setActiveView] = useState<ReportView>("sales");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [sendingTransactions, setSendingTransactions] = useState(false);
+  const [sendingStock, setSendingStock] = useState(false);
+
+  const handleSendTransactions = async () => {
+    if (posReceipts.length === 0) {
+      toast.error("No POS transactions to send");
+      return;
+    }
+    setSendingTransactions(true);
+    const uid = localStorage.getItem("userId") || "";
+    const result = await sendPOSDailyReport(uid, "transactions", {
+      receipts: posReceipts,
+      totalSales: posTotalSales,
+    });
+    if (result.success) {
+      toast.success("POS Transactions report sent");
+      const refreshed = await getSalesReports(uid);
+      if (refreshed.success) setReports(refreshed.data);
+    } else {
+      toast.error(result.message);
+    }
+    setSendingTransactions(false);
+  };
+
+  const handleSendStock = async () => {
+    if (posInventory.length === 0) {
+      toast.error("No stock data to send");
+      return;
+    }
+    setSendingStock(true);
+    const uid = localStorage.getItem("userId") || "";
+    const result = await sendPOSDailyReport(uid, "stock_tracker", {
+      items: posInventory,
+    });
+    if (result.success) {
+      toast.success("POS Stock Tracker report sent");
+      const refreshed = await getInventoryReports(uid);
+      if (refreshed.success) setInventoryReports(refreshed.data);
+    } else {
+      toast.error(result.message);
+    }
+    setSendingStock(false);
+  };
 
   const mergedProducts = useMemo(() => {
     const map = new Map<string, { productName: string; accountRecognition: string; unitOfMeasurement: string; totalQuantity: number }>();
@@ -474,11 +519,21 @@ export default function StoreSalesReportClient({
             <h2 className="text-sm font-semibold text-amber-900">
               Today&apos;s POS Transactions
             </h2>
-            <div className="text-right">
-              <p className="text-xs text-amber-600 uppercase tracking-wide">Total POS Sales Today</p>
-              <p className="text-xl font-bold text-emerald-700">
-                ₱{posTotalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-xs text-amber-600 uppercase tracking-wide">Total POS Sales Today</p>
+                <p className="text-xl font-bold text-emerald-700">
+                  ₱{posTotalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+              <button
+                onClick={handleSendTransactions}
+                disabled={sendingTransactions || posReceipts.length === 0}
+                className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <FiSend className="text-sm" />
+                {sendingTransactions ? "Sending..." : "Send Report"}
+              </button>
             </div>
           </div>
           <div className="overflow-y-auto max-h-[500px]">
@@ -898,13 +953,23 @@ export default function StoreSalesReportClient({
 
         {/* POS Daily Inventory Tracker */}
         <div className="rounded-xl border border-amber-200 bg-white shadow-sm overflow-hidden">
-          <div className="border-b border-amber-200 bg-amber-50 px-6 py-4">
-            <h2 className="text-sm font-semibold text-amber-900">
-              Today&apos;s POS Stock Tracker
-            </h2>
-            <p className="text-xs text-amber-600 mt-0.5">
-              Tracks initial stock, sold quantities, and remaining stock for items issued today.
-            </p>
+          <div className="border-b border-amber-200 bg-amber-50 px-6 py-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-amber-900">
+                Today&apos;s POS Stock Tracker
+              </h2>
+              <p className="text-xs text-amber-600 mt-0.5">
+                Tracks initial stock, sold quantities, and remaining stock for items issued today.
+              </p>
+            </div>
+            <button
+              onClick={handleSendStock}
+              disabled={sendingStock || posInventory.length === 0}
+              className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
+            >
+              <FiSend className="text-sm" />
+              {sendingStock ? "Sending..." : "Send Report"}
+            </button>
           </div>
           <div className="overflow-y-auto max-h-[400px]">
             {posInventory.length === 0 ? (

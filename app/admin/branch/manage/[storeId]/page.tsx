@@ -1,4 +1,5 @@
 import { getAdminStoreProfile } from "@/dal/admin/manage-branch";
+import { getPOSDailyReports } from "@/dal/store/pos-receipts";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { FiArrowLeft, FiMapPin, FiUser } from "react-icons/fi";
@@ -221,6 +222,8 @@ export default async function ManageBranchProfilePage({
       createdAt: req.createdAt.toISOString(),
     }),
   );
+  const posReports = await getPOSDailyReports(storeId);
+
   const inventoryReportsSerialized = (profile.inventoryReports ?? []).map(
     (r: {
       id: string;
@@ -310,6 +313,8 @@ export default async function ManageBranchProfilePage({
         outOfStockCount={outOfStockCount}
         requestHistory={requestHistorySerialized}
         inventoryReports={inventoryReportsSerialized}
+        posTransactions={posReports.transactions}
+        posStockTracker={posReports.stockTracker}
       />
     </div>
   );

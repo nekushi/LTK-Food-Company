@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FiBarChart2, FiBox } from "react-icons/fi";
+import { FiBarChart2, FiBox, FiShoppingCart } from "react-icons/fi";
 import StoreTabs from "./store-tabs";
 
 interface SalesReportRow {
@@ -47,6 +47,29 @@ interface InventoryReportItem {
   createdAt: string;
 }
 
+interface POSReportEntry {
+  reportData: unknown;
+  reportDate: string;
+  createdAt: string;
+}
+
+interface POSTransactionData {
+  receipts: {
+    receiptNo: string;
+    lines: { itemName: string; quantity: number; price: number; total: number }[];
+    grandTotal: number;
+    createdAt: string;
+  }[];
+  totalSales: number;
+}
+
+interface POSStockItem {
+  itemName: string;
+  initialStock: number;
+  soldQty: number;
+  remainingStock: number;
+}
+
 export default function BranchReportView({
   dailyReports,
   computedWeekly,
@@ -56,6 +79,8 @@ export default function BranchReportView({
   outOfStockCount,
   requestHistory,
   inventoryReports,
+  posTransactions = [],
+  posStockTracker = [],
 }: {
   dailyReports: SalesReportRow[];
   computedWeekly: AggregatedSales[];
@@ -65,8 +90,10 @@ export default function BranchReportView({
   outOfStockCount: number;
   requestHistory: RequestItem[];
   inventoryReports: InventoryReportItem[];
+  posTransactions?: POSReportEntry[];
+  posStockTracker?: POSReportEntry[];
 }) {
-  const [reportType, setReportType] = useState<"sales" | "stocks">("sales");
+  const [reportType, setReportType] = useState<"sales" | "stocks" | "pos">("sales");
 
   return (
     <div className="space-y-6">
@@ -94,6 +121,17 @@ export default function BranchReportView({
           >
             <FiBox className="text-base" />
             Stocks report
+          </button>
+          <button
+            onClick={() => setReportType("pos")}
+            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+              reportType === "pos"
+                ? "bg-amber-600 text-white shadow-sm"
+                : "text-amber-700 hover:bg-amber-50"
+            }`}
+          >
+            <FiShoppingCart className="text-base" />
+            POS reports
           </button>
         </div>
       </div>
@@ -246,6 +284,133 @@ export default function BranchReportView({
           requestHistory={requestHistory}
           inventoryReports={inventoryReports}
         />
+      )}
+
+      {reportType === "pos" && (
+        <div className="space-y-6">
+          {/* POS Transactions Reports */}
+          <div className="rounded-xl border border-amber-200 bg-white shadow-sm overflow-hidden">
+            <div className="border-b border-amber-200 bg-amber-50 px-6 py-4">
+              <h2 className="text-sm font-semibold text-amber-900">POS Transactions</h2>
+              <p className="text-xs text-amber-600 mt-0.5">Daily POS transaction reports sent by the store.</p>
+            </div>
+            <div className="overflow-y-auto max-h-[500px]">
+              {posTransactions.length === 0 ? (
+                <p className="p-8 text-center text-sm text-amber-600/80">
+                  No POS transaction reports sent yet.
+                </p>
+              ) : (
+                <div className="divide-y divide-amber-100">
+                  {posTransactions.map((entry) => {
+                    const data = entry.reportData as POSTransactionData;
+                    const dateLabel = new Date(entry.reportDate).toLocaleDateString(undefined, { dateStyle: "medium" });
+                    return (
+                      <div key={entry.reportDate} className="p-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-bold text-amber-900">{dateLabel}</h3>
+                          <span className="text-lg font-bold text-emerald-700">
+                            ₱{(data.totalSales ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <table className="w-full text-left text-sm">
+                          <thead className="border-b border-amber-200">
+                            <tr className="text-amber-900 text-xs uppercase tracking-wider">
+                              <th className="px-3 py-2 font-semibold">Receipt</th>
+                              <th className="px-3 py-2 font-semibold">Time</th>
+                              <th className="px-3 py-2 font-semibold">Item</th>
+                              <th className="px-3 py-2 font-semibold text-center">Qty</th>
+                              <th className="px-3 py-2 font-semibold text-right">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-amber-50">
+                            {(data.receipts ?? []).map((receipt) =>
+                              receipt.lines.map((line, idx) => (
+                                <tr key={`${receipt.receiptNo}-${idx}`} className="hover:bg-amber-50/50">
+                                  <td className="px-3 py-2 text-amber-700 text-xs">
+                                    {idx === 0 ? receipt.receiptNo.split("-").slice(0, 2).join("-") : ""}
+                                  </td>
+                                  <td className="px-3 py-2 text-amber-600 text-xs">
+                                    {idx === 0
+                                      ? new Date(receipt.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+                                      : ""}
+                                  </td>
+                                  <td className="px-3 py-2 text-amber-900">{line.itemName}</td>
+                                  <td className="px-3 py-2 text-amber-800 font-bold text-center">{line.quantity}</td>
+                                  <td className="px-3 py-2 text-emerald-700 font-bold text-right">
+                                    ₱{line.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                  </td>
+                                </tr>
+                              )),
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* POS Stock Tracker Reports */}
+          <div className="rounded-xl border border-amber-200 bg-white shadow-sm overflow-hidden">
+            <div className="border-b border-amber-200 bg-amber-50 px-6 py-4">
+              <h2 className="text-sm font-semibold text-amber-900">POS Stock Tracker</h2>
+              <p className="text-xs text-amber-600 mt-0.5">Daily stock tracking reports sent by the store.</p>
+            </div>
+            <div className="overflow-y-auto max-h-[500px]">
+              {posStockTracker.length === 0 ? (
+                <p className="p-8 text-center text-sm text-amber-600/80">
+                  No stock tracker reports sent yet.
+                </p>
+              ) : (
+                <div className="divide-y divide-amber-100">
+                  {posStockTracker.map((entry) => {
+                    const data = entry.reportData as { items: POSStockItem[] };
+                    const dateLabel = new Date(entry.reportDate).toLocaleDateString(undefined, { dateStyle: "medium" });
+                    return (
+                      <div key={entry.reportDate} className="p-5">
+                        <h3 className="text-sm font-bold text-amber-900 mb-3">{dateLabel}</h3>
+                        <table className="w-full text-left text-sm">
+                          <thead className="border-b border-amber-200">
+                            <tr className="text-amber-900 text-xs uppercase tracking-wider">
+                              <th className="px-3 py-2 font-semibold">Item</th>
+                              <th className="px-3 py-2 font-semibold text-right">Initial Stock</th>
+                              <th className="px-3 py-2 font-semibold text-right">Sold</th>
+                              <th className="px-3 py-2 font-semibold text-right">Remaining</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-amber-50">
+                            {(data.items ?? []).map((item) => {
+                              const pct = item.initialStock > 0
+                                ? Math.round((item.remainingStock / item.initialStock) * 100)
+                                : 0;
+                              return (
+                                <tr key={item.itemName} className="hover:bg-amber-50/50">
+                                  <td className="px-3 py-2 text-amber-900 font-medium">{item.itemName}</td>
+                                  <td className="px-3 py-2 text-amber-700 font-bold text-right">{item.initialStock}</td>
+                                  <td className="px-3 py-2 text-rose-600 font-bold text-right">
+                                    {item.soldQty > 0 ? `-${item.soldQty}` : "0"}
+                                  </td>
+                                  <td className="px-3 py-2 text-right">
+                                    <span className={`font-bold ${item.remainingStock <= 0 ? "text-red-600" : pct <= 25 ? "text-orange-600" : "text-emerald-700"}`}>
+                                      {item.remainingStock}
+                                    </span>
+                                    <span className="ml-1 text-[10px] text-amber-500">({pct}%)</span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

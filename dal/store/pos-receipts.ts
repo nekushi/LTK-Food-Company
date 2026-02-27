@@ -173,3 +173,145 @@ export async function getTodayPOSInventory(userId: string): Promise<{
 
   return { success: true, data };
 }
+
+export async function sendPOSDailyReport(
+  userId: string,
+  reportType: "transactions" | "stock_tracker",
+  reportData: unknown,
+): Promise<{ success: boolean; message: string }> {
+  if (!userId) return { success: false, message: "Unauthorized" };
+
+  const store = await prisma.store.findUnique({ where: { userId } });
+  if (!store) return { success: false, message: "Store not found" };
+
+  const now = new Date();
+  const reportDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  try {
+    await prisma.pOSDailyReport.upsert({
+      where: {
+        storeId_reportDate_reportType: {
+          storeId: store.id,
+          reportDate,
+          reportType,
+        },
+      },
+      update: {
+        reportData: reportData as object,
+        createdAt: new Date(),
+      },
+      create: {
+        storeId: store.id,
+        reportDate,
+        reportType,
+        reportData: reportData as object,
+      },
+    });
+
+    if (reportType === "transactions") {
+      const totalSales = (reportData as { totalSales?: number }).totalSales ?? 0;
+      const dateStr = reportDate.toISOString().split("T")[0];
+      const yearStr = now.getFullYear().toString();
+
+      await prisma.salesReport.upsert({
+        where: {
+          storeId_periodMonth_periodYear_reportType: {
+            storeId: store.id,
+            reportType: "Daily",
+            periodMonth: dateStr,
+            periodYear: yearStr,
+          },
+        },
+        update: {
+          totalSales,
+          updatedAt: new Date(),
+        },
+        create: {
+          storeId: store.id,
+          reportType: "Daily",
+          periodMonth: dateStr,
+          periodYear: yearStr,
+          totalSales,
+        },
+      });
+    }
+
+    if (reportType === "stock_tracker") {
+      const items = (reportData as { items?: POSInventoryItem[] }).items ?? [];
+      const dateStr = reportDate.toISOString().split("T")[0];
+      const yearStr = now.getFullYear().toString();
+
+      for (const item of items) {
+        await prisma.inventoryReport.upsert({
+          where: {
+            storeId_periodMonth_periodYear_reportType_productName: {
+              storeId: store.id,
+              reportType: "Daily",
+              periodMonth: dateStr,
+              periodYear: yearStr,
+              productName: item.itemName,
+            },
+          },
+          update: {
+            quantity: item.initialStock,
+            itemsUsed: item.soldQty,
+            itemsLeft: item.remainingStock,
+            updatedAt: new Date(),
+          },
+          create: {
+            storeId: store.id,
+            reportType: "Daily",
+            periodMonth: dateStr,
+            periodYear: yearStr,
+            productName: item.itemName,
+            accountRecognition: "Food Supplies",
+            unitOfMeasurement: "pcs",
+            quantity: item.initialStock,
+            itemsUsed: item.soldQty,
+            itemsLeft: item.remainingStock,
+          },
+        });
+      }
+    }
+
+    return { success: true, message: "Report sent successfully" };
+  } catch (error) {
+    console.error("sendPOSDailyReport", error);
+    return { success: false, message: "Failed to send report" };
+  }
+}
+
+export async function getPOSDailyReports(storeId: string): Promise<{
+  success: boolean;
+  transactions: { reportData: unknown; reportDate: string; createdAt: string }[];
+  stockTracker: { reportData: unknown; reportDate: string; createdAt: string }[];
+}> {
+  try {
+    const reports = await prisma.pOSDailyReport.findMany({
+      where: { storeId },
+      orderBy: { reportDate: "desc" },
+      take: 30,
+    });
+
+    const transactions = reports
+      .filter((r) => r.reportType === "transactions")
+      .map((r) => ({
+        reportData: r.reportData,
+        reportDate: r.reportDate.toISOString(),
+        createdAt: r.createdAt.toISOString(),
+      }));
+
+    const stockTracker = reports
+      .filter((r) => r.reportType === "stock_tracker")
+      .map((r) => ({
+        reportData: r.reportData,
+        reportDate: r.reportDate.toISOString(),
+        createdAt: r.createdAt.toISOString(),
+      }));
+
+    return { success: true, transactions, stockTracker };
+  } catch (error) {
+    console.error("getPOSDailyReports", error);
+    return { success: false, transactions: [], stockTracker: [] };
+  }
+}

@@ -187,6 +187,7 @@ model Store {
   inventoryReports InventoryReport[]
   itemsForSale     ItemForSale[]
   posReceipts      POSReceipt[]
+  posDailyReports  POSDailyReport[]
 }
 
 model SalesReport {
@@ -346,4 +347,16 @@ model POSReceipt {
   price     Float
   total     Float
   createdAt DateTime @default(now())
+}
+
+model POSDailyReport {
+  id         String   @id @default(uuid())
+  storeId    String
+  store      Store    @relation(fields: [storeId], references: [id])
+  reportDate DateTime
+  reportType String
+  reportData Json
+  createdAt  DateTime @default(now())
+
+  @@unique([storeId, reportDate, reportType])
 }
