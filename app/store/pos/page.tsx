@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { toast } from "react-toastify";
 import {
-  getItemsForSale,
+  getItemsForSaleToday,
   sellItemForSale,
   ItemForSaleRow,
 } from "@/dal/store/items-for-sale";
-import { FiSearch, FiShoppingCart, FiTrash2, FiX } from "react-icons/fi";
+import { savePOSReceipt } from "@/dal/store/pos-receipts";
+import { FiSearch, FiShoppingCart, FiTrash2, FiX, FiPrinter } from "react-icons/fi";
 
 interface CartLine {
   itemId: string;
@@ -22,6 +23,18 @@ interface QuantityModal {
   existingQty: number;
 }
 
+interface ReceiptData {
+  lines: CartLine[];
+  total: number;
+  count: number;
+  date: string;
+  storeName: string;
+}
+
+function formatCurrency(value: number): string {
+  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 export default function POSPage() {
   const [items, setItems] = useState<ItemForSaleRow[]>([]);
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -30,6 +43,7 @@ export default function POSPage() {
   const [processing, setProcessing] = useState(false);
   const [modal, setModal] = useState<QuantityModal | null>(null);
   const [modalQty, setModalQty] = useState<number>(1);
+  const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const qtyInputRef = useRef<HTMLInputElement>(null);
 
   const userId =
@@ -37,13 +51,37 @@ export default function POSPage() {
       ? localStorage.getItem("userId") || ""
       : "";
 
+  const refreshItems = useCallback(() => {
+    const uid = localStorage.getItem("userId") || "";
+    if (!uid) return;
+    getItemsForSaleToday(uid).then((res) => {
+      if (res.success) setItems(res.data);
+    });
+  }, []);
+
   useEffect(() => {
     const uid = localStorage.getItem("userId") || "";
-    getItemsForSale(uid).then((res) => {
+    getItemsForSaleToday(uid).then((res) => {
       if (res.success) setItems(res.data);
       setLoading(false);
     });
-  }, []);
+
+    const onFocus = () => refreshItems();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refreshItems();
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    const poll = setInterval(refreshItems, 30_000);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+      clearInterval(poll);
+    };
+  }, [refreshItems]);
 
   useEffect(() => {
     if (modal && qtyInputRef.current) {
@@ -119,6 +157,10 @@ export default function POSPage() {
     if (cart.length === 0) return;
     setProcessing(true);
 
+    const soldLines = [...cart];
+    const soldTotal = cartTotal;
+    const soldCount = cartCount;
+
     let failed = 0;
     for (const line of cart) {
       const result = await sellItemForSale(userId, line.itemId, line.quantity);
@@ -130,17 +172,122 @@ export default function POSPage() {
 
     if (failed === 0) {
       toast.success(
-        `Sale completed! ${cartCount} item${cartCount !== 1 ? "s" : ""} — ₱${cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+        `Sale completed! ${soldCount} item${soldCount !== 1 ? "s" : ""} — ₱${formatCurrency(soldTotal)}`,
       );
+
+      await savePOSReceipt(
+        userId,
+        soldLines.map((l) => ({
+          itemName: l.name,
+          quantity: l.quantity,
+          price: l.price,
+          total: l.price * l.quantity,
+        })),
+      );
+
+      const storeName = localStorage.getItem("username") || "Store";
+      setReceipt({
+        lines: soldLines,
+        total: soldTotal,
+        count: soldCount,
+        date: new Date().toLocaleString(),
+        storeName,
+      });
     } else {
       toast.warn(`${cart.length - failed}/${cart.length} items sold`);
     }
 
     setCart([]);
-    const refreshed = await getItemsForSale(userId);
+    const refreshed = await getItemsForSaleToday(userId);
     if (refreshed.success) setItems(refreshed.data);
     setProcessing(false);
   };
+
+  const printReceipt = useCallback(() => {
+    if (!receipt) return;
+    const win = window.open("", "_blank", "width=650,height=800");
+    if (!win) {
+      toast.error("Pop-up blocked. Please allow pop-ups to print receipts.");
+      return;
+    }
+
+    const rows = receipt.lines
+      .map(
+        (l) =>
+          `<tr>
+            <td style="padding:10px 0;font-size:18px">${l.name}</td>
+            <td style="padding:10px 12px;font-size:18px;text-align:center">${l.quantity}</td>
+            <td style="padding:10px 0;font-size:18px;text-align:right">₱${formatCurrency(l.price)}</td>
+            <td style="padding:10px 0;font-size:18px;text-align:right;font-weight:600">₱${formatCurrency(l.price * l.quantity)}</td>
+          </tr>`,
+      )
+      .join("");
+
+    win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <title>Receipt — ${receipt.storeName}</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; max-width:580px; margin:0 auto; padding:40px 30px; color:#1a1a1a; }
+    .header { text-align:center; margin-bottom:28px; }
+    .header h1 { font-size:28px; font-weight:700; margin-bottom:4px; }
+    .header .company { font-size:16px; color:#555; margin-bottom:2px; }
+    .header .date { font-size:14px; color:#888; }
+    .divider { border:none; border-top:2px dashed #bbb; margin:20px 0; }
+    table { width:100%; border-collapse:collapse; }
+    th { font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#888; padding-bottom:10px; border-bottom:2px solid #ddd; }
+    .total-section { background:#f9f5ef; border-radius:8px; padding:16px 20px; margin-top:8px; }
+    .total-section table td { font-size:22px; font-weight:700; padding:4px 0; }
+    .total-section .label { color:#555; }
+    .footer { text-align:center; margin-top:32px; }
+    .footer p { font-size:15px; color:#888; }
+    .footer .end { font-size:13px; margin-top:8px; letter-spacing:1px; color:#aaa; }
+    @media print {
+      body { max-width:100%; padding:20px; }
+      .total-section { background:#f5f5f5; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>${receipt.storeName}</h1>
+    <p class="company">LTK Food Company</p>
+    <p class="date">${receipt.date}</p>
+  </div>
+  <hr class="divider"/>
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:left">Item</th>
+        <th style="text-align:center">Qty</th>
+        <th style="text-align:right">Price</th>
+        <th style="text-align:right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+  <hr class="divider"/>
+  <div class="total-section">
+    <table>
+      <tr>
+        <td class="label">Total (${receipt.count} item${receipt.count !== 1 ? "s" : ""})</td>
+        <td style="text-align:right">₱${formatCurrency(receipt.total)}</td>
+      </tr>
+    </table>
+  </div>
+  <div class="footer">
+    <p>Thank you for your purchase!</p>
+    <p class="end">— END OF RECEIPT —</p>
+  </div>
+</body>
+</html>`);
+    win.document.close();
+    win.focus();
+    win.print();
+  }, [receipt]);
 
   const availableForModal = modal
     ? modal.item.quantity - modal.existingQty
@@ -181,7 +328,7 @@ export default function POSPage() {
                 <p className="text-amber-600/80">
                   {searchQuery
                     ? "No items match your search."
-                    : "No items for sale. Add items via Issue Food Stocks."}
+                    : "No items for today. Add today's items via Issue Food Stocks."}
                 </p>
               </div>
             ) : (
@@ -206,7 +353,7 @@ export default function POSPage() {
                         {item.name}
                       </p>
                       <p className="text-lg font-bold text-emerald-700 mt-1">
-                        ₱{item.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ₱{formatCurrency(item.price)}
                       </p>
                       <p className="text-[11px] text-amber-500 mt-1">
                         Stock: {item.quantity}
@@ -257,11 +404,11 @@ export default function POSPage() {
                       {line.name}
                     </p>
                     <p className="text-xs text-amber-600">
-                      {line.quantity} × ₱{line.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      {line.quantity} × ₱{formatCurrency(line.price)}
                     </p>
                   </div>
                   <p className="text-sm font-bold text-emerald-700 shrink-0">
-                    ₱{(line.price * line.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    ₱{formatCurrency(line.price * line.quantity)}
                   </p>
                   <button
                     onClick={() => removeFromCart(line.itemId)}
@@ -280,7 +427,7 @@ export default function POSPage() {
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-amber-700">Total</span>
               <span className="text-xl font-bold text-amber-900">
-                ₱{cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₱{formatCurrency(cartTotal)}
               </span>
             </div>
             <button
@@ -326,7 +473,7 @@ export default function POSPage() {
                   {modal.item.name}
                 </p>
                 <p className="text-emerald-700 font-semibold">
-                  ₱{modal.item.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  ₱{formatCurrency(modal.item.price)}
                 </p>
                 <p className="text-xs text-amber-500 mt-1">
                   Available: {availableForModal}
@@ -360,7 +507,7 @@ export default function POSPage() {
               <div className="flex items-center justify-between pt-1">
                 <span className="text-sm text-amber-600">Subtotal</span>
                 <span className="text-lg font-bold text-amber-900">
-                  ₱{(modal.item.price * modalQty).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  ₱{formatCurrency(modal.item.price * modalQty)}
                 </span>
               </div>
             </div>
@@ -372,6 +519,90 @@ export default function POSPage() {
                 className="w-full rounded-lg bg-amber-500 py-3 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
               >
                 Add {modalQty} to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt modal */}
+      {receipt && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setReceipt(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-amber-100">
+              <h3 className="text-base font-semibold text-amber-900">
+                Receipt
+              </h3>
+              <button
+                onClick={() => setReceipt(null)}
+                className="text-amber-400 hover:text-amber-700 transition-colors"
+              >
+                <FiX className="text-lg" />
+              </button>
+            </div>
+
+            <div className="px-5 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="text-center">
+                <p className="text-base font-bold text-amber-900">
+                  {receipt.storeName}
+                </p>
+                <p className="text-[11px] text-amber-500">LTK Food Company</p>
+                <p className="text-[11px] text-amber-500">{receipt.date}</p>
+              </div>
+
+              <div className="border-t border-dashed border-amber-300" />
+
+              <div className="space-y-2">
+                {receipt.lines.map((line) => (
+                  <div key={line.itemId} className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm text-amber-900">{line.name}</p>
+                      <p className="text-xs text-amber-500">
+                        {line.quantity} × ₱{formatCurrency(line.price)}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold text-amber-900 shrink-0">
+                      ₱{formatCurrency(line.price * line.quantity)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-dashed border-amber-300" />
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-amber-900">Total ({receipt.count} items)</span>
+                <span className="text-lg font-bold text-amber-900">
+                  ₱{formatCurrency(receipt.total)}
+                </span>
+              </div>
+
+              <div className="border-t border-dashed border-amber-300" />
+
+              <p className="text-center text-xs text-amber-500">
+                Thank you for your purchase!
+              </p>
+            </div>
+
+            <div className="px-5 pb-5 flex gap-3">
+              <button
+                onClick={() => setReceipt(null)}
+                className="flex-1 rounded-lg border border-amber-300 py-2.5 text-sm font-medium text-amber-700 hover:bg-amber-50 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={printReceipt}
+                className="flex-1 rounded-lg bg-amber-500 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <FiPrinter className="text-sm" />
+                Print
               </button>
             </div>
           </div>

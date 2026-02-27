@@ -186,6 +186,7 @@ model Store {
   salesReports     SalesReport[]
   inventoryReports InventoryReport[]
   itemsForSale     ItemForSale[]
+  posReceipts      POSReceipt[]
 }
 
 model SalesReport {
@@ -332,5 +333,17 @@ model ItemForSale {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  @@unique([storeId, name])
+  @@unique([storeId, name, date])
+}
+
+model POSReceipt {
+  id        String   @id @default(uuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  receiptNo String
+  itemName  String
+  quantity  Float
+  price     Float
+  total     Float
+  createdAt DateTime @default(now())
 }

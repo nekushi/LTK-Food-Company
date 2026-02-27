@@ -36,6 +36,39 @@ export async function getItemsForSale(userId: string): Promise<{
   };
 }
 
+export async function getItemsForSaleToday(userId: string): Promise<{
+  success: boolean;
+  data: ItemForSaleRow[];
+}> {
+  if (!userId) return { success: false, data: [] };
+
+  const store = await prisma.store.findUnique({ where: { userId } });
+  if (!store) return { success: false, data: [] };
+
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+  const items = await prisma.itemForSale.findMany({
+    where: {
+      storeId: store.id,
+      date: { gte: startOfDay, lt: endOfDay },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return {
+    success: true,
+    data: items.map((i) => ({
+      id: i.id,
+      name: i.name,
+      quantity: i.quantity,
+      price: i.price,
+      date: i.date.toISOString(),
+    })),
+  };
+}
+
 export async function upsertItemForSale(
   userId: string,
   data: { name: string; quantity: number; price: number; date: string },
@@ -46,14 +79,24 @@ export async function upsertItemForSale(
   if (!store) return { success: false, message: "Store not found" };
 
   try {
+    const parsedDate = new Date(data.date);
+    const normalizedDate = new Date(
+      parsedDate.getFullYear(),
+      parsedDate.getMonth(),
+      parsedDate.getDate(),
+    );
+
     await prisma.itemForSale.upsert({
       where: {
-        storeId_name: { storeId: store.id, name: data.name },
+        storeId_name_date: {
+          storeId: store.id,
+          name: data.name,
+          date: normalizedDate,
+        },
       },
       update: {
         quantity: { increment: data.quantity },
         price: data.price,
-        date: new Date(data.date),
         updatedAt: new Date(),
       },
       create: {
@@ -61,8 +104,8 @@ export async function upsertItemForSale(
         name: data.name,
         quantity: data.quantity,
         price: data.price,
-        date: new Date(data.date),
-        createdAt: new Date(data.date),
+        date: normalizedDate,
+        createdAt: normalizedDate,
       },
     });
 

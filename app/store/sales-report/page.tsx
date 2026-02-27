@@ -5,6 +5,7 @@ import StoreSalesReportClient from "./sales-report";
 import { getSalesReports } from "@/dal/store/sales-report";
 import { getInventoryReports } from "@/dal/store/inventory-report";
 import { getBranchInventory } from "@/dal/store/get-branch-inventory";
+import { getTodayPOSReceipts, getTodayPOSInventory, POSReceiptGroup, POSInventoryItem } from "@/dal/store/pos-receipts";
 
 export default function StoreSalesReportPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,6 +14,9 @@ export default function StoreSalesReportPage() {
   const [inventoryReports, setInventoryReports] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [branchInventory, setBranchInventory] = useState<any[]>([]);
+  const [posReceipts, setPosReceipts] = useState<POSReceiptGroup[]>([]);
+  const [posTotalSales, setPosTotalSales] = useState(0);
+  const [posInventory, setPosInventory] = useState<POSInventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,10 +25,17 @@ export default function StoreSalesReportPage() {
       getSalesReports(userId),
       getInventoryReports(userId),
       getBranchInventory(userId),
-    ]).then(([salesResult, inventoryResult, branchInv]) => {
+      getTodayPOSReceipts(userId),
+      getTodayPOSInventory(userId),
+    ]).then(([salesResult, inventoryResult, branchInv, posResult, posInvResult]) => {
       if (salesResult.success) setSalesReports(salesResult.data);
       if (inventoryResult.success) setInventoryReports(inventoryResult.data);
       setBranchInventory(branchInv);
+      if (posResult.success) {
+        setPosReceipts(posResult.data);
+        setPosTotalSales(posResult.totalSales);
+      }
+      if (posInvResult.success) setPosInventory(posInvResult.data);
       setLoading(false);
     });
   }, []);
@@ -38,6 +49,9 @@ export default function StoreSalesReportPage() {
       initialReports={salesReports}
       initialInventoryReports={inventoryReports}
       branchInventory={branchInventory}
+      posReceipts={posReceipts}
+      posTotalSales={posTotalSales}
+      posInventory={posInventory}
     />
   );
 }

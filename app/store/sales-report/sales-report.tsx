@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { upsertSalesReport } from "@/dal/store/sales-report";
 import { upsertInventoryReport } from "@/dal/store/inventory-report";
 import { IoChevronDown } from "react-icons/io5";
+import type { POSReceiptGroup, POSInventoryItem } from "@/dal/store/pos-receipts";
 
 const inputClass =
   "w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500";
@@ -81,10 +82,16 @@ export default function StoreSalesReportClient({
   initialReports,
   initialInventoryReports,
   branchInventory = [],
+  posReceipts = [],
+  posTotalSales = 0,
+  posInventory = [],
 }: {
   initialReports: any[];
   initialInventoryReports: any[];
   branchInventory?: BranchInventoryItem[];
+  posReceipts?: POSReceiptGroup[];
+  posTotalSales?: number;
+  posInventory?: POSInventoryItem[];
 }) {
   const [reports, setReports] = useState(initialReports);
   const [inventoryReports, setInventoryReports] = useState(initialInventoryReports);
@@ -366,7 +373,7 @@ export default function StoreSalesReportClient({
         </div>
       </div>
 
-      {activeView === "sales" ? (
+      {activeView === "sales" ? (<>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Form Section */}
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 shadow-sm h-fit">
@@ -460,7 +467,80 @@ export default function StoreSalesReportClient({
             </div>
           </div>
         </div>
-      ) : (
+
+        {/* POS Receipts for Today */}
+        <div className="rounded-xl border border-amber-200 bg-white shadow-sm overflow-hidden">
+          <div className="border-b border-amber-200 bg-amber-50 px-6 py-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-amber-900">
+              Today&apos;s POS Transactions
+            </h2>
+            <div className="text-right">
+              <p className="text-xs text-amber-600 uppercase tracking-wide">Total POS Sales Today</p>
+              <p className="text-xl font-bold text-emerald-700">
+                ₱{posTotalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+          <div className="overflow-y-auto max-h-[500px]">
+            {posReceipts.length === 0 ? (
+              <p className="p-8 text-center text-sm text-amber-600/80">
+                No POS transactions today.
+              </p>
+            ) : (
+              <table className="w-full text-left text-sm">
+                <thead className="sticky top-0 bg-white shadow-sm border-b border-amber-200 z-10">
+                  <tr className="text-amber-900 text-xs uppercase tracking-wider">
+                    <th className="px-5 py-3 font-semibold">Receipt</th>
+                    <th className="px-5 py-3 font-semibold">Time</th>
+                    <th className="px-5 py-3 font-semibold">Item</th>
+                    <th className="px-5 py-3 font-semibold text-center">Qty</th>
+                    <th className="px-5 py-3 font-semibold text-right">Price</th>
+                    <th className="px-5 py-3 font-semibold text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-amber-50">
+                  {posReceipts.map((receipt) =>
+                    receipt.lines.map((line, idx) => (
+                      <tr
+                        key={`${receipt.receiptNo}-${idx}`}
+                        className={`hover:bg-amber-50/50 transition-colors ${idx === 0 ? "border-t-2 border-amber-200" : ""}`}
+                      >
+                        <td className="px-5 py-3 text-amber-700 font-medium text-xs whitespace-nowrap">
+                          {idx === 0 ? receipt.receiptNo.split("-").slice(0, 2).join("-") : ""}
+                        </td>
+                        <td className="px-5 py-3 text-amber-600 text-xs whitespace-nowrap">
+                          {idx === 0
+                            ? new Date(receipt.createdAt).toLocaleTimeString(undefined, {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : ""}
+                        </td>
+                        <td className="px-5 py-3 text-amber-900 font-medium">{line.itemName}</td>
+                        <td className="px-5 py-3 text-amber-800 font-bold text-center">{line.quantity}</td>
+                        <td className="px-5 py-3 text-amber-700 text-right">
+                          ₱{line.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-5 py-3 text-emerald-700 font-bold text-right">
+                          ₱{line.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    )),
+                  )}
+                  <tr className="bg-amber-50 border-t-2 border-amber-300">
+                    <td colSpan={5} className="px-5 py-3 text-sm font-bold text-amber-900 text-right">
+                      Grand Total
+                    </td>
+                    <td className="px-5 py-3 text-lg font-bold text-emerald-700 text-right">
+                      ₱{posTotalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </>) : (<>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 shadow-sm h-fit">
             <h2 className="mb-4 text-sm font-semibold text-amber-900">
@@ -815,7 +895,59 @@ export default function StoreSalesReportClient({
             </div>
           </div>
         </div>
-      )}
+
+        {/* POS Daily Inventory Tracker */}
+        <div className="rounded-xl border border-amber-200 bg-white shadow-sm overflow-hidden">
+          <div className="border-b border-amber-200 bg-amber-50 px-6 py-4">
+            <h2 className="text-sm font-semibold text-amber-900">
+              Today&apos;s POS Stock Tracker
+            </h2>
+            <p className="text-xs text-amber-600 mt-0.5">
+              Tracks initial stock, sold quantities, and remaining stock for items issued today.
+            </p>
+          </div>
+          <div className="overflow-y-auto max-h-[400px]">
+            {posInventory.length === 0 ? (
+              <p className="p-8 text-center text-sm text-amber-600/80">
+                No items issued for today yet.
+              </p>
+            ) : (
+              <table className="w-full text-left text-sm">
+                <thead className="sticky top-0 bg-white shadow-sm border-b border-amber-200 z-10">
+                  <tr className="text-amber-900 text-xs uppercase tracking-wider">
+                    <th className="px-5 py-3 font-semibold">Item</th>
+                    <th className="px-5 py-3 font-semibold text-right">Initial Stock</th>
+                    <th className="px-5 py-3 font-semibold text-right">Sold</th>
+                    <th className="px-5 py-3 font-semibold text-right">Remaining</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-amber-50">
+                  {posInventory.map((item) => {
+                    const pct = item.initialStock > 0
+                      ? Math.round((item.remainingStock / item.initialStock) * 100)
+                      : 0;
+                    return (
+                      <tr key={item.itemName} className="hover:bg-amber-50/50 transition-colors">
+                        <td className="px-5 py-3 text-amber-900 font-medium">{item.itemName}</td>
+                        <td className="px-5 py-3 text-amber-700 font-bold text-right">{item.initialStock}</td>
+                        <td className="px-5 py-3 text-rose-600 font-bold text-right">
+                          {item.soldQty > 0 ? `-${item.soldQty}` : "0"}
+                        </td>
+                        <td className="px-5 py-3 text-right">
+                          <span className={`font-bold ${item.remainingStock <= 0 ? "text-red-600" : pct <= 25 ? "text-orange-600" : "text-emerald-700"}`}>
+                            {item.remainingStock}
+                          </span>
+                          <span className="ml-2 text-[10px] text-amber-500">({pct}%)</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </>)}
     </div>
   );
 }
