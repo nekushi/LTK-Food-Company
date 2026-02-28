@@ -50,7 +50,10 @@ export default function BranchInventoryClient({
   );
 
   const uniqueYears = useMemo(
-    () => [...new Set(inventory.map((i) => i.periodYear))].sort((a, b) => b.localeCompare(a)),
+    () =>
+      [...new Set(inventory.map((i) => i.periodYear))].sort((a, b) =>
+        b.localeCompare(a),
+      ),
     [inventory],
   );
 
@@ -131,7 +134,8 @@ export default function BranchInventoryClient({
     setFilterYear("");
   };
 
-  const hasActiveFilters = search || filterRecognition || filterMonth || filterYear;
+  const hasActiveFilters =
+    search || filterRecognition || filterMonth || filterYear;
 
   return (
     <div className="space-y-6 p-8">
@@ -160,14 +164,14 @@ export default function BranchInventoryClient({
             {metrics.totalQty.toLocaleString()}
           </p>
         </div>
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        {/* <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
           <p className="text-xs font-medium text-emerald-600 uppercase tracking-wider">
             Net Pay
           </p>
           <p className="mt-1 text-2xl font-bold text-emerald-800">
             ₱{metrics.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
-        </div>
+        </div> */}
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
           <p className="text-xs font-medium text-amber-600 uppercase tracking-wider">
             Categories
@@ -270,15 +274,15 @@ export default function BranchInventoryClient({
                 <tr>
                   <th className="px-5 py-3 font-semibold">Product</th>
                   <th className="px-5 py-3 font-semibold">Category</th>
-                  <th className="px-5 py-3 font-semibold">VAT</th>
+                  {/* <th className="px-5 py-3 font-semibold">VAT</th> */}
                   <th className="px-5 py-3 font-semibold text-right">Qty</th>
                   <th className="px-5 py-3 font-semibold">Unit</th>
-                  <th className="px-5 py-3 font-semibold text-right">
+                  {/* <th className="px-5 py-3 font-semibold text-right">
                     Unit Price
                   </th>
                   <th className="px-5 py-3 font-semibold text-right">
                     Net Pay
-                  </th>
+                  </th> */}
                 </tr>
               </thead>
               <tbody>
@@ -300,7 +304,7 @@ export default function BranchInventoryClient({
                         {item.accountRecognition}
                       </span>
                     </td>
-                    <td className="px-5 py-3">
+                    {/* <td className="px-5 py-3">
                       <span
                         className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${
                           item.typeOfVatTaxpayer === "VAT Registered"
@@ -312,19 +316,27 @@ export default function BranchInventoryClient({
                           ? "VAT"
                           : "Non-VAT"}
                       </span>
-                    </td>
+                    </td> */}
                     <td className="px-5 py-3 text-emerald-600 font-bold text-right">
                       {item.quantity}
                     </td>
                     <td className="px-5 py-3 text-amber-600 text-xs">
                       {item.unitOfMeasurement}
                     </td>
-                    <td className="px-5 py-3 text-amber-800 text-right text-xs">
-                      ₱{item.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {/* <td className="px-5 py-3 text-amber-800 text-right text-xs">
+                      ₱
+                      {item.unitPrice.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </td>
                     <td className="px-5 py-3 text-emerald-700 font-semibold text-right text-xs">
-                      ₱{item.netPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
+                      ₱
+                      {item.netPay.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td> */}
                   </tr>
                 ))}
               </tbody>

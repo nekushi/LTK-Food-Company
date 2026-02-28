@@ -78,7 +78,7 @@ export async function getItemsForSaleToday(userId: string): Promise<{
 
 export async function upsertItemForSale(
   userId: string,
-  data: { name: string; quantity: number; price: number; date: string },
+  data: { name: string; quantity: number; price: number },
 ): Promise<{ success: boolean; message: string }> {
   if (!userId) return { success: false, message: "Unauthorized" };
 
@@ -86,35 +86,32 @@ export async function upsertItemForSale(
   if (!store) return { success: false, message: "Store not found" };
 
   try {
-    const parsedDate = new Date(data.date);
-    const normalizedDate = new Date(
-      parsedDate.getFullYear(),
-      parsedDate.getMonth(),
-      parsedDate.getDate(),
-    );
+    const now = new Date(currentNow());
+    const existing = await prisma.itemForSale.findFirst({
+      where: { storeId: store.id, name: data.name },
+    });
 
-    await prisma.itemForSale.upsert({
-      where: {
-        storeId_name_date: {
+    if (existing) {
+      await prisma.itemForSale.update({
+        where: { id: existing.id },
+        data: {
+          quantity: { increment: data.quantity },
+          price: data.price,
+          updatedAt: now,
+        },
+      });
+    } else {
+      await prisma.itemForSale.create({
+        data: {
           storeId: store.id,
           name: data.name,
-          date: normalizedDate,
+          quantity: data.quantity,
+          price: data.price,
+          date: now,
+          createdAt: now,
         },
-      },
-      update: {
-        quantity: { increment: data.quantity },
-        price: data.price,
-        updatedAt: new Date(currentNow()),
-      },
-      create: {
-        storeId: store.id,
-        name: data.name,
-        quantity: data.quantity,
-        price: data.price,
-        date: normalizedDate,
-        createdAt: normalizedDate,
-      },
-    });
+      });
+    }
 
     return { success: true, message: "Item saved successfully" };
   } catch (error) {

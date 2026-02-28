@@ -12,7 +12,8 @@ import { getBranchInventory } from "@/dal/store/get-branch-inventory";
 import { getAuth } from "@/lib/auth-storage";
 import { FiTrash2, FiPlus } from "react-icons/fi";
 
-const FOOD_SUPPLIES_RECOGNITION = "Food Supplies";
+/** Account recognition values that map to Raw materials (food/raw). */
+const RAW_MATERIALS_RECOGNITION = ["Raw materials", "Food Supplies"];
 
 type BranchInventoryItem = {
   id: string;
@@ -33,9 +34,6 @@ export default function IssueFoodStocksPage() {
   const [branchInventory, setBranchInventory] = useState<BranchInventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [formDate, setFormDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
   const [formName, setFormName] = useState("");
   const [formQuantity, setFormQuantity] = useState<number>(0);
   const [formPrice, setFormPrice] = useState<number>(0);
@@ -46,10 +44,10 @@ export default function IssueFoodStocksPage() {
       ? getAuth("userId") || ""
       : "";
 
-  const foodSuppliesOnly = useMemo(() => {
+  const rawMaterialsOnly = useMemo(() => {
     return branchInventory.filter(
       (i) =>
-        i.accountRecognition === FOOD_SUPPLIES_RECOGNITION ||
+        RAW_MATERIALS_RECOGNITION.includes(i.accountRecognition ?? "") ||
         i.accountRecognition?.toLowerCase().includes("food"),
     );
   }, [branchInventory]);
@@ -59,7 +57,7 @@ export default function IssueFoodStocksPage() {
       string,
       { productNameGeneral: string; unitOfMeasurement: string; quantity: number; unitPrice: number; _spend: number }
     >();
-    for (const item of foodSuppliesOnly) {
+    for (const item of rawMaterialsOnly) {
       const key = item.productNameGeneral;
       const existing = map.get(key);
       if (existing) {
@@ -81,7 +79,7 @@ export default function IssueFoodStocksPage() {
       quantity: r.quantity,
       unitPrice: r.quantity > 0 ? r._spend / r.quantity : r.unitPrice,
     }));
-  }, [foodSuppliesOnly]);
+  }, [rawMaterialsOnly]);
 
   useEffect(() => {
     const uid = getAuth("userId") || "";
@@ -114,7 +112,6 @@ export default function IssueFoodStocksPage() {
       name: formName.trim(),
       quantity: formQuantity,
       price: formPrice,
-      date: formDate,
     });
 
     if (result.success) {
@@ -197,16 +194,6 @@ export default function IssueFoodStocksPage() {
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className={labelClass}>Date</label>
-              <input
-                type="date"
-                required
-                value={formDate}
-                onChange={(e) => setFormDate(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-            <div>
               <label className={labelClass}>Name</label>
               <input
                 type="text"
@@ -263,7 +250,7 @@ export default function IssueFoodStocksPage() {
                 Current Food Stocks
               </h2>
               <p className="text-xs text-amber-600 mt-0.5">
-                From inventory (Food Supplies only)
+                From inventory (Raw materials)
               </p>
             </div>
             <div className="overflow-y-auto flex-1">
@@ -273,7 +260,7 @@ export default function IssueFoodStocksPage() {
                 </p>
               ) : mergedFoodStocks.length === 0 ? (
                 <p className="p-6 text-center text-sm text-amber-600/80">
-                  No food supplies in inventory yet.
+                  No raw materials in inventory yet.
                 </p>
               ) : (
                 <table className="w-full text-left text-sm">
@@ -334,7 +321,6 @@ export default function IssueFoodStocksPage() {
                       <th className="px-4 py-3 font-semibold">Name</th>
                       <th className="px-4 py-3 font-semibold text-right">Qty</th>
                       <th className="px-4 py-3 font-semibold text-right">Price</th>
-                      <th className="px-4 py-3 font-semibold text-right">Date</th>
                       <th className="px-4 py-3 font-semibold w-10" />
                     </tr>
                   </thead>
@@ -354,11 +340,6 @@ export default function IssueFoodStocksPage() {
                           ₱
                           {item.price.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
-                          })}
-                        </td>
-                        <td className="px-4 py-3 text-amber-600 text-right text-xs">
-                          {new Date(item.date).toLocaleDateString(undefined, {
-                            dateStyle: "medium",
                           })}
                         </td>
                         <td className="px-4 py-3 text-right">

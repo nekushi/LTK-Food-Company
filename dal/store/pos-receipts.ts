@@ -110,6 +110,68 @@ export async function getTodayPOSReceipts(userId: string): Promise<{
   return { success: true, data, totalSales };
 }
 
+/** Get POS receipts for a specific date (YYYY-MM-DD). */
+export async function getPOSReceiptsByDate(
+  userId: string,
+  dateStr: string,
+): Promise<{ success: boolean; data: POSReceiptGroup[]; totalSales: number }> {
+  if (!userId) return { success: false, data: [], totalSales: 0 };
+
+  const store = await prisma.store.findUnique({ where: { userId } });
+  if (!store) return { success: false, data: [], totalSales: 0 };
+
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const startOfDay = new Date(y, m - 1, d);
+  const endOfDay = new Date(y, m - 1, d + 1);
+
+  const rows = await prisma.pOSReceipt.findMany({
+    where: {
+      storeId: store.id,
+      createdAt: { gte: startOfDay, lt: endOfDay },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const grouped = new Map<string, { lines: POSReceiptLine[]; createdAt: Date }>();
+  let totalSales = 0;
+
+  for (const row of rows) {
+    totalSales += row.total;
+    const existing = grouped.get(row.receiptNo);
+    if (existing) {
+      existing.lines.push({
+        itemName: row.itemName,
+        quantity: row.quantity,
+        price: row.price,
+        total: row.total,
+      });
+    } else {
+      grouped.set(row.receiptNo, {
+        lines: [
+          {
+            itemName: row.itemName,
+            quantity: row.quantity,
+            price: row.price,
+            total: row.total,
+          },
+        ],
+        createdAt: row.createdAt,
+      });
+    }
+  }
+
+  const data: POSReceiptGroup[] = Array.from(grouped.entries()).map(
+    ([receiptNo, { lines, createdAt }]) => ({
+      receiptNo,
+      lines,
+      grandTotal: lines.reduce((s, l) => s + l.total, 0),
+      createdAt: createdAt.toISOString(),
+    }),
+  );
+
+  return { success: true, data, totalSales };
+}
+
 export interface POSInventoryItem {
   itemName: string;
   initialStock: number;

@@ -339,7 +339,7 @@ model ItemForSale {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  @@unique([storeId, name, date])
+  @@unique([storeId, name])
 }
 
 model POSReceipt {

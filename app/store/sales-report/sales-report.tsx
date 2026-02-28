@@ -6,7 +6,7 @@ import { upsertSalesReport, getSalesReports } from "@/dal/store/sales-report";
 import { upsertInventoryReport } from "@/dal/store/inventory-report";
 import { IoChevronDown } from "react-icons/io5";
 import type { POSReceiptGroup, POSInventoryItem } from "@/dal/store/pos-receipts";
-import { sendPOSDailyReport } from "@/dal/store/pos-receipts";
+import { sendPOSDailyReport, getPOSReceiptsByDate } from "@/dal/store/pos-receipts";
 import { getAuth } from "@/lib/auth-storage";
 import { FiSend } from "react-icons/fi";
 
@@ -129,6 +129,33 @@ export default function StoreSalesReportClient({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [sendingTransactions, setSendingTransactions] = useState(false);
   const [sendingStock, setSendingStock] = useState(false);
+
+  /** Date filter for POS receipts table (YYYY-MM-DD). Default today. */
+  const [receiptFilterDate, setReceiptFilterDate] = useState(() =>
+    new Date().toISOString().split("T")[0],
+  );
+  const [filteredReceipts, setFilteredReceipts] = useState<POSReceiptGroup[]>(posReceipts);
+  const [filteredReceiptsTotal, setFilteredReceiptsTotal] = useState(posTotalSales);
+  const [receiptsLoading, setReceiptsLoading] = useState(false);
+
+  /** Sync filtered receipts when initial props (today) load or when date filter changes. */
+  useEffect(() => {
+    const uid = getAuth("userId") || "";
+    const today = new Date().toISOString().split("T")[0];
+    if (receiptFilterDate === today && posReceipts.length >= 0) {
+      setFilteredReceipts(posReceipts);
+      setFilteredReceiptsTotal(posTotalSales);
+      return;
+    }
+    setReceiptsLoading(true);
+    getPOSReceiptsByDate(uid, receiptFilterDate).then((res) => {
+      setReceiptsLoading(false);
+      if (res.success) {
+        setFilteredReceipts(res.data);
+        setFilteredReceiptsTotal(res.totalSales);
+      }
+    });
+  }, [receiptFilterDate, posReceipts, posTotalSales]);
 
   const handleSendTransactions = async () => {
     if (posReceipts.length === 0) {
@@ -477,6 +504,7 @@ export default function StoreSalesReportClient({
                   <thead className="sticky top-0 bg-white shadow-sm border-b border-amber-200 z-10">
                     <tr className="text-amber-900 text-xs uppercase tracking-wider">
                       <th className="px-6 py-3 font-semibold">Date</th>
+                      <th className="px-6 py-3 font-semibold">Submitted</th>
                       <th className="px-6 py-3 font-semibold text-right">
                         Sales (₱)
                       </th>
@@ -492,6 +520,14 @@ export default function StoreSalesReportClient({
                       >
                         <td className="px-6 py-3 text-amber-900 font-medium whitespace-nowrap">
                           {formatDailyPeriod(report.periodMonth, report.periodYear)}
+                        </td>
+                        <td className="px-6 py-3 text-amber-600 text-xs whitespace-nowrap">
+                          {report.createdAt
+                            ? new Date(report.createdAt).toLocaleString(undefined, {
+                                dateStyle: "short",
+                                timeStyle: "short",
+                              })
+                            : "—"}
                         </td>
                         <td className="px-6 py-3 text-emerald-700 font-bold text-right">
                           ₱
@@ -509,17 +545,29 @@ export default function StoreSalesReportClient({
           </div>
         </div>
 
-        {/* POS Receipts for Today */}
+        {/* POS Receipts with date filter */}
         <div className="rounded-xl border border-amber-200 bg-white shadow-sm overflow-hidden">
-          <div className="border-b border-amber-200 bg-amber-50 px-6 py-4 flex items-center justify-between">
+          <div className="border-b border-amber-200 bg-amber-50 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
             <h2 className="text-sm font-semibold text-amber-900">
-              Today&apos;s POS Transactions
+              POS Transactions
             </h2>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
+              <div>
+                <label className="sr-only" htmlFor="receipt-date-filter">Filter by date</label>
+                <input
+                  id="receipt-date-filter"
+                  type="date"
+                  value={receiptFilterDate}
+                  onChange={(e) => setReceiptFilterDate(e.target.value)}
+                  className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                />
+              </div>
               <div className="text-right">
-                <p className="text-xs text-amber-600 uppercase tracking-wide">Total POS Sales Today</p>
+                <p className="text-xs text-amber-600 uppercase tracking-wide">
+                  Total POS Sales {receiptFilterDate === new Date().toISOString().split("T")[0] ? "Today" : ""}
+                </p>
                 <p className="text-xl font-bold text-emerald-700">
-                  ₱{posTotalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {receiptsLoading ? "—" : `₱${filteredReceiptsTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 </p>
               </div>
               <button
@@ -533,15 +581,18 @@ export default function StoreSalesReportClient({
             </div>
           </div>
           <div className="overflow-y-auto max-h-[500px]">
-            {posReceipts.length === 0 ? (
+            {receiptsLoading ? (
+              <p className="p-8 text-center text-sm text-amber-600/80">Loading...</p>
+            ) : filteredReceipts.length === 0 ? (
               <p className="p-8 text-center text-sm text-amber-600/80">
-                No POS transactions today.
+                No POS transactions for this date.
               </p>
             ) : (
               <table className="w-full text-left text-sm">
                 <thead className="sticky top-0 bg-white shadow-sm border-b border-amber-200 z-10">
                   <tr className="text-amber-900 text-xs uppercase tracking-wider">
                     <th className="px-5 py-3 font-semibold">Receipt</th>
+                    <th className="px-5 py-3 font-semibold">Date</th>
                     <th className="px-5 py-3 font-semibold">Time</th>
                     <th className="px-5 py-3 font-semibold">Item</th>
                     <th className="px-5 py-3 font-semibold text-center">Qty</th>
@@ -550,7 +601,7 @@ export default function StoreSalesReportClient({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-amber-50">
-                  {posReceipts.map((receipt) =>
+                  {filteredReceipts.map((receipt) =>
                     receipt.lines.map((line, idx) => (
                       <tr
                         key={`${receipt.receiptNo}-${idx}`}
@@ -558,6 +609,15 @@ export default function StoreSalesReportClient({
                       >
                         <td className="px-5 py-3 text-amber-700 font-medium text-xs whitespace-nowrap">
                           {idx === 0 ? receipt.receiptNo.split("-").slice(0, 2).join("-") : ""}
+                        </td>
+                        <td className="px-5 py-3 text-amber-600 text-xs whitespace-nowrap">
+                          {idx === 0
+                            ? new Date(receipt.createdAt).toLocaleDateString(undefined, {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })
+                            : ""}
                         </td>
                         <td className="px-5 py-3 text-amber-600 text-xs whitespace-nowrap">
                           {idx === 0
@@ -579,11 +639,11 @@ export default function StoreSalesReportClient({
                     )),
                   )}
                   <tr className="bg-amber-50 border-t-2 border-amber-300">
-                    <td colSpan={5} className="px-5 py-3 text-sm font-bold text-amber-900 text-right">
+                    <td colSpan={6} className="px-5 py-3 text-sm font-bold text-amber-900 text-right">
                       Grand Total
                     </td>
                     <td className="px-5 py-3 text-lg font-bold text-emerald-700 text-right">
-                      ₱{posTotalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ₱{filteredReceiptsTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
                 </tbody>
