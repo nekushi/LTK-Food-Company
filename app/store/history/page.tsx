@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getRequestedItemsHistoryForStore } from "@/dal/inventory/get-requested-items";
+import { getAuth } from "@/lib/auth-storage";
 import { StoreHistoryClient } from "./StoreHistoryClient";
 
 export default function StoreHistoryPage() {
@@ -10,7 +11,7 @@ export default function StoreHistoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId") || "";
+    const userId = getAuth("userId") || "";
     getRequestedItemsHistoryForStore(userId).then((data) => {
       setRequestDecisions(data);
       setLoading(false);

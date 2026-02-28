@@ -1,16 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { clearAuth } from "@/lib/auth-storage";
 
 export default function BtnLogoutSPA() {
   const router = useRouter();
 
   const handleLogoutClick = () => {
-    localStorage.removeItem("userId");
-    localStorage.removeItem("username");
-    localStorage.removeItem("firstName");
-    localStorage.removeItem("lastName");
-    localStorage.removeItem("role");
+    clearAuth();
     router.push("/login");
   };
 

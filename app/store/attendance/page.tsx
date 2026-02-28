@@ -8,6 +8,7 @@ import { getEmployees } from "@/app/hr/employees/dal/get-employees";
 import { linkToEmployees } from "@/dal/hr/linkToEmployee";
 import { convertToTimeFormat } from "@/utils/excelTImeFormat";
 import { TypeAttendanceCardGeo } from "@/index";
+import { getAuth } from "@/lib/auth-storage";
 import { toast } from "react-toastify";
 
 type InOut = {
@@ -280,7 +281,7 @@ export default function StoreAttendancePage() {
   const [showLinked, setShowLinked] = useState(true);
 
   const loadEmployees = () => {
-    const storeName = localStorage.getItem("username") || "";
+    const storeName = getAuth("username") || "";
     getEmployees().then((all) => {
       const filtered = storeName
         ? (all as EmployeeWithWork[]).filter((e) => {
@@ -358,7 +359,7 @@ export default function StoreAttendancePage() {
     }
     setIsLinking(true);
     try {
-      const userId = localStorage.getItem("userId") || "";
+      const userId = getAuth("userId") || "";
       const result = await linkToEmployees(approvedCards, userId || undefined);
       if (result.success && result.linkedCount > 0) {
         toast.success(result.message);
