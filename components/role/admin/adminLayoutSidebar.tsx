@@ -80,8 +80,8 @@ export default function AdminLayoutSidebar() {
       children: [
         { name: "Admin Info", href: "/admin/personnel/admin-info" },
         { name: "Employee Records", href: "/admin/personnel/employee-records" },
-        { name: "Attendance", href: "/admin/personnel/attendance" },
-        { name: "Payroll", href: "/admin/personnel/payroll" },
+        // { name: "Attendance", href: "/admin/personnel/attendance" },
+        // { name: "Payroll", href: "/admin/personnel/payroll" },
       ],
     },
     {
@@ -96,27 +96,27 @@ export default function AdminLayoutSidebar() {
         },
       ],
     },
-    {
-      name: "Reports",
-      icon: <IoAnalytics />,
-      children: [
-        { name: "Sales Reports", href: "/admin/reports/sales" },
-        { name: "Inventory Reports", href: "/admin/reports/inventory" },
-        { name: "Delivery Reports", href: "/admin/reports/delivery" },
-      ],
-    },
-    {
-      name: "Settings",
-      icon: <FaRegUser />,
-      children: [
-        { name: "Admin Accounts", href: "/admin/settings/accounts" },
-        {
-          name: "Branch Registration",
-          href: "/admin/settings/branch-registration",
-        },
-        { name: "System Config", href: "/admin/settings/system-config" },
-      ],
-    },
+    // {
+    //   name: "Reports",
+    //   icon: <IoAnalytics />,
+    //   children: [
+    //     { name: "Sales Reports", href: "/admin/reports/sales" },
+    //     { name: "Inventory Reports", href: "/admin/reports/inventory" },
+    //     { name: "Delivery Reports", href: "/admin/reports/delivery" },
+    //   ],
+    // },
+    // {
+    //   name: "Settings",
+    //   icon: <FaRegUser />,
+    //   children: [
+    //     { name: "Admin Accounts", href: "/admin/settings/accounts" },
+    //     {
+    //       name: "Branch Registration",
+    //       href: "/admin/settings/branch-registration",
+    //     },
+    //     { name: "System Config", href: "/admin/settings/system-config" },
+    //   ],
+    // },
   ];
 
   return (
