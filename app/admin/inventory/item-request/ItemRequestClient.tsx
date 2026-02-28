@@ -254,6 +254,9 @@ export function ItemRequestClient({
               <thead>
                 <tr className="border-b border-amber-200 bg-amber-50">
                   <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
+                    Date
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
                     Store
                   </th>
                   <th className="min-w-[140px] px-5 py-4 font-semibold text-amber-900">
@@ -280,7 +283,7 @@ export function ItemRequestClient({
                 {filteredHistory.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-5 py-12 text-center text-amber-700"
                     >
                       No history records
@@ -295,6 +298,14 @@ export function ItemRequestClient({
                         key={entry.id}
                         className="border-b border-amber-100 hover:bg-amber-50/50"
                       >
+                        <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                          {entry.createdAt
+                            ? new Date(entry.createdAt).toLocaleDateString(
+                                undefined,
+                                { dateStyle: "medium" },
+                              )
+                            : "—"}
+                        </td>
                         <td className="whitespace-nowrap px-5 py-3 text-amber-900">
                           {entry.storeUsername}
                         </td>

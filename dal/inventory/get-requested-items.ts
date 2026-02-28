@@ -96,6 +96,8 @@ export type RequestedItemHistoryEntry = {
   note: string | null;
   status: string | null;
   deliveryStatus: string | null;
+  /** ISO date string; present when loaded from getRequestedItemsHistoryForStore */
+  createdAt?: string;
 };
 
 export type OnTheWayItemEntry = RequestedItemHistoryEntry & {
@@ -233,6 +235,7 @@ export async function getRequestedItemsHistoryForInventory(): Promise<
     note: item.note,
     status: item.status,
     deliveryStatus: item.status,
+    createdAt: item.createdAt.toISOString(),
   }));
 }
 
@@ -265,6 +268,7 @@ export async function getRequestedItemsHistoryForStore(
     note: item.note,
     status: item.status,
     deliveryStatus: item.status,
+    createdAt: item.createdAt.toISOString(),
   }));
 }
 

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getSalesReports } from "@/dal/store/sales-report";
+import { getRequestedItemsHistoryForStore } from "@/dal/inventory/get-requested-items";
+import type { RequestedItemHistoryEntry } from "@/dal/inventory/get-requested-items";
 import { getAuth } from "@/lib/auth-storage";
 import Link from "next/link";
 
@@ -43,15 +45,49 @@ function computeFromDaily(
   return { todaySales, weekSales, monthSales, yearSales };
 }
 
+function getHistoryStatus(entry: RequestedItemHistoryEntry) {
+  if (entry.isRequestApproved) {
+    if (entry.deliveryStatus === "success") return "Delivered";
+    if (entry.deliveryStatus === "on the way") return "On the way";
+    return "Approved";
+  }
+  return "Rejected";
+}
+
+function historyStatusClass(status: string) {
+  switch (status) {
+    case "Delivered":
+    case "success":
+      return "bg-emerald-100 text-emerald-800";
+    case "Approved":
+    case "to be delivered":
+      return "bg-blue-100 text-blue-800";
+    case "On the way":
+      return "bg-indigo-100 text-indigo-800";
+    case "Pending":
+      return "bg-amber-100 text-amber-800";
+    case "Rejected":
+    case "Cancelled":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-amber-100 text-amber-800";
+  }
+}
+
 export default function StoreDashboardPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [salesReports, setSalesReports] = useState<any[]>([]);
+  const [history, setHistory] = useState<RequestedItemHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const userId = getAuth("userId") || "";
-    getSalesReports(userId).then((result) => {
-      if (result.success) setSalesReports(result.data);
+    Promise.all([
+      getSalesReports(userId),
+      getRequestedItemsHistoryForStore(userId),
+    ]).then(([salesResult, historyData]) => {
+      if (salesResult.success) setSalesReports(salesResult.data);
+      setHistory(Array.isArray(historyData) ? historyData : []);
       setLoading(false);
     });
   }, []);
@@ -198,6 +234,73 @@ export default function StoreDashboardPage() {
                 ))}
               </tbody>
             </table>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-amber-200 bg-white shadow-sm mt-8">
+        <div className="border-b border-amber-200 bg-amber-50 flex justify-between items-center px-6 py-4">
+          <h2 className="text-base font-semibold text-amber-900">
+            Last 10 History
+          </h2>
+          <Link
+            href="/store/history"
+            className="text-sm text-amber-600 hover:text-amber-800 font-medium"
+          >
+            View full history →
+          </Link>
+        </div>
+        <div className="p-0">
+          {history.length === 0 ? (
+            <div className="p-8 text-center text-amber-600/80">
+              <p>No request history yet.</p>
+              <Link
+                href="/store/history"
+                className="inline-block mt-3 px-4 py-2 bg-amber-100 text-amber-800 rounded-lg text-sm font-medium hover:bg-amber-200"
+              >
+                Go to History
+              </Link>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-amber-200 bg-amber-50">
+                    <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">Date</th>
+                    <th className="min-w-[140px] px-5 py-4 font-semibold text-amber-900">Product</th>
+                    <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">Qty</th>
+                    <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">Unit</th>
+                    <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">Status</th>
+                    <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">Delivery Status</th>
+                    <th className="min-w-[120px] px-5 py-4 font-semibold text-amber-900">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.slice(0, 10).map((entry) => {
+                    const status = getHistoryStatus(entry);
+                    return (
+                      <tr key={entry.id} className="border-b border-amber-100 hover:bg-amber-50/50">
+                        <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                          {entry.createdAt ? new Date(entry.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" }) : "—"}
+                        </td>
+                        <td className="min-w-[140px] px-5 py-3 text-amber-900">{entry.productNameGeneral}</td>
+                        <td className="whitespace-nowrap px-5 py-3 text-amber-900">{entry.quantity}</td>
+                        <td className="whitespace-nowrap px-5 py-3 text-amber-900">{entry.unitOfMeasurement}</td>
+                        <td className="whitespace-nowrap px-5 py-3">
+                          <span className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${historyStatusClass(status)}`}>
+                            {status}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-5 py-3 text-amber-900">
+                          {entry.deliveryStatus ? <span className="capitalize">{entry.deliveryStatus}</span> : "—"}
+                        </td>
+                        <td className="min-w-[120px] px-5 py-3 text-amber-900">{entry.note ?? "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

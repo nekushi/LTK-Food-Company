@@ -617,3 +617,6 @@ update all the @default(now()) to use the above date
 [x] - /admin/branch/manage/[id]. in stocks report, fetch inventory from store to be shown in dry items and raw materials inside report -> stocks report
 [x] - /admin/personnel/employee-records/[id]. generate payslip for every employee month by printing netPay simulation. make it look like payslip.
 [x] - /admin/personnel/employee-records/[id]. print button is not for general, but every month has print button
+[x] - /store/page.tsx. get the UI from /store/history. display only the last 10 history
+[x] - /store/page.tsx. display only the last 10 history. add new table header for date
+[x] - /admin/inventory/item-request. add new table header for date as well
