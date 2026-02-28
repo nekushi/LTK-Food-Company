@@ -67,8 +67,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--ltk-blue-white)] px-4">
-      <div className="w-full max-w-sm rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
+    <div className="relative flex min-h-screen items-center justify-center px-4 overflow-hidden">
+      <img
+        src="/bg.png"
+        alt=""
+        className="absolute inset-0 z-0 h-full w-full object-cover object-center"
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0 z-0 bg-[var(--ltk-blue-white)]/60"
+        aria-hidden
+      />
+      <div className="relative z-10 w-full max-w-sm rounded-xl border border-amber-200 bg-white/95 p-6 shadow-sm backdrop-blur-sm">
         <h1 className="mb-6 text-xl font-semibold text-amber-900">
           LTK Food Corporation
         </h1>

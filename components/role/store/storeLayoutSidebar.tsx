@@ -57,7 +57,9 @@ export default function StoreLayoutSidebar() {
 
   return (
     <aside className="h-full bg-amber-50 flex flex-col col-span-2 overflow-y-auto border-r border-amber-200">
-      <div className="px-5 pt-5 pb-3">
+      <div className="px-5 pt-5 pb-3 flex items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="LTK Logo" width={32} height={32} className="rounded object-contain shrink-0" />
         <h2 className="text-sm font-bold font-serif text-amber-800 tracking-wide">
           LTK Food Company
         </h2>
