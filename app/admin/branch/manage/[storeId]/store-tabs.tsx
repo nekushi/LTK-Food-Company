@@ -48,8 +48,8 @@ function getStockStatus(qty: number) {
   return { label: "Well Stocked", color: "bg-blue-50 text-blue-700 border-blue-200" };
 }
 
-const DRY_KEYWORDS = ["operational", "office", "janitorial", "marketing"];
-const RAW_KEYWORDS = ["food"];
+const DRY_KEYWORDS = ["operational", "office", "janitorial", "marketing", "dry"];
+const RAW_KEYWORDS = ["food", "raw"];
 
 function isDryCategory(accountRecognition: string): boolean {
   const lower = (accountRecognition || "").toLowerCase();

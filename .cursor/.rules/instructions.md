@@ -614,8 +614,4 @@ update all the @default(now()) to use the above date
 [x] - /store/issue-food-stocks. remove date to the form and to the compound key in the database.
 [x] - /store/issue-food-stocks. error on adding a food stock. fix it
 [x] - /store/sales-report. add currentNow() date in sales report and display it on table as well. add date filter for the table, or separate pos receipts by date
-[ ] - /store/pos. do the computations below. for every pos transactions, it deducts items from the store inventory. auto updates /store/sales-report (inventory report section).
-1 Burger = 1 patty & 1 buns
-1 spaghetti = 200 grams of spag noodles & 60 grams of spag sauce
-1 burger steak = 1 patty & 200 grams of rice & 60 grams of steak sauce
-1 chicken = 1 raw chicken
+[x] - /admin/branch/manage/[id]. in stocks report, fetch inventory from store to be shown in dry items and raw materials inside report -> stocks report

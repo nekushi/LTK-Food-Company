@@ -200,7 +200,13 @@ export default async function ManageBranchProfilePage({
     netPay: number;
     supplierName: string;
   }> }).inventory ?? [];
-  const inventoryAsItems: InventoryItem[] = storeInventory.map((inv) => ({
+  const dryRawKeywords = ["operational", "office", "janitorial", "marketing", "food", "dry", "raw"];
+  const isDryOrRaw = (acc: string) => {
+    const lower = (acc || "").toLowerCase();
+    return dryRawKeywords.some((k) => lower.includes(k));
+  };
+  const storeInventoryDryRaw = storeInventory.filter((inv) => isDryOrRaw(inv.accountRecognition));
+  const inventoryAsItems: InventoryItem[] = storeInventoryDryRaw.map((inv) => ({
     productNameGeneral: inv.productNameGeneral,
     productNameSpecific: inv.productNameSpecific,
     accountRecognition: inv.accountRecognition,
@@ -210,8 +216,11 @@ export default async function ManageBranchProfilePage({
     netPay: inv.netPay,
     supplierName: inv.supplierName,
   }));
+  const approvedItemsDryRaw = approvedItems.filter((i: RequestItemRecord) =>
+    isDryOrRaw(i.accountRecognition),
+  );
   const mergedInventory = mergeInventoryItems([
-    ...(approvedItems as InventoryItem[]),
+    ...(approvedItemsDryRaw as InventoryItem[]),
     ...inventoryAsItems,
   ]);
 
