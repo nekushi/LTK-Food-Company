@@ -2,16 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { FiLogOut } from "react-icons/fi";
+import { clearAuth } from "@/lib/auth-storage";
 
 export default function BtnLogout() {
   const router = useRouter();
 
   const handleLogoutClick = () => {
-    localStorage.removeItem("userId");
-    localStorage.removeItem("username");
-    localStorage.removeItem("firstName");
-    localStorage.removeItem("lastName");
-    localStorage.removeItem("role");
+    clearAuth();
     router.push("/login");
   };
 

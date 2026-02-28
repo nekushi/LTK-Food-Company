@@ -6,6 +6,7 @@ import { getSalesReports } from "@/dal/store/sales-report";
 import { getInventoryReports } from "@/dal/store/inventory-report";
 import { getBranchInventory } from "@/dal/store/get-branch-inventory";
 import { getTodayPOSReceipts, getTodayPOSInventory, POSReceiptGroup, POSInventoryItem } from "@/dal/store/pos-receipts";
+import { getAuth } from "@/lib/auth-storage";
 
 export default function StoreSalesReportPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,7 +21,7 @@ export default function StoreSalesReportPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId") || "";
+    const userId = getAuth("userId") || "";
     Promise.all([
       getSalesReports(userId),
       getInventoryReports(userId),

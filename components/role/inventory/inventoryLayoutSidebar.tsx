@@ -10,6 +10,7 @@ import { FaRegUser } from "react-icons/fa";
 
 import { TypeNavList } from "@/index";
 import BtnLogout from "@/components/logouts/btnLogout";
+import { getAuth } from "@/lib/auth-storage";
 
 const navLists: TypeNavList[] = [
   { name: "Dashboard", href: "/inventory", icon: <IoAnalytics /> },
@@ -25,8 +26,8 @@ export default function InventoryLayoutSidebar() {
   const [lastName, setLastName] = useState("");
 
   useEffect(() => {
-    setFirstName(localStorage.getItem("firstName") || "");
-    setLastName(localStorage.getItem("lastName") || "");
+    setFirstName(getAuth("firstName") || "");
+    setLastName(getAuth("lastName") || "");
   }, []);
 
   const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "IN";

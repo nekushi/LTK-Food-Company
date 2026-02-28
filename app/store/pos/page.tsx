@@ -8,6 +8,7 @@ import {
   ItemForSaleRow,
 } from "@/dal/store/items-for-sale";
 import { savePOSReceipt } from "@/dal/store/pos-receipts";
+import { getAuth } from "@/lib/auth-storage";
 import { FiSearch, FiShoppingCart, FiTrash2, FiX, FiPrinter } from "react-icons/fi";
 
 interface CartLine {
@@ -48,11 +49,11 @@ export default function POSPage() {
 
   const userId =
     typeof window !== "undefined"
-      ? localStorage.getItem("userId") || ""
+      ? getAuth("userId") || ""
       : "";
 
   const refreshItems = useCallback(() => {
-    const uid = localStorage.getItem("userId") || "";
+    const uid = getAuth("userId") || "";
     if (!uid) return;
     getItemsForSaleToday(uid).then((res) => {
       if (res.success) setItems(res.data);
@@ -60,7 +61,7 @@ export default function POSPage() {
   }, []);
 
   useEffect(() => {
-    const uid = localStorage.getItem("userId") || "";
+    const uid = getAuth("userId") || "";
     getItemsForSaleToday(uid).then((res) => {
       if (res.success) setItems(res.data);
       setLoading(false);
@@ -185,7 +186,7 @@ export default function POSPage() {
         })),
       );
 
-      const storeName = localStorage.getItem("username") || "Store";
+      const storeName = getAuth("username") || "Store";
       setReceipt({
         lines: soldLines,
         total: soldTotal,

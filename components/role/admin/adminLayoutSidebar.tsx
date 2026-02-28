@@ -11,6 +11,7 @@ import { MdOutlinePeopleAlt } from "react-icons/md";
 import { HiOutlineChevronDown, HiOutlineChevronRight } from "react-icons/hi";
 
 import BtnLogout from "@/components/logouts/btnLogout";
+import { getAuth } from "@/lib/auth-storage";
 
 interface NavItemGroup {
   name: string;
@@ -29,8 +30,8 @@ export default function AdminLayoutSidebar() {
   const [lastName, setLastName] = useState("");
 
   useEffect(() => {
-    setFirstName(localStorage.getItem("firstName") || "");
-    setLastName(localStorage.getItem("lastName") || "");
+    setFirstName(getAuth("firstName") || "");
+    setLastName(getAuth("lastName") || "");
   }, []);
 
   const initials =

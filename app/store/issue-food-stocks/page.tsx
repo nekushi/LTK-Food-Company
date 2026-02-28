@@ -9,6 +9,7 @@ import {
   ItemForSaleRow,
 } from "@/dal/store/items-for-sale";
 import { getBranchInventory } from "@/dal/store/get-branch-inventory";
+import { getAuth } from "@/lib/auth-storage";
 import { FiTrash2, FiPlus } from "react-icons/fi";
 
 const FOOD_SUPPLIES_RECOGNITION = "Food Supplies";
@@ -42,7 +43,7 @@ export default function IssueFoodStocksPage() {
 
   const userId =
     typeof window !== "undefined"
-      ? localStorage.getItem("userId") || ""
+      ? getAuth("userId") || ""
       : "";
 
   const foodSuppliesOnly = useMemo(() => {
@@ -83,7 +84,7 @@ export default function IssueFoodStocksPage() {
   }, [foodSuppliesOnly]);
 
   useEffect(() => {
-    const uid = localStorage.getItem("userId") || "";
+    const uid = getAuth("userId") || "";
     Promise.all([getItemsForSale(uid), getBranchInventory(uid)]).then(
       ([saleRes, inv]) => {
         if (saleRes.success) setItems(saleRes.data);

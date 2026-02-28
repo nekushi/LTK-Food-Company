@@ -8,6 +8,7 @@ import {
 import { ItemsReturnTypeInventory } from "@/dal/inventory/get-items";
 import { toast } from "react-toastify";
 import { ACCOUNTING_RECOGNITION } from "@/schemas/items.schema";
+import { getAuth } from "@/lib/auth-storage";
 
 const inputClass =
   "w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500";
@@ -170,7 +171,7 @@ export default function StoreRequestItemPage({
   const sendRequest = async () => {
     if (cart.length === 0) return;
     console.log("Send request", cart);
-    const userId = localStorage.getItem("userId") || "";
+    const userId = getAuth("userId") || "";
     const result = await requestItems(cart, userId);
 
     if (result.success) {

@@ -12,6 +12,7 @@ import { MdOutlinePointOfSale, MdOutlineFastfood } from "react-icons/md";
 
 import { TypeNavList } from "@/index";
 import BtnLogout from "@/components/logouts/btnLogout";
+import { getAuth } from "@/lib/auth-storage";
 
 const navLists: TypeNavList[] = [
   { name: "Dashboard", href: "/store", icon: <IoAnalytics /> },
@@ -44,7 +45,7 @@ export default function StoreLayoutSidebar() {
   const [username, setUsername] = useState("");
 
   useEffect(() => {
-    setUsername(localStorage.getItem("username") || "");
+    setUsername(getAuth("username") || "");
   }, []);
 
   const displayName = username || "Store User";
