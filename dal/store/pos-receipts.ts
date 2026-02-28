@@ -20,7 +20,7 @@ export interface POSReceiptGroup {
 export async function savePOSReceipt(
   userId: string,
   lines: POSReceiptLine[],
-): Promise<{ success: boolean; message: string; createdAt?: string }> {
+): Promise<{ success: boolean; message: string }> {
   if (!userId) return { success: false, message: "Unauthorized" };
   if (lines.length === 0) return { success: false, message: "No items" };
 
@@ -28,7 +28,6 @@ export async function savePOSReceipt(
   if (!store) return { success: false, message: "Store not found" };
 
   const receiptNo = `POS-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const createdAt = currentNow();
 
   try {
     await prisma.pOSReceipt.createMany({
@@ -39,10 +38,10 @@ export async function savePOSReceipt(
         quantity: l.quantity,
         price: l.price,
         total: l.total,
-        createdAt: new Date(createdAt),
+        createdAt: new Date(currentNow()),
       })),
     });
-    return { success: true, message: "Receipt saved", createdAt };
+    return { success: true, message: "Receipt saved" };
   } catch (error) {
     console.error("savePOSReceipt", error);
     return { success: false, message: "Failed to save receipt" };
@@ -59,7 +58,7 @@ export async function getTodayPOSReceipts(userId: string): Promise<{
   const store = await prisma.store.findUnique({ where: { userId } });
   if (!store) return { success: false, data: [], totalSales: 0 };
 
-  const now = new Date(currentNow());
+  const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
@@ -189,14 +188,16 @@ export async function getTodayPOSInventory(userId: string): Promise<{
   const store = await prisma.store.findUnique({ where: { userId } });
   if (!store) return { success: false, data: [] };
 
-  const now = new Date(currentNow());
+  const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
-  const [allItemsForSale, receiptRows] = await Promise.all([
+  const [todayItems, receiptRows] = await Promise.all([
     prisma.itemForSale.findMany({
-      where: { storeId: store.id },
-      orderBy: { name: "asc" },
+      where: {
+        storeId: store.id,
+        date: { gte: startOfDay, lt: endOfDay },
+      },
     }),
     prisma.pOSReceipt.findMany({
       where: {
@@ -211,7 +212,7 @@ export async function getTodayPOSInventory(userId: string): Promise<{
     soldMap.set(row.itemName, (soldMap.get(row.itemName) ?? 0) + row.quantity);
   }
 
-  const data: POSInventoryItem[] = allItemsForSale.map((item) => {
+  const data: POSInventoryItem[] = todayItems.map((item) => {
     const soldQty = soldMap.get(item.name) ?? 0;
     return {
       itemName: item.name,
@@ -222,7 +223,7 @@ export async function getTodayPOSInventory(userId: string): Promise<{
   });
 
   for (const [itemName, soldQty] of soldMap) {
-    if (!allItemsForSale.some((i) => i.name === itemName)) {
+    if (!todayItems.some((i) => i.name === itemName)) {
       data.push({
         itemName,
         initialStock: soldQty,
@@ -247,7 +248,7 @@ export async function sendPOSDailyReport(
   const store = await prisma.store.findUnique({ where: { userId } });
   if (!store) return { success: false, message: "Store not found" };
 
-  const now = new Date(currentNow());
+  const now = new Date();
   const reportDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   try {

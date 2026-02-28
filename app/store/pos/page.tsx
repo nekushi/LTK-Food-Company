@@ -176,7 +176,7 @@ export default function POSPage() {
         `Sale completed! ${soldCount} item${soldCount !== 1 ? "s" : ""} — ₱${formatCurrency(soldTotal)}`,
       );
 
-      const saveResult = await savePOSReceipt(
+      await savePOSReceipt(
         userId,
         soldLines.map((l) => ({
           itemName: l.name,
@@ -191,7 +191,7 @@ export default function POSPage() {
         lines: soldLines,
         total: soldTotal,
         count: soldCount,
-        date: saveResult.createdAt ? new Date(saveResult.createdAt).toLocaleString() : new Date().toLocaleString(),
+        date: new Date().toLocaleString(),
         storeName,
       });
     } else {

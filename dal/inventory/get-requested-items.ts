@@ -410,7 +410,6 @@ export async function issueStock(
         isRequestApproved: true,
         note: note.trim() || "Stock issued",
         status: "to be delivered",
-        updatedAt: new Date(currentNow()),
       },
     });
 

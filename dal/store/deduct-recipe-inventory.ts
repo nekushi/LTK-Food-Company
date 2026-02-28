@@ -3,7 +3,6 @@
 import prisma from "@/lib/db";
 import { currentNow } from "@/lib/current-now";
 import { getRecipeForItem } from "@/lib/pos-recipes";
-import { recordPOSDeductionToInventoryReport } from "@/dal/store/inventory-report";
 
 /**
  * Deduct recipe ingredients from the store's Inventory when a POS item is sold.
@@ -22,6 +21,7 @@ export async function deductRecipeFromStoreInventory(
     const amountNeeded = Math.round(ing.quantity * quantitySold);
     if (amountNeeded <= 0) continue;
 
+    const keyLower = ing.productKey.toLowerCase();
     const rows = await prisma.inventory.findMany({
       where: {
         storeId,
@@ -44,13 +44,6 @@ export async function deductRecipeFromStoreInventory(
         where: { id: row.id },
         data: { quantity: row.quantity - deduct, updatedAt: new Date(currentNow()) },
       });
-      await recordPOSDeductionToInventoryReport(
-        storeId,
-        row.productNameGeneral,
-        row.accountRecognition,
-        row.unitOfMeasurement,
-        deduct,
-      );
       remaining -= deduct;
     }
   }

@@ -52,7 +52,7 @@ export async function getItemsForSaleToday(userId: string): Promise<{
   const store = await prisma.store.findUnique({ where: { userId } });
   if (!store) return { success: false, data: [] };
 
-  const now = new Date(currentNow());
+  const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
@@ -109,7 +109,6 @@ export async function upsertItemForSale(
           price: data.price,
           date: now,
           createdAt: now,
-          updatedAt: now,
         },
       });
     }

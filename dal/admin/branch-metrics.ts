@@ -1,7 +1,6 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { currentNow } from "@/lib/current-now";
 
 export async function getAdminOverviewCounts() {
   const [totalBranches, totalPersonnel, totalEmployees] = await Promise.all([
@@ -108,7 +107,7 @@ export async function getAggregatedDailySales() {
       percentageChange = 100;
     }
 
-    const today = new Date(currentNow());
+    const today = new Date();
     const generatePastDays = (count: number) => {
       const result: { date: string; label: string; total: number }[] = [];
       for (let i = count; i >= 1; i--) {

@@ -1,7 +1,6 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { currentNow } from "@/lib/current-now";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -84,7 +83,7 @@ export async function getInventoryReportByRange(
   range: "today" | "yesterday" | "past7days",
 ) {
   try {
-    const now = new Date(currentNow());
+    const now = new Date();
     let where: {
       storeId?: string;
       createdAt: { gte: Date; lte?: Date } | { gte: Date };
