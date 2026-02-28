@@ -64,6 +64,8 @@ export default async function AdminEmployeeRecordProfilePage({
               hasPagIbig: Boolean(employeeData?.pagIbig?.trim()),
               hasPhilhealth: Boolean(employeeData?.philhealth?.trim()),
             }}
+            employeeName={`${employee.firstName} ${employee.lastName}`.trim()}
+            employeeIdDisplay={employee.employeeId ?? undefined}
           />
         ) : (
           <p className="italic text-amber-600">No work data recorded.</p>

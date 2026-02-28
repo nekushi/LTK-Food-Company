@@ -615,3 +615,5 @@ update all the @default(now()) to use the above date
 [x] - /store/issue-food-stocks. error on adding a food stock. fix it
 [x] - /store/sales-report. add currentNow() date in sales report and display it on table as well. add date filter for the table, or separate pos receipts by date
 [x] - /admin/branch/manage/[id]. in stocks report, fetch inventory from store to be shown in dry items and raw materials inside report -> stocks report
+[x] - /admin/personnel/employee-records/[id]. generate payslip for every employee month by printing netPay simulation. make it look like payslip.
+[x] - /admin/personnel/employee-records/[id]. print button is not for general, but every month has print button
