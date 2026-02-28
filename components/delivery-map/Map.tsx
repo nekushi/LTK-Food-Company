@@ -35,8 +35,8 @@ export default function Map() {
   ]);
 
   const getLocation = async () => {
-    const res = await fetch("/api/get-location/");
-    const locationData: MapLocation[] = await res.json();
+    const res = await fetch("/api/location/get-location");
+    const locationData: MapLocation[] = res.ok ? await res.json() : [];
 
     setLocation(locationData);
   };

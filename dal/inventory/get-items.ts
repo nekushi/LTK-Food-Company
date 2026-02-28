@@ -2,11 +2,15 @@
 
 import prisma from "@/lib/db";
 
+/** Central inventory only (admin item-list). Excludes store-specific inventory from initial allocation / issued stocks. */
 export async function getItemsInventory() {
   console.log(`Fetching items`);
 
   const items = await prisma.inventory.findMany({
-    where: { quantity: { gt: 0 } },
+    where: {
+      quantity: { gt: 0 },
+      storeId: null,
+    },
     orderBy: { createdAt: "desc" },
   });
 

@@ -1,14 +1,10 @@
-import { getOnTheWayItemsForDelivery } from "@/dal/inventory/get-requested-items";
-import DeliveryRunClient from "@/app/delivery/DeliveryRunClient";
+import { getIssuedItemsForDelivery } from "@/dal/inventory/get-requested-items";
+import DeliveryClient from "@/app/inventory/delivery/DeliveryClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDeliveryPage() {
-  const onTheWayItems = await getOnTheWayItemsForDelivery();
-  return (
-    <div className="p-4">
-      <DeliveryRunClient onTheWayItems={onTheWayItems} showControls={false} />
-    </div>
-  );
+  const issuedItems = await getIssuedItemsForDelivery();
+  return <DeliveryClient issuedItems={issuedItems} />;
 }
 

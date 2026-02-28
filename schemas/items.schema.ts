@@ -72,12 +72,12 @@ export const itemsFlowSchema = z
     }
   });
 
-/** Initial stock allocation: Issued Stocks only, no period (uses currentNow), store-targeted. No unit price, VAT type, supplier name, or product name specific. */
+/** Initial stock allocation: Issued Stocks only, no period (uses currentNow), store-targeted. No unit price, VAT type, supplier name, or product name specific. Uses 2 account options (Dry/Raw). */
 export const initialStockAllocationSchema = z.object({
   storeId: z.string().uuid("Select a store"),
   productNameGeneral: z.string().min(1, "Required"),
   itemCode: z.string().optional(),
-  accountingRecognition: z.enum(ACCOUNTING_RECOGNITION),
+  accountingRecognition: z.enum(ACCOUNTING_RECOGNITION_ITEM_LIST),
   measurement: z.string().min(1, "Required"),
   quantity: z.coerce.number().min(0.0001, "Must be greater than 0"),
 });

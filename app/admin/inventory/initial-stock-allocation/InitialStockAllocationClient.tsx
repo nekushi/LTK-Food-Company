@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  ACCOUNTING_RECOGNITION,
+  ACCOUNTING_RECOGNITION_ITEM_LIST,
   initialStockAllocationSchema,
   MEASUREMENTS,
 } from "@/schemas/items.schema";
@@ -38,14 +38,14 @@ export function InitialStockAllocationClient() {
       storeId: "",
       productNameGeneral: "",
       itemCode: "",
-      accountingRecognition: "Office Supplies",
+      accountingRecognition: "Dry materials",
       measurement: "",
       quantity: 0,
     },
   });
 
   const accountingRecognition = watch("accountingRecognition");
-  const isFoodSupplies = accountingRecognition === "Food Supplies";
+  const isFoodSupplies = accountingRecognition === "Raw materials";
 
   useEffect(() => {
     (async () => {
@@ -65,7 +65,7 @@ export function InitialStockAllocationClient() {
         storeId: data.storeId,
         productNameGeneral: "",
         itemCode: "",
-        accountingRecognition: "Office Supplies",
+        accountingRecognition: "Dry materials",
         measurement: "",
         quantity: 0,
       });
@@ -127,7 +127,7 @@ export function InitialStockAllocationClient() {
         <div>
           <span className={labelClass}>Account Recognition</span>
           <div className="mt-1.5 grid grid-cols-2 gap-2">
-            {ACCOUNTING_RECOGNITION.map((value) => (
+            {ACCOUNTING_RECOGNITION_ITEM_LIST.map((value) => (
               <label
                 key={value}
                 className="flex cursor-pointer items-center text-sm text-amber-900"

@@ -91,10 +91,10 @@ export default function AdminLayoutSidebar() {
       children: [
         { name: "Item List", href: "/admin/inventory/item-list" },
         // { name: "Item Request", href: "/admin/inventory/item-request" },
-        // {
-        //   name: "Initial Stock Allocation",
-        //   href: "/admin/inventory/initial-stock-allocation",
-        // },
+        {
+          name: "Initial Stock Allocation",
+          href: "/admin/inventory/initial-stock-allocation",
+        },
       ],
     },
     // {

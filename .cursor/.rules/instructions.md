@@ -607,3 +607,6 @@ update all the @default(now()) to use the above date
 [x] - /admin/inventory/item-list. today is `Feb 28, 2026`. i did add a product using `beginning stocks`, and it displays `Feb 28, 2026` as table data under `Date` table header. then i did update the same product using `additional stocks` and it now displays `March 1, 2026`. it should be `Feb 28, 2026` since tomorrow is `March 1, 2026`. fix this issue
 [x] - /admin/inventory/item-list. Date column: use createdAt only (not updatedAt) so the date stays correct after adding additional stocks
 [x] - /admin/inventory/item-list. fix the issue where i need to refresh the page whenever i added new product or modify a product
+[x] - /admin/inventory/initial-stock-allocation. update account recognition. and, i know its in issued stock by default. but can you not instantiate an inventory while allocating initial stock?? do not make a new inventory but at the same time create inventory for the selected store.
+[x] - /admin/delivery, /inventory/delivery. copy the /inventory/delivery to /admin/delivery while maintaining the same functionality: sending items for delivery, monitoring delivery tracking using realtime map, and the data like store name, destinations, etc.
+[x] - /admin/delivery. map does not reflect real time. fix it
