@@ -97,6 +97,7 @@ export default function BranchReportView({
   inventoryReports,
   posTransactions = [],
   posStockTracker = [],
+  inventoryReportSnapshots = [],
   storeName = "",
 }: {
   dailyReports: SalesReportRow[];
@@ -109,6 +110,7 @@ export default function BranchReportView({
   inventoryReports: InventoryReportItem[];
   posTransactions?: POSReportEntry[];
   posStockTracker?: POSReportEntry[];
+  inventoryReportSnapshots?: POSReportEntry[];
   storeName?: string;
 }) {
   const [reportType, setReportType] = useState<
@@ -715,6 +717,51 @@ export default function BranchReportView({
               </div>
             )}
           </div>
+          {inventoryReportSnapshots.length > 0 && (
+            <div className="border-t border-amber-200 px-6 py-4">
+              <h3 className="text-sm font-semibold text-amber-900 mb-3">
+                Submitted Inventory Reports (sent by store)
+              </h3>
+              <div className="divide-y divide-amber-100 space-y-4">
+                {inventoryReportSnapshots.map((entry) => {
+                  const data = entry.reportData as { reportDate?: string; reports?: InventoryReportItem[] };
+                  const reports = (data?.reports ?? []) as InventoryReportItem[];
+                  const dateLabel = data?.reportDate
+                    ? new Date(data.reportDate).toLocaleDateString(undefined, { dateStyle: "medium" })
+                    : new Date(entry.reportDate).toLocaleDateString(undefined, { dateStyle: "medium" });
+                  return (
+                    <div key={entry.reportDate + entry.createdAt} className="pt-3">
+                      <h4 className="text-xs font-bold text-amber-800 mb-2">{dateLabel}</h4>
+                      <table className="w-full text-left text-sm">
+                        <thead className="border-b border-amber-200">
+                          <tr className="text-amber-900 text-xs uppercase tracking-wider">
+                            <th className="px-2 py-1.5 font-semibold text-right">Remaining</th>
+                            <th className="px-2 py-1.5 font-semibold">Type</th>
+                            <th className="px-2 py-1.5 font-semibold">Period</th>
+                            <th className="px-2 py-1.5 font-semibold">Product</th>
+                            <th className="px-2 py-1.5 font-semibold text-right">Qty</th>
+                            <th className="px-2 py-1.5 font-semibold text-right">Used</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-amber-50">
+                          {reports.map((r) => (
+                            <tr key={r.id} className="hover:bg-amber-50/50">
+                              <td className="px-2 py-1.5 text-emerald-700 font-bold text-right">{r.itemsLeft}</td>
+                              <td className="px-2 py-1.5 text-amber-700 text-xs">{r.reportType}</td>
+                              <td className="px-2 py-1.5 text-amber-800 text-xs">{r.periodMonth} {r.periodYear}</td>
+                              <td className="px-2 py-1.5 text-amber-900 font-medium">{r.productName}</td>
+                              <td className="px-2 py-1.5 text-amber-800 text-right">{r.quantity} {r.unitOfMeasurement}</td>
+                              <td className="px-2 py-1.5 text-rose-600 font-bold text-right">{r.itemsUsed}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

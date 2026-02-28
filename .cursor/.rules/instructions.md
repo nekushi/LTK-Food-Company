@@ -624,4 +624,98 @@ update all the @default(now()) to use the above date
 [x] - /store/employees. show employees sss, philhealth, and pagibig in rows, same as /admin/personnel/employee-records
 [x] - /template/header. add this header across the system. all
 [x] - /template/header. remove this header to /login
-[ ] - /layoutSidebars. add /public/img.png besides `LTK Food Company` just like logo
+
+<!-- [ ] - /layoutSidebars. add /public/img.png besides `LTK Food Company` just like logo -->
+
+[x] - /store/pos. working with pos. example these
+
+reference:
+Burger = 1 patty 1 buns
+Cheese Burger = 1 cheese 1 patty 1 burger
+Chicken Sandwich Burger = 1 chicken sandwich 1 buns
+Spaghetti = 200 grams spaghetti noodles 50 grams spaghetti sauce
+Palabok = 200 grams palabok noodles 50 grams palabok sauce
+Chicken = 1 chicken 150 grams rice
+Burger Steak = 1 patty 150 grams rice
+Fillet Meal = chicken patty 150 grams rice
+Rice = 150 grams of rice
+Fries = 150 grams potato fries
+Coke = coke 500ml
+Royal = royal 500ml
+Sprite = sprite 500ml
+
+Sample 1:
+CARD - NAME, QTY, UNIT, PRICE
+POS CARD 1 - RICE, 4000, g, 30
+INPUT - RICE, 3, g, 90
+upon checkout,
+/store/sales-report Pos Transaction =
+Receipt(ID)
+Date(now())
+Time(now())
+Item(name)
+Qty(updates store inventory. store inventory -= qty)
+Price(price)
+Amount(amount \* qty)
+
+/store/sales-report Stock Tracker =
+Receipt(ID)
+Date(now())
+Time(now())
+Item(name)
+Initial Stock(inventory)
+Sold(qty)
+Remaining(inventory(rice) - qty \* 150 (cause rice is 150 grams))
+
+Sample 2:
+CARD - NAME, QTY, UNIT, PRICE
+POS CARD 2 - FRIES, 50000, g, 50
+INPUT - FRIES, 2, g, 100
+upon checkout,
+/store/sales-report Pos Transaction =
+Receipt(ID)
+Date(now())
+Time(now())
+Item(name)
+Qty(updates store inventory. store inventory -= qty)
+Price(price)
+Amount(amount \* qty)
+
+/store/sales-report Stock Tracker =
+Receipt(ID)
+Date(now())
+Time(now())
+Item(name)
+Initial Stock(inventory)
+Sold(qty)
+Remaining(inventory(potato fries) - qty \* 150 (cause fries is 150 grams of potato price))
+
+Sample 3:
+CARD - NAME, QTY, UNIT, PRICE
+POS CARD 3 - BURGER, 200, pcs, 90
+INPUT - BURGER, 2, pc, 180
+upon checkout,
+/store/sales-report Pos Transaction =
+Receipt(ID)
+Date(now())
+Time(now())
+Item(name)
+Qty(updates store inventory. store inventory -= qty)
+Price(price)
+Amount(amount \* qty)
+
+/store/sales-report Stock Tracker =
+Receipt(ID)
+Date(now())
+Time(now())
+Item(name)
+Initial Stock(inventory)
+Sold(accumulated qty)
+Remaining(inventory(patty and buns) - qty \* 1 (cause patty is 1 pcs and buns is 1pcs only))
+
+[x] - ive added a burger /store/issue-food-stocks. i tried using pos to order 1 burger, but it does not reflect on /store/sales-report (inventory report) (Submitted Inventory Reports). there should be an update for buns and patty inventory
+[x] - /store/sales-report (inventory report) (Submitted Inventory Reports). i do have `burger patty` and `buns` in my db, yet only the buns register in (Submitted Inventory Reports), not the patty, every time i order a `burger`. fix it
+[x] - /store/sales-report (inventory report) (Submitted Inventory Reports). fix the issue where the remaining does not reflect the remaining item in its db. i have patty, yet it only updates `used`, but stays the `remaining` to 0, same with potato. fix it
+[x] - /store/sales-report (inventory report)Submitted Inventory Reports. create a button called send report button that sends its data to the /admin//branch/manage/[]/page.tsx POS Stock Tracker
+[x] - /store/sales-report (sales report). send report sends its data to the /admin//branch/manage/[]/page.tsx POS Transactions
+[x] - /store/sales-report. both buttons shall send a notification to the /admin

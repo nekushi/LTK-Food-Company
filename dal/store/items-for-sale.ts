@@ -3,6 +3,7 @@
 import prisma from "@/lib/db";
 import { currentNow } from "@/lib/current-now";
 import { deductRecipeFromStoreInventory } from "./deduct-recipe-inventory";
+import { syncInventoryReportFromPOS } from "./inventory-report";
 
 /**
  * Store Issue Food Stocks flow: creates/updates ItemForSale only.
@@ -149,6 +150,7 @@ export async function sellItemForSale(
       });
     }
     await deductRecipeFromStoreInventory(store.id, item.name, quantitySold);
+    await syncInventoryReportFromPOS(store.id, item.name, quantitySold);
     return { success: true, message: "Sale recorded" };
   } catch (error) {
     console.error("sellItemForSale", error);

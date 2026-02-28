@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/db";
 import { currentNow } from "@/lib/current-now";
+import { createStoreNotification } from "@/dal/admin/store-notifications";
 
 export interface POSReceiptLine {
   itemName: string;
@@ -240,13 +241,17 @@ export async function getTodayPOSInventory(userId: string): Promise<{
 
 export async function sendPOSDailyReport(
   userId: string,
-  reportType: "transactions" | "stock_tracker",
+  reportType: "transactions" | "stock_tracker" | "inventory_report",
   reportData: unknown,
 ): Promise<{ success: boolean; message: string }> {
   if (!userId) return { success: false, message: "Unauthorized" };
 
-  const store = await prisma.store.findUnique({ where: { userId } });
+  const store = await prisma.store.findUnique({
+    where: { userId },
+    include: { user: { select: { username: true } } },
+  });
   if (!store) return { success: false, message: "Store not found" };
+  const storeLabel = store.user?.username ?? "Store";
 
   const now = new Date();
   const reportDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -302,6 +307,16 @@ export async function sendPOSDailyReport(
       });
     }
 
+    await createStoreNotification(
+      store.id,
+      `report_${reportType}`,
+      reportType === "transactions"
+        ? `${storeLabel} sent POS Transactions report.`
+        : reportType === "stock_tracker"
+          ? `${storeLabel} sent POS Stock Tracker report.`
+          : `${storeLabel} sent Inventory Report.`,
+    );
+
     return { success: true, message: "Report sent successfully" };
   } catch (error) {
     console.error("sendPOSDailyReport", error);
@@ -313,6 +328,7 @@ export async function getPOSDailyReports(storeId: string): Promise<{
   success: boolean;
   transactions: { reportData: unknown; reportDate: string; createdAt: string }[];
   stockTracker: { reportData: unknown; reportDate: string; createdAt: string }[];
+  inventoryReportSnapshots: { reportData: unknown; reportDate: string; createdAt: string }[];
 }> {
   try {
     const reports = await prisma.pOSDailyReport.findMany({
@@ -337,9 +353,17 @@ export async function getPOSDailyReports(storeId: string): Promise<{
         createdAt: r.createdAt.toISOString(),
       }));
 
-    return { success: true, transactions, stockTracker };
+    const inventoryReportSnapshots = reports
+      .filter((r) => r.reportType === "inventory_report")
+      .map((r) => ({
+        reportData: r.reportData,
+        reportDate: r.reportDate.toISOString(),
+        createdAt: r.createdAt.toISOString(),
+      }));
+
+    return { success: true, transactions, stockTracker, inventoryReportSnapshots };
   } catch (error) {
     console.error("getPOSDailyReports", error);
-    return { success: false, transactions: [], stockTracker: [] };
+    return { success: false, transactions: [], stockTracker: [], inventoryReportSnapshots: [] };
   }
 }

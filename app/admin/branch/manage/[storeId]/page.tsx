@@ -330,6 +330,7 @@ export default async function ManageBranchProfilePage({
         inventoryReports={inventoryReportsSerialized}
         posTransactions={posReports.transactions}
         posStockTracker={posReports.stockTracker}
+        inventoryReportSnapshots={posReports.inventoryReportSnapshots ?? []}
         storeName={profile.storeName}
       />
     </div>

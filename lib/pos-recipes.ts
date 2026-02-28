@@ -3,14 +3,21 @@
  * from the store's inventory (Inventory rows with storeId).
  *
  * Reference:
- * - 1 Burger = 1 patty & 2 buns
- * - 1 spaghetti = 200g spag noodles & 60g spag sauce
- * - 1 burger steak = 1 patty & 200g rice & 60g steak sauce
- * - 1 chicken = 1 raw chicken
+ * Burger = 1 patty, 1 buns
+ * Cheese Burger = 1 cheese, 1 patty, 1 buns
+ * Chicken Sandwich Burger = 1 chicken sandwich, 1 buns
+ * Spaghetti = 200g spaghetti noodles, 50g spaghetti sauce
+ * Palabok = 200g palabok noodles, 50g palabok sauce
+ * Chicken = 1 chicken, 150g rice
+ * Burger Steak = 1 patty, 150g rice
+ * Fillet Meal = chicken patty, 150g rice
+ * Rice = 150g rice
+ * Fries = 150g potato fries
+ * Coke = 500ml coke, Royal = 500ml royal, Sprite = 500ml sprite
  */
 
 export interface RecipeIngredient {
-  /** Matches Inventory.productNameGeneral (contains, case-insensitive) */
+  /** Matches Inventory.productNameGeneral / productNameSpecific (contains, case-insensitive) */
   productKey: string;
   quantity: number;
   unit: string;
@@ -20,18 +27,42 @@ export interface RecipeIngredient {
 const RECIPES: Record<string, RecipeIngredient[]> = {
   burger: [
     { productKey: "patty", quantity: 1, unit: "pc" },
-    { productKey: "buns", quantity: 2, unit: "pc" },
+    { productKey: "buns", quantity: 1, unit: "pc" },
+  ],
+  "cheese burger": [
+    { productKey: "cheese", quantity: 1, unit: "pc" },
+    { productKey: "patty", quantity: 1, unit: "pc" },
+    { productKey: "buns", quantity: 1, unit: "pc" },
+  ],
+  "chicken sandwich burger": [
+    { productKey: "chicken sandwich", quantity: 1, unit: "pc" },
+    { productKey: "buns", quantity: 1, unit: "pc" },
+  ],
+  spaghetti: [
+    { productKey: "spaghetti noodles", quantity: 200, unit: "g" },
+    { productKey: "spaghetti sauce", quantity: 50, unit: "g" },
+  ],
+  palabok: [
+    { productKey: "palabok noodles", quantity: 200, unit: "g" },
+    { productKey: "palabok sauce", quantity: 50, unit: "g" },
+  ],
+  chicken: [
+    { productKey: "chicken", quantity: 1, unit: "pc" },
+    { productKey: "rice", quantity: 150, unit: "g" },
   ],
   "burger steak": [
     { productKey: "patty", quantity: 1, unit: "pc" },
-    { productKey: "rice", quantity: 200, unit: "g" },
-    { productKey: "steak sauce", quantity: 60, unit: "g" },
+    { productKey: "rice", quantity: 150, unit: "g" },
   ],
-  spaghetti: [
-    { productKey: "spag noodles", quantity: 200, unit: "g" },
-    { productKey: "spag sauce", quantity: 60, unit: "g" },
+  "fillet meal": [
+    { productKey: "chicken patty", quantity: 1, unit: "pc" },
+    { productKey: "rice", quantity: 150, unit: "g" },
   ],
-  chicken: [{ productKey: "raw chicken", quantity: 1, unit: "pc" }],
+  rice: [{ productKey: "rice", quantity: 150, unit: "g" }],
+  fries: [{ productKey: "potato fries", quantity: 150, unit: "g" }],
+  coke: [{ productKey: "coke", quantity: 500, unit: "ml" }],
+  royal: [{ productKey: "royal", quantity: 500, unit: "ml" }],
+  sprite: [{ productKey: "sprite", quantity: 500, unit: "ml" }],
 };
 
 function normalizeItemName(name: string): string {
@@ -47,7 +78,8 @@ export function getRecipeForItem(itemName: string): RecipeIngredient[] | null {
   if (RECIPES[key]) return [...RECIPES[key]];
 
   for (const [recipeKey, ingredients] of Object.entries(RECIPES)) {
-    if (key.includes(recipeKey) || recipeKey.includes(key)) return [...ingredients];
+    if (key.includes(recipeKey) || recipeKey.includes(key))
+      return [...ingredients];
   }
   return null;
 }
