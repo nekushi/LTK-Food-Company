@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { Resolver } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { currentNow } from "@/lib/current-now";
 import {
   ACCOUNTING_RECOGNITION,
+  ACCOUNTING_RECOGNITION_ITEM_LIST,
   itemsFlowSchema,
   MEASUREMENTS,
   MONTH_NAMES,
@@ -50,13 +53,23 @@ interface ManageItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   inventoryItems: ItemsReturnTypeInventory[];
+  simplifiedForm?: boolean;
+}
+
+function getPeriodFromCurrentNow() {
+  const iso = currentNow();
+  const [datePart] = iso.split("T");
+  const [y, m, d] = datePart.split("-");
+  return { periodMonth: m ?? "01", periodDate: d ?? "01", periodYear: y ?? "" };
 }
 
 export function ManageItemModal({
   isOpen,
   onClose,
   inventoryItems,
+  simplifiedForm = false,
 }: ManageItemModalProps) {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -70,19 +83,28 @@ export function ManageItemModal({
       periodMonth: "",
       periodDate: "",
       periodYear: "",
-      typeOfStocks: "Beginning Stocks",
+      typeOfStocks: simplifiedForm ? "Issued Stocks" : "Beginning Stocks",
       typeOfVatTaxpayer: "VAT Registered",
       supplierName: "",
       tinNo: "",
       productNameSpecific: "",
       productNameGeneral: "",
       itemCode: "",
-      accountingRecognition: "Office Supplies",
+      accountingRecognition: simplifiedForm ? "Dry materials" : "Office Supplies",
       measurement: "",
       quantity: 0,
       unitPrice: 0,
     },
   });
+
+  useEffect(() => {
+    if (isOpen && simplifiedForm) {
+      const { periodMonth, periodDate, periodYear } = getPeriodFromCurrentNow();
+      setValue("periodMonth", periodMonth);
+      setValue("periodDate", periodDate);
+      setValue("periodYear", periodYear);
+    }
+  }, [isOpen, simplifiedForm, setValue]);
 
   const quantity = watch("quantity");
   const unitPrice = watch("unitPrice");
@@ -149,6 +171,7 @@ export function ManageItemModal({
         toast.success(result.message);
         reset();
         onClose();
+        router.refresh();
       } else if (result.success === "validation_error") {
         toast.error("Validation error when adding additional stock.");
       } else {
@@ -166,6 +189,7 @@ export function ManageItemModal({
       toast.success(result.message);
       reset();
       onClose();
+      router.refresh();
     }
   };
 
@@ -181,6 +205,7 @@ export function ManageItemModal({
       setSelectedRequestedItemId(null);
       reset();
       onClose();
+      router.refresh();
     } else {
       toast.error(result.message);
     }
@@ -233,6 +258,7 @@ export function ManageItemModal({
             <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
               {/* Left Column */}
               <div className="space-y-4">
+                {!simplifiedForm && (
                 <div className="flex gap-3 border-b border-amber-100 pb-4">
                   <div className="flex-1">
                     <label className={labelClass}>Month</label>
@@ -283,6 +309,7 @@ export function ManageItemModal({
                     )}
                   </div>
                 </div>
+                )}
 
                 <div className="border-b border-amber-100 pb-4">
                   <span className={labelClass}>Type of Stocks:</span>
@@ -315,7 +342,7 @@ export function ManageItemModal({
                 <div>
                   <span className={labelClass}>Account Recognition:</span>
                   <div className="mt-1.5 grid grid-cols-2 gap-2">
-                    {ACCOUNTING_RECOGNITION.map((value) => (
+                    {(simplifiedForm ? ACCOUNTING_RECOGNITION_ITEM_LIST : ACCOUNTING_RECOGNITION).map((value) => (
                       <label
                         key={value}
                         className="flex cursor-pointer items-center text-sm text-amber-900"
@@ -332,6 +359,7 @@ export function ManageItemModal({
                   </div>
                 </div>
 
+                {!simplifiedForm && (
                 <div>
                   <span className={labelClass}>Type of VAT-Taxpayer:</span>
                   <div className="mt-1.5 flex gap-6">
@@ -356,6 +384,7 @@ export function ManageItemModal({
                     </p>
                   )}
                 </div>
+                )}
 
                 {isIssuedStocks && (
                   <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
@@ -381,7 +410,12 @@ export function ManageItemModal({
                             if (VAT_TYPES.includes(vatType)) setValue("typeOfVatTaxpayer", vatType);
                           }
 
-                          if (
+                          if (simplifiedForm) {
+                            setValue(
+                              "accountingRecognition",
+                              item.accountRecognition === "Food Supplies" ? "Raw materials" : "Dry materials",
+                            );
+                          } else if (
                             item.accountRecognition &&
                             ACCOUNTING_RECOGNITION.includes(
                               item.accountRecognition as (typeof ACCOUNTING_RECOGNITION)[number],
@@ -467,7 +501,12 @@ export function ManageItemModal({
                             if (VAT_TYPES.includes(vatType)) setValue("typeOfVatTaxpayer", vatType);
                           }
 
-                          if (
+                          if (simplifiedForm) {
+                            setValue(
+                              "accountingRecognition",
+                              item.accountRecognition === "Food Supplies" ? "Raw materials" : "Dry materials",
+                            );
+                          } else if (
                             item.accountRecognition &&
                             ACCOUNTING_RECOGNITION.includes(
                               item.accountRecognition as (typeof ACCOUNTING_RECOGNITION)[number],

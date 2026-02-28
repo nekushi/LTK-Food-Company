@@ -7,7 +7,7 @@ export async function getItemsInventory() {
 
   const items = await prisma.inventory.findMany({
     where: { quantity: { gt: 0 } },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 
   const forIventory = items.map((item) => ({
@@ -52,6 +52,8 @@ export type ItemsReturnTypeInventory = {
   ewt: number;
   netPay: number;
   id: string;
+  createdAt: Date;
+  updatedAt: Date;
   periodMonth: string;
   periodYear: string;
   supplierName: string;

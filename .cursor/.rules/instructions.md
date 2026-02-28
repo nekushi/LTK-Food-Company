@@ -599,3 +599,11 @@ update all the @default(now()) to use the above date
 [x] - /store/pos. do reference below: 1 Burger = 1 patty & 2 buns, reduce the; 1 spaghetti = 200 grams of spag noodles & 60 grams of spag sauce; 1 burger steak = 1 patty & 200 grams of rice & 60 grams of steak sauce; 1 chicken = 1 raw chicken
 [x] - /delivery. deeply review this SPA. fix the issue where it does not work properly. STARTING GPS button does not reflect on map realtime
 [x] - fix the issue where localStorage, after logging in, adapts to the latest logged user. each user should use their own localStorage. if i log in as admin in new tab, browser dev tools localStorage shows admin. then if i log in as delivery in new tab, browser dev tools localStorage shows delivery, but the ADMIN for the other tabs still showing.
+[x] - /admin/inventory/item-list, schema.prisma. remove fields: month, year, date, typeOfVatTaxpayer, update accountRecognition, reduce account recognition to 2(dry materials and raw materials), remove type of taxpayer, only display total price
+[x] - /admin/inventory/item-list. remove date-related input fields, reduce account recognition to 2(dry materials and raw materials), remove type of taxpayer, only display total price
+[x] - /admin/inventory/item-list. add date table field using createdAt
+[x] - /admin/inventory/item-list. update `updatedAt` field to using the currentNow() method as well
+[x] - /admin/inventory/item-list. update `createdAt` field to using the currentNow() method as well
+[x] - /admin/inventory/item-list. today is `Feb 28, 2026`. i did add a product using `beginning stocks`, and it displays `Feb 28, 2026` as table data under `Date` table header. then i did update the same product using `additional stocks` and it now displays `March 1, 2026`. it should be `Feb 28, 2026` since tomorrow is `March 1, 2026`. fix this issue
+[x] - /admin/inventory/item-list. Date column: use createdAt only (not updatedAt) so the date stays correct after adding additional stocks
+[x] - /admin/inventory/item-list. fix the issue where i need to refresh the page whenever i added new product or modify a product

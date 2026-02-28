@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 import { MergedItemReturnTypeInventory } from "./request-items";
 
 export type RequestedItemPersistent = {
@@ -396,6 +397,7 @@ export async function issueStock(
             vat: invItem.vat * ratio,
             ewt: invItem.ewt * ratio,
             netPay: invItem.netPay * ratio,
+            updatedAt: new Date(currentNow()),
           },
         });
       }

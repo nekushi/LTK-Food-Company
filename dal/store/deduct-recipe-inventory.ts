@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 import { getRecipeForItem } from "@/lib/pos-recipes";
 
 /**
@@ -41,7 +42,7 @@ export async function deductRecipeFromStoreInventory(
       if (deduct <= 0) continue;
       await prisma.inventory.update({
         where: { id: row.id },
-        data: { quantity: row.quantity - deduct, updatedAt: new Date() },
+        data: { quantity: row.quantity - deduct, updatedAt: new Date(currentNow()) },
       });
       remaining -= deduct;
     }

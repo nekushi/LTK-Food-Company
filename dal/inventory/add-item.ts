@@ -101,7 +101,7 @@ export async function addItems(data: ItemFlowSchema) {
       vat: extras.vat,
       ewt: extras.ewt,
       netPay: extras.netPay,
-      createdAt: new Date(`${data.periodYear}-${data.periodMonth}-${data.periodDate}T00:00:00.000Z`),
+      createdAt: new Date(currentNow()),
     };
 
     const item = await prisma.inventory.create({
@@ -173,7 +173,7 @@ export async function addAdditionalStock(id: string, data: ItemFlowSchema) {
         vat: existing.vat + extras.vat,
         ewt: existing.ewt + extras.ewt,
         netPay: existing.netPay + extras.netPay,
-        createdAt: new Date(`${data.periodYear}-${data.periodMonth}-${data.periodDate}T00:00:00.000Z`),
+        updatedAt: new Date(currentNow()),
       },
     });
 
@@ -234,7 +234,7 @@ export async function addInitialStockAllocation(data: InitialStockAllocationSche
       ewt: extras.ewt,
       netPay: extras.netPay,
       storeId: data.storeId,
-      createdAt: new Date(`${periodYear}-${periodMonth}-${periodDate}T00:00:00.000Z`),
+      createdAt: new Date(currentNow()),
     };
     await prisma.inventory.create({ data: itemData });
     return { success: "success" as const, message: "Initial stock allocated successfully" };

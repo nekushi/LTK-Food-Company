@@ -6,53 +6,24 @@ import {
   ItemsReturnTypeInventory,
 } from "@/dal/inventory/get-items";
 import { ManageItemModal } from "./ManageItemModal";
-import { ACCOUNTING_RECOGNITION } from "@/schemas/items.schema";
+import { ACCOUNTING_RECOGNITION_ITEM_LIST } from "@/schemas/items.schema";
 
-const MONTH_NAMES = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-const currentYear = new Date().getFullYear();
-const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
-const months = [
-  "01",
-  "02",
-  "03",
-  "04",
-  "05",
-  "06",
-  "07",
-  "08",
-  "09",
-  "10",
-  "11",
-  "12",
-];
-
-function formatPeriod(month: string, year: string): string {
-  const i = parseInt(month, 10);
-  if (Number.isNaN(i) || i < 1 || i > 12) return `${month}/${year}`;
-  return `${MONTH_NAMES[i - 1]} ${year}`;
+/** Map stored accountRecognition to the 2 display categories (Dry / Raw). */
+function toItemListCategory(
+  rec: string | null,
+): "Dry materials" | "Raw materials" {
+  const r = (rec ?? "").toLowerCase();
+  if (r.includes("food")) return "Raw materials";
+  return "Dry materials";
 }
 
 export default function InventoryItemsPage({
   items,
+  simplifiedForm = false,
 }: {
   items: ItemsReturnTypeInventory[];
+  simplifiedForm?: boolean;
 }) {
-  const [filterMonth, setFilterMonth] = useState("");
-  const [filterYear, setFilterYear] = useState("");
   const [filterAccountRecognition, setFilterAccountRecognition] = useState("");
   const [filterProductGeneral, setFilterProductGeneral] = useState("");
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
@@ -65,39 +36,32 @@ export default function InventoryItemsPage({
           .includes(filterProductGeneral.trim().toLowerCase());
         if (!match) return false;
       }
-      if (filterMonth && item.periodMonth !== filterMonth) return false;
-      if (filterYear && item.periodYear !== filterYear) return false;
-      if (filterAccountRecognition && item.accountRecognition !== filterAccountRecognition) return false;
+      if (
+        filterAccountRecognition &&
+        toItemListCategory(item.accountRecognition) !== filterAccountRecognition
+      )
+        return false;
       return true;
     });
-  }, [filterMonth, filterYear, filterProductGeneral, filterAccountRecognition]);
+  }, [items, filterProductGeneral, filterAccountRecognition]);
 
   const metrics = useMemo(() => {
     const total = filtered.length;
-    let office = 0;
-    let operational = 0;
-    let janitorial = 0;
-    let marketing = 0;
-    let food = 0;
-
+    let dry = 0;
+    let raw = 0;
     for (const item of filtered) {
-      // Robust case-insensitive check against accountRecognition
-      const rec = (item.accountRecognition || "").toLowerCase();
-      if (rec.includes("office")) office++;
-      else if (rec.includes("operational")) operational++;
-      else if (rec.includes("janitorial")) janitorial++;
-      else if (rec.includes("marketing")) marketing++;
-      else if (rec.includes("food")) food++;
+      if (toItemListCategory(item.accountRecognition) === "Raw materials")
+        raw++;
+      else dry++;
     }
-
-    return { total, office, operational, janitorial, marketing, food };
+    return { total, dry, raw };
   }, [filtered]);
 
   return (
     <div className="space-y-6 p-8">
       <h1 className="text-xl font-semibold text-amber-900">Items</h1>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
           <span className="text-sm font-medium text-amber-700">
             Total items
@@ -107,33 +71,19 @@ export default function InventoryItemsPage({
           </p>
         </div>
         <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
-          <span className="text-sm font-medium text-amber-700">Office Supplies</span>
+          <span className="text-sm font-medium text-amber-700">
+            Dry materials
+          </span>
           <p className="mt-1 text-2xl font-semibold text-amber-900">
-            {metrics.office}
+            {metrics.dry}
           </p>
         </div>
         <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
-          <span className="text-sm font-medium text-amber-700">Operational Supplies</span>
+          <span className="text-sm font-medium text-amber-700">
+            Raw materials
+          </span>
           <p className="mt-1 text-2xl font-semibold text-amber-900">
-            {metrics.operational}
-          </p>
-        </div>
-        <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
-          <span className="text-sm font-medium text-amber-700">Janitorial Supplies</span>
-          <p className="mt-1 text-2xl font-semibold text-amber-900">
-            {metrics.janitorial}
-          </p>
-        </div>
-        <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
-          <span className="text-sm font-medium text-amber-700">Marketing Supplies</span>
-          <p className="mt-1 text-2xl font-semibold text-amber-900">
-            {metrics.marketing}
-          </p>
-        </div>
-        <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
-          <span className="text-sm font-medium text-amber-700">Food Supplies</span>
-          <p className="mt-1 text-2xl font-semibold text-amber-900">
-            {metrics.food}
+            {metrics.raw}
           </p>
         </div>
       </div>
@@ -155,42 +105,6 @@ export default function InventoryItemsPage({
             />
           </div>
           <div>
-            <label className="sr-only" htmlFor="filter-month">
-              Period (mm)
-            </label>
-            <select
-              id="filter-month"
-              value={filterMonth}
-              onChange={(e) => setFilterMonth(e.target.value)}
-              className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            >
-              <option value="">All months</option>
-              {months.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="sr-only" htmlFor="filter-year">
-              Period (yyyy)
-            </label>
-            <select
-              id="filter-year"
-              value={filterYear}
-              onChange={(e) => setFilterYear(e.target.value)}
-              className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            >
-              <option value="">All years</option>
-              {years.map((y) => (
-                <option key={y} value={String(y)}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
             <label className="sr-only" htmlFor="filter-account-recognition">
               Account Recognition
             </label>
@@ -200,8 +114,8 @@ export default function InventoryItemsPage({
               onChange={(e) => setFilterAccountRecognition(e.target.value)}
               className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
             >
-              <option value="">All Account Recognitions</option>
-              {ACCOUNTING_RECOGNITION.map((rec) => (
+              <option value="">All</option>
+              {ACCOUNTING_RECOGNITION_ITEM_LIST.map((rec) => (
                 <option key={rec} value={rec}>
                   {rec}
                 </option>
@@ -223,13 +137,10 @@ export default function InventoryItemsPage({
             <thead>
               <tr className="border-b border-amber-200 bg-amber-50">
                 <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
-                  Period
+                  Date
                 </th>
                 <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
                   Type of stocks
-                </th>
-                <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
-                  VAT type
                 </th>
                 <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
                   Supplier
@@ -253,22 +164,7 @@ export default function InventoryItemsPage({
                   Qty
                 </th>
                 <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
-                  Unit price
-                </th>
-                <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
                   Total price
-                </th>
-                <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
-                  Vatable
-                </th>
-                <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
-                  VAT
-                </th>
-                <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
-                  EWT
-                </th>
-                <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
-                  Net pay
                 </th>
                 <th className="whitespace-nowrap px-5 py-4 font-semibold text-amber-900">
                   Item code
@@ -279,7 +175,7 @@ export default function InventoryItemsPage({
               {filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={16}
+                    colSpan={11}
                     className="px-5 py-12 text-center text-amber-700"
                   >
                     No items match the filters.
@@ -292,13 +188,19 @@ export default function InventoryItemsPage({
                     className="border-b border-amber-100 hover:bg-amber-50/50"
                   >
                     <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {formatPeriod(item.periodMonth, item.periodYear)}
+                      {item.createdAt
+                        ? new Date(item.createdAt).toLocaleDateString(
+                            undefined,
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )
+                        : "—"}
                     </td>
                     <td className="whitespace-nowrap px-5 py-3 text-amber-900">
                       {item.typeOfStocks}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.typeOfVatTaxpayer ?? "—"}
                     </td>
                     <td className="min-w-[100px] px-5 py-3 text-amber-900">
                       {item.supplierName}
@@ -313,7 +215,7 @@ export default function InventoryItemsPage({
                       {item.productNameSpecific}
                     </td>
                     <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.accountRecognition}
+                      {toItemListCategory(item.accountRecognition)}
                     </td>
                     <td className="whitespace-nowrap px-5 py-3 text-amber-900">
                       {item.unitOfMeasurement}
@@ -321,23 +223,8 @@ export default function InventoryItemsPage({
                     <td className="whitespace-nowrap px-5 py-3 text-amber-900">
                       {item.quantity}
                     </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.unitPrice.toFixed(2)}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.totalPrice.toFixed(2)}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.vatable.toFixed(2)}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.vat.toFixed(2)}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-amber-900">
-                      {item.ewt.toFixed(2)}
-                    </td>
                     <td className="whitespace-nowrap px-5 py-3 font-medium text-amber-900">
-                      {item.netPay.toFixed(2)}
+                      {item.totalPrice.toFixed(2)}
                     </td>
                     <td className="whitespace-nowrap px-5 py-3 text-amber-900">
                       {item.itemCode ?? "—"}
@@ -354,6 +241,7 @@ export default function InventoryItemsPage({
         isOpen={isManageModalOpen}
         onClose={() => setIsManageModalOpen(false)}
         inventoryItems={items}
+        simplifiedForm={simplifiedForm}
       />
     </div>
   );

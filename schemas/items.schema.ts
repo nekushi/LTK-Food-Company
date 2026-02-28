@@ -27,6 +27,12 @@ export const ACCOUNTING_RECOGNITION = [
   "Marketing Supplies",
   "Food Supplies",
 ] as const;
+
+/** For /admin/inventory/item-list: only 2 options (dry vs raw). */
+export const ACCOUNTING_RECOGNITION_ITEM_LIST = [
+  "Dry materials",
+  "Raw materials",
+] as const;
 export const MEASUREMENTS = ["kg", "pc", "packs", "bundles", "g"];
 
 export const itemsFlowSchema = z
@@ -41,7 +47,10 @@ export const itemsFlowSchema = z
     productNameSpecific: z.string().min(1, "Required"),
     productNameGeneral: z.string().min(1, "Required"),
     itemCode: z.string().optional(),
-    accountingRecognition: z.enum(ACCOUNTING_RECOGNITION),
+    accountingRecognition: z.enum([
+      ...ACCOUNTING_RECOGNITION,
+      ...ACCOUNTING_RECOGNITION_ITEM_LIST,
+    ]),
     measurement: z.string().min(1, "Required"),
     quantity: z.coerce.number().min(0.0001, "Must be greater than 0"),
     unitPrice: z.coerce.number().min(0, "Must be 0 or greater"),
