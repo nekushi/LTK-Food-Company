@@ -1,12 +1,20 @@
 /**
  * POS recipe definitions: when a menu item is sold, these ingredients are deducted
  * from the store's inventory (Inventory rows with storeId).
+ * productKey matches Inventory.productNameGeneral/productNameSpecific (contains, case-insensitive).
  *
- * Reference:
- * - 1 Burger = 1 patty & 2 buns
- * - 1 spaghetti = 200g spag noodles & 60g spag sauce
- * - 1 burger steak = 1 patty & 200g rice & 60g steak sauce
- * - 1 chicken = 1 raw chicken
+ * Reference (instructions):
+ * Burger = 1 patty 1 buns
+ * Cheese Burger = 1 cheese 1 patty 1 burger (burger = 1 patty 1 buns)
+ * Spaghetti = 200g spaghetti noodles 50g spaghetti sauce
+ * Chicken Sandwich Burger = 1 chicken sandwich 1 buns
+ * Palabok = 200g palabok noodles 50g palabok sauce
+ * Chicken = 1 chicken 150g rice
+ * Burger Steak = 1 patty 150g rice
+ * Fillet Meal = 1 chicken patty 150g rice
+ * Rice = 150g rice
+ * Fries = 150g potato fries
+ * Coke / Royal / Sprite = 500ml each
  */
 
 export interface RecipeIngredient {
@@ -20,18 +28,42 @@ export interface RecipeIngredient {
 const RECIPES: Record<string, RecipeIngredient[]> = {
   burger: [
     { productKey: "patty", quantity: 1, unit: "pc" },
-    { productKey: "buns", quantity: 2, unit: "pc" },
+    { productKey: "buns", quantity: 1, unit: "pc" },
+  ],
+  "cheese burger": [
+    { productKey: "cheese", quantity: 1, unit: "pc" },
+    { productKey: "patty", quantity: 1, unit: "pc" },
+    { productKey: "buns", quantity: 1, unit: "pc" },
+  ],
+  spaghetti: [
+    { productKey: "spaghetti noodles", quantity: 200, unit: "g" },
+    { productKey: "spaghetti sauce", quantity: 50, unit: "g" },
+  ],
+  "chicken sandwich burger": [
+    { productKey: "chicken sandwich", quantity: 1, unit: "pc" },
+    { productKey: "buns", quantity: 1, unit: "pc" },
+  ],
+  palabok: [
+    { productKey: "palabok noodles", quantity: 200, unit: "g" },
+    { productKey: "palabok sauce", quantity: 50, unit: "g" },
+  ],
+  chicken: [
+    { productKey: "chicken", quantity: 1, unit: "pc" },
+    { productKey: "rice", quantity: 150, unit: "g" },
   ],
   "burger steak": [
     { productKey: "patty", quantity: 1, unit: "pc" },
-    { productKey: "rice", quantity: 200, unit: "g" },
-    { productKey: "steak sauce", quantity: 60, unit: "g" },
+    { productKey: "rice", quantity: 150, unit: "g" },
   ],
-  spaghetti: [
-    { productKey: "spag noodles", quantity: 200, unit: "g" },
-    { productKey: "spag sauce", quantity: 60, unit: "g" },
+  "fillet meal": [
+    { productKey: "chicken patty", quantity: 1, unit: "pc" },
+    { productKey: "rice", quantity: 150, unit: "g" },
   ],
-  chicken: [{ productKey: "raw chicken", quantity: 1, unit: "pc" }],
+  rice: [{ productKey: "rice", quantity: 150, unit: "g" }],
+  fries: [{ productKey: "potato fries", quantity: 150, unit: "g" }],
+  coke: [{ productKey: "coke 500ml", quantity: 1, unit: "pc" }],
+  royal: [{ productKey: "royal 500ml", quantity: 1, unit: "pc" }],
+  sprite: [{ productKey: "sprite 500ml", quantity: 1, unit: "pc" }],
 };
 
 function normalizeItemName(name: string): string {
@@ -48,6 +80,36 @@ export function getRecipeForItem(itemName: string): RecipeIngredient[] | null {
 
   for (const [recipeKey, ingredients] of Object.entries(RECIPES)) {
     if (key.includes(recipeKey) || recipeKey.includes(key)) return [...ingredients];
+  }
+  return null;
+}
+
+/** All ingredients that have a numeric portion (g or mL) for inventory report normalization */
+const PORTION_INGREDIENTS: { productKey: string; portion: number }[] = (() => {
+  const seen = new Map<string, number>();
+  for (const ingredients of Object.values(RECIPES)) {
+    for (const ing of ingredients) {
+      if (ing.unit === "g" || ing.unit === "mL") {
+        const key = ing.productKey.toLowerCase();
+        if (!seen.has(key) || ing.quantity > (seen.get(key) ?? 0)) seen.set(key, ing.quantity);
+      }
+    }
+  }
+  return [...seen.entries()]
+    .map(([productKey, portion]) => ({ productKey, portion }))
+    .sort((a, b) => b.productKey.length - a.productKey.length);
+})();
+
+/**
+ * Returns the POS portion size for a product (e.g. 150 for potato fries, 150 for rice)
+ * when the product is a POS recipe ingredient measured in g or mL. Used so inventory
+ * report values can be stored/displayed as multiples of that portion.
+ */
+export function getPortionSizeForProduct(productName: string): number | null {
+  const nameLower = productName.toLowerCase().trim();
+  if (!nameLower) return null;
+  for (const { productKey, portion } of PORTION_INGREDIENTS) {
+    if (nameLower.includes(productKey) || productKey.includes(nameLower)) return portion;
   }
   return null;
 }

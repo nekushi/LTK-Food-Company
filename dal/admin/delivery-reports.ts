@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { currentNow } from "@/lib/current-now";
 import type { RequestedItemHistoryEntry } from "@/dal/inventory/get-requested-items";
 
 export type DeliveryHistoryEntry = RequestedItemHistoryEntry & {
@@ -8,7 +9,7 @@ export type DeliveryHistoryEntry = RequestedItemHistoryEntry & {
 };
 
 export async function getDeliveryHistoryLast30Days(): Promise<DeliveryHistoryEntry[]> {
-  const cutoff = new Date();
+  const cutoff = new Date(currentNow());
   cutoff.setDate(cutoff.getDate() - 30);
   cutoff.setHours(0, 0, 0, 0);
 

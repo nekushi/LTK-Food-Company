@@ -13,7 +13,7 @@ export async function addFoodStock(data: {
   status: string;
 }) {
   try {
-    const today = new Date();
+    const today = new Date(currentNow());
     const periodMonth = String(today.getMonth() + 1).padStart(2, "0");
     const periodYear = String(today.getFullYear());
 

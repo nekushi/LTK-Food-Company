@@ -614,8 +614,21 @@ update all the @default(now()) to use the above date
 [x] - /store/issue-food-stocks. remove date to the form and to the compound key in the database.
 [x] - /store/issue-food-stocks. error on adding a food stock. fix it
 [x] - /store/sales-report. add currentNow() date in sales report and display it on table as well. add date filter for the table, or separate pos receipts by date
-[ ] - /store/pos. do the computations below. for every pos transactions, it deducts items from the store inventory. auto updates /store/sales-report (inventory report section).
-1 Burger = 1 patty & 1 buns
-1 spaghetti = 200 grams of spag noodles & 60 grams of spag sauce
-1 burger steak = 1 patty & 200 grams of rice & 60 grams of steak sauce
-1 chicken = 1 raw chicken
+[x] - /store/pos. do the deductions below. for every pos transactions, it deducts items,if available, from the store inventory. so the product is missing, it should be fine. deduction updates in /store/sales-report (inventory report section).
+
+Burger = 1 patty 1 buns
+Cheese Burger = 1 cheese 1 patty 1 burger
+Spaghetti = 200 g spaghetti noodles 50 g spaghetti sauce
+Chicken Sandwich Burger = 1 chicken sandwich 1 buns
+Palabok = 200 g palabok noodles 50 g palabok sauce
+Chicken = 1 chicken 150 g rice
+Burger Steak = 1 patty 150 g rice
+Fillet Meal = 1 chicken patty 150 g rice
+Rice = 150 g of rice
+Fries = 150 g potato fries
+Coke = coke 500ml
+Royal = royal 500ml
+Sprite = sprite 500ml
+
+[x] - /store/pos. for example i entered a fries in pos, base on the reference, fries is per 150g worth of product. so the inventory report for fries should be divisible by 150. /store/sales-report. inventory report section. update inventory report
+[x] - /store/sales-report. pos transactions item deductions should reflect on Today's POS Stock Tracker as well

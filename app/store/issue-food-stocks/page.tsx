@@ -31,7 +31,9 @@ const labelClass = "mb-1 block text-sm font-medium text-amber-900";
 
 export default function IssueFoodStocksPage() {
   const [items, setItems] = useState<ItemForSaleRow[]>([]);
-  const [branchInventory, setBranchInventory] = useState<BranchInventoryItem[]>([]);
+  const [branchInventory, setBranchInventory] = useState<BranchInventoryItem[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
 
   const [formName, setFormName] = useState("");
@@ -39,10 +41,7 @@ export default function IssueFoodStocksPage() {
   const [formPrice, setFormPrice] = useState<number>(0);
   const [submitting, setSubmitting] = useState(false);
 
-  const userId =
-    typeof window !== "undefined"
-      ? getAuth("userId") || ""
-      : "";
+  const userId = typeof window !== "undefined" ? getAuth("userId") || "" : "";
 
   const rawMaterialsOnly = useMemo(() => {
     return branchInventory.filter(
@@ -55,7 +54,13 @@ export default function IssueFoodStocksPage() {
   const mergedFoodStocks = useMemo(() => {
     const map = new Map<
       string,
-      { productNameGeneral: string; unitOfMeasurement: string; quantity: number; unitPrice: number; _spend: number }
+      {
+        productNameGeneral: string;
+        unitOfMeasurement: string;
+        quantity: number;
+        unitPrice: number;
+        _spend: number;
+      }
     >();
     for (const item of rawMaterialsOnly) {
       const key = item.productNameGeneral;
@@ -148,8 +153,8 @@ export default function IssueFoodStocksPage() {
           Issue Food Stocks
         </h1>
         <p className="text-amber-800/80">
-          Add items for sale (POS) freely—this does not create inventory records.
-          These entries appear in the POS system only.
+          Add items for sale (POS) freely—this does not create inventory
+          records. These entries appear in the POS system only.
         </p>
       </div>
 
@@ -159,9 +164,7 @@ export default function IssueFoodStocksPage() {
           <p className="text-xs font-medium text-amber-600 uppercase tracking-wide">
             Total Items
           </p>
-          <p className="text-2xl font-bold text-amber-900 mt-1">
-            {totalItems}
-          </p>
+          <p className="text-2xl font-bold text-amber-900 mt-1">{totalItems}</p>
         </div>
         <div className="rounded-xl border border-amber-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-medium text-amber-600 uppercase tracking-wide">
@@ -192,17 +195,45 @@ export default function IssueFoodStocksPage() {
             <FiPlus className="text-amber-700" />
             Add Item for Sale
           </h2>
+          {/* <label for="browser">Choose your browser from the list:</label>
+<input list="browsers" name="browser" id="browser">
+
+<datalist id="browsers">
+  <option value="Edge">
+  <option value="Firefox">
+  <option value="Chrome">
+  <option value="Opera">
+  <option value="Safari">
+</datalist> */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className={labelClass}>Name</label>
+              <label htmlFor="products" className={labelClass}>
+                Products
+              </label>
               <input
                 type="text"
+                list="products"
                 required
                 placeholder="e.g. Chicken Joy, Burger Steak"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 className={inputClass}
               />
+              <datalist id="products">
+                <option value="Burger" />
+                <option value="Cheese Burger" />
+                <option value="Spaghetti" />
+                <option value="Chicken with Rice" />
+                <option value="Palabok" />
+                <option value="Fillet Meal" />
+                <option value="Rice" />
+                <option value="Fries" />
+                <option value="Coke" />
+                <option value="Royal" />
+                <option value="Sprite" />
+                <option value="Ice Tea Juice" />
+                <option value="Sundae Ice Cream" />
+              </datalist>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -267,9 +298,15 @@ export default function IssueFoodStocksPage() {
                   <thead className="sticky top-0 bg-white shadow-sm border-b border-amber-200 z-10">
                     <tr className="text-amber-900 text-xs uppercase tracking-wider">
                       <th className="px-4 py-3 font-semibold">Product</th>
-                      <th className="px-4 py-3 font-semibold text-right">Qty</th>
-                      <th className="px-4 py-3 font-semibold text-right">Unit</th>
-                      <th className="px-4 py-3 font-semibold text-right">Unit price (₱)</th>
+                      <th className="px-4 py-3 font-semibold text-right">
+                        Qty
+                      </th>
+                      <th className="px-4 py-3 font-semibold text-right">
+                        Unit
+                      </th>
+                      {/* <th className="px-4 py-3 font-semibold text-right">
+                        Unit price (₱)
+                      </th> */}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-amber-50">
@@ -287,11 +324,11 @@ export default function IssueFoodStocksPage() {
                         <td className="px-4 py-3 text-amber-600 text-right">
                           {row.unitOfMeasurement}
                         </td>
-                        <td className="px-4 py-3 text-emerald-700 font-bold text-right">
+                        {/* <td className="px-4 py-3 text-emerald-700 font-bold text-right">
                           {row.unitPrice.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                           })}
-                        </td>
+                        </td> */}
                       </tr>
                     ))}
                   </tbody>
@@ -319,8 +356,12 @@ export default function IssueFoodStocksPage() {
                   <thead className="sticky top-0 bg-white shadow-sm border-b border-amber-200 z-10">
                     <tr className="text-amber-900 text-xs uppercase tracking-wider">
                       <th className="px-4 py-3 font-semibold">Name</th>
-                      <th className="px-4 py-3 font-semibold text-right">Qty</th>
-                      <th className="px-4 py-3 font-semibold text-right">Price</th>
+                      <th className="px-4 py-3 font-semibold text-right">
+                        Qty
+                      </th>
+                      <th className="px-4 py-3 font-semibold text-right">
+                        Price
+                      </th>
                       <th className="px-4 py-3 font-semibold w-10" />
                     </tr>
                   </thead>
