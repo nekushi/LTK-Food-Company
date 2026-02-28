@@ -1,8 +1,7 @@
 import { getAggregatedDailySales, getAdminOverviewCounts } from "@/dal/admin/branch-metrics";
 import { FiTrendingUp, FiTrendingDown, FiUsers, FiMapPin, FiBriefcase } from "react-icons/fi";
 import BranchSalesCharts from "./branch-sales-charts";
-import AdminLiveRequests from "./admin-live-requests";
-import AdminStoreNotifications from "./admin-store-notifications";
+import AdminStoreHub from "./admin-store-hub";
 
 export const dynamic = "force-dynamic";
 
@@ -80,11 +79,8 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Store Notifications Section */}
-      <AdminStoreNotifications />
-
-      {/* Live Item Requests Section */}
-      <AdminLiveRequests />
+      {/* Store Notifications & Item Requests */}
+      <AdminStoreHub />
 
       {/* Branch Sales Section */}
       <div className="space-y-4">

@@ -418,6 +418,43 @@ export async function issueStock(
   }
 }
 
+export type BatchIssueStockResult = {
+  success: boolean;
+  message: string;
+  issuedCount?: number;
+  totalCount?: number;
+};
+
+/** Issue stock for multiple requested items. Stops on first failure. */
+export async function batchIssueStocks(
+  requestedItemIds: string[],
+  note: string,
+): Promise<BatchIssueStockResult> {
+  if (requestedItemIds.length === 0) {
+    return { success: false, message: "No items selected.", totalCount: 0 };
+  }
+  const totalCount = requestedItemIds.length;
+  let issuedCount = 0;
+  for (const id of requestedItemIds) {
+    const result = await issueStock(id, note);
+    if (!result.success) {
+      return {
+        success: false,
+        message: result.message,
+        issuedCount,
+        totalCount,
+      };
+    }
+    issuedCount++;
+  }
+  return {
+    success: true,
+    message: `Issued stock for ${issuedCount} item${issuedCount !== 1 ? "s" : ""}.`,
+    issuedCount,
+    totalCount,
+  };
+}
+
 export async function getStoreUsername(
   storeId: string,
 ): Promise<string | null> {

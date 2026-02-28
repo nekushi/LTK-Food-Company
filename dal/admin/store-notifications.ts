@@ -43,6 +43,26 @@ export async function createStoreNotificationByUserId(
   }
 }
 
+export async function deleteStoreNotification(id: string) {
+  try {
+    await prisma.storeNotification.delete({ where: { id } });
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete store notification:", error);
+    return { success: false };
+  }
+}
+
+export async function deleteStoreNotificationsByStore(storeId: string) {
+  try {
+    await prisma.storeNotification.deleteMany({ where: { storeId } });
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete store notifications:", error);
+    return { success: false };
+  }
+}
+
 export async function getStoreNotifications() {
   try {
     const notifications = await prisma.storeNotification.findMany({

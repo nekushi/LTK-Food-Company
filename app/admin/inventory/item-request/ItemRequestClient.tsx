@@ -1,10 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import type {
   RequestedItemHistoryEntry,
   MergedItemReturnTypeInventoryWithStore,
 } from "@/dal/inventory/get-requested-items";
+import { batchIssueStocks } from "@/dal/inventory/get-requested-items";
 
 type IncomingItem = MergedItemReturnTypeInventoryWithStore & {
   availableStock: number;
@@ -28,7 +31,9 @@ export function ItemRequestClient({
   history,
   storeTabs,
 }: ItemRequestClientProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
+  const [isIssuing, setIsIssuing] = useState(false);
 
   const filteredIncoming = useMemo(() => {
     if (activeTab === ALL_TAB) return incoming;
@@ -66,6 +71,31 @@ export function ItemRequestClient({
 
   const incomingCountFor = (storeId: string) =>
     incoming.filter((i) => i.storeId === storeId).length;
+
+  const handleBatchIssue = async () => {
+    if (filteredIncoming.length === 0) {
+      toast.warning("No incoming requests to issue.");
+      return;
+    }
+    setIsIssuing(true);
+    try {
+      const ids = filteredIncoming.map((i) => i.id);
+      const result = await batchIssueStocks(ids, "Batch issued");
+      if (result.success) {
+        toast.success(result.message);
+        router.refresh();
+      } else {
+        toast.error(result.message);
+        if (result.issuedCount != null && result.issuedCount > 0) {
+          router.refresh();
+        }
+      }
+    } catch {
+      toast.error("Something went wrong.");
+    } finally {
+      setIsIssuing(false);
+    }
+  };
 
   return (
     <div className="space-y-6 p-8">
@@ -120,12 +150,22 @@ export function ItemRequestClient({
       </div>
 
       <div>
-        <h2 className="mb-3 text-lg font-semibold text-amber-900">
-          Incoming Requests
-          <span className="ml-2 text-sm font-normal text-amber-600">
-            ({filteredIncoming.length})
-          </span>
-        </h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-amber-900">
+            Incoming Requests
+            <span className="ml-2 text-sm font-normal text-amber-600">
+              ({filteredIncoming.length})
+            </span>
+          </h2>
+          <button
+            type="button"
+            onClick={handleBatchIssue}
+            disabled={filteredIncoming.length === 0 || isIssuing}
+            className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isIssuing ? "Issuing…" : "Batch issue stocks"}
+          </button>
+        </div>
         <div className="overflow-hidden rounded-xl border border-amber-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-max min-w-full table-auto text-left text-sm">
