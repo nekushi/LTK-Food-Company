@@ -598,4 +598,3 @@ update all the @default(now()) to use the above date
 [x] - /store/issue-food-stocks. i know you are issuing stocks, but dont create new items in /admin/inventory/item-list as issued stocks type.
 [x] - /store/pos. do reference below: 1 Burger = 1 patty & 2 buns, reduce the; 1 spaghetti = 200 grams of spag noodles & 60 grams of spag sauce; 1 burger steak = 1 patty & 200 grams of rice & 60 grams of steak sauce; 1 chicken = 1 raw chicken
 [x] - /delivery. deeply review this SPA. fix the issue where it does not work properly. STARTING GPS button does not reflect on map realtime
-[x] - fix the issue where localStorage, after logging in, adapts to the latest logged user. each user should use their own localStorage. if i log in as admin in new tab, browser dev tools localStorage shows admin. then if i log in as delivery in new tab, browser dev tools localStorage shows delivery, but the ADMIN for the other tabs still showing.

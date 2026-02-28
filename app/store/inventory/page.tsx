@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getBranchInventory } from "@/dal/store/get-branch-inventory";
-import { getAuth } from "@/lib/auth-storage";
 import BranchInventoryClient from "./branch-inventory-client";
 
 export default function BranchInventoryPage() {
@@ -11,7 +10,7 @@ export default function BranchInventoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userId = getAuth("userId") || "";
+    const userId = localStorage.getItem("userId") || "";
     getBranchInventory(userId).then((data) => {
       setInventory(data);
       setLoading(false);

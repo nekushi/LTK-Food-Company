@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { getCurrentStore } from "@/dal/store/get-current-store";
 import { getOnTheWayItemsForStore } from "@/dal/inventory/get-requested-items";
-import { getAuth } from "@/lib/auth-storage";
 import DeliveryRunClient from "@/app/delivery/DeliveryRunClient";
 
 export default function StoreDeliveryViewPage() {
@@ -12,7 +11,7 @@ export default function StoreDeliveryViewPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userId = getAuth("userId") || "";
+    const userId = localStorage.getItem("userId") || "";
     getCurrentStore(userId).then((store) => {
       if (store) {
         getOnTheWayItemsForStore(store.id).then((items) => {

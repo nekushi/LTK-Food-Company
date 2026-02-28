@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getSalesReports } from "@/dal/store/sales-report";
-import { getAuth } from "@/lib/auth-storage";
 import Link from "next/link";
 
 function computeFromDaily(
@@ -49,7 +48,7 @@ export default function StoreDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userId = getAuth("userId") || "";
+    const userId = localStorage.getItem("userId") || "";
     getSalesReports(userId).then((result) => {
       if (result.success) setSalesReports(result.data);
       setLoading(false);

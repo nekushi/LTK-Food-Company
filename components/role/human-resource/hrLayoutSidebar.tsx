@@ -11,7 +11,6 @@ import { FaRegUser } from "react-icons/fa";
 
 import { TypeNavList } from "@/index";
 import BtnLogout from "@/components/logouts/btnLogout";
-import { getAuth } from "@/lib/auth-storage";
 
 const navLists: TypeNavList[] = [
   { name: "Accounts", href: "/hr/accounts", icon: <RiCalendarScheduleLine /> },
@@ -30,8 +29,8 @@ export default function HRLayoutSidebar() {
   const [lastName, setLastName] = useState("");
 
   useEffect(() => {
-    setFirstName(getAuth("firstName") || "");
-    setLastName(getAuth("lastName") || "");
+    setFirstName(localStorage.getItem("firstName") || "");
+    setLastName(localStorage.getItem("lastName") || "");
   }, []);
 
   const initials =

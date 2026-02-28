@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { FiSearch, FiUsers } from "react-icons/fi";
 import { getEmployees } from "@/app/hr/employees/dal/get-employees";
-import { getAuth } from "@/lib/auth-storage";
 
 type EmployeeRow = {
   id: string;
@@ -36,7 +35,7 @@ export default function StoreEmployeesPage() {
   }, [employees, nameFilter]);
 
   useEffect(() => {
-    const storeName = getAuth("username") || "";
+    const storeName = localStorage.getItem("username") || "";
 
     getEmployees().then((all) => {
       const filtered = storeName

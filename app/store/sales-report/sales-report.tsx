@@ -7,7 +7,6 @@ import { upsertInventoryReport } from "@/dal/store/inventory-report";
 import { IoChevronDown } from "react-icons/io5";
 import type { POSReceiptGroup, POSInventoryItem } from "@/dal/store/pos-receipts";
 import { sendPOSDailyReport } from "@/dal/store/pos-receipts";
-import { getAuth } from "@/lib/auth-storage";
 import { FiSend } from "react-icons/fi";
 
 const inputClass =
@@ -136,7 +135,7 @@ export default function StoreSalesReportClient({
       return;
     }
     setSendingTransactions(true);
-    const uid = getAuth("userId") || "";
+    const uid = localStorage.getItem("userId") || "";
     const result = await sendPOSDailyReport(uid, "transactions", {
       receipts: posReceipts,
       totalSales: posTotalSales,
@@ -157,7 +156,7 @@ export default function StoreSalesReportClient({
       return;
     }
     setSendingStock(true);
-    const uid = getAuth("userId") || "";
+    const uid = localStorage.getItem("userId") || "";
     const result = await sendPOSDailyReport(uid, "stock_tracker", {
       items: posInventory,
     });
@@ -229,7 +228,7 @@ export default function StoreSalesReportClient({
     const finalMonth = formDate;
     const finalYear = new Date(formDate).getFullYear().toString();
 
-    const userId = getAuth("userId") || "";
+    const userId = localStorage.getItem("userId") || "";
     const result = await upsertSalesReport(userId, {
       reportType: SALES_REPORT_TYPE,
       periodMonth: finalMonth,
@@ -274,7 +273,7 @@ export default function StoreSalesReportClient({
       const periodYear = batch[0].periodYear;
       const saved: typeof inventoryReports = [];
       let failed = 0;
-      const userId = getAuth("userId") || "";
+      const userId = localStorage.getItem("userId") || "";
       for (const line of batch) {
         const result = await upsertInventoryReport(userId, {
           reportType: "Daily",
@@ -318,7 +317,7 @@ export default function StoreSalesReportClient({
       finalYear = invFormYear;
     }
 
-    const invUserId = getAuth("userId") || "";
+    const invUserId = localStorage.getItem("userId") || "";
     const result = await upsertInventoryReport(invUserId, {
       reportType: invReportType,
       periodMonth: finalMonth,
