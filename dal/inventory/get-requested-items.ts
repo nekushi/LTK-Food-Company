@@ -185,10 +185,7 @@ export async function getIssuedItemsForDelivery(): Promise<
     where: {
       isRequestApproved: true,
       NOT: { note: null },
-      OR: [
-        { status: null },
-        { status: "to be delivered" },
-      ],
+      OR: [{ status: null }, { status: "to be delivered" }],
     },
     orderBy: { id: "desc" },
     include: {
@@ -239,9 +236,9 @@ export async function getRequestedItemsHistoryForInventory(): Promise<
 }
 
 /** Decided requests for one store (for /store/history). */
-export async function getRequestedItemsHistoryForStore(userId: string): Promise<
-  RequestedItemHistoryEntry[]
-> {
+export async function getRequestedItemsHistoryForStore(
+  userId: string,
+): Promise<RequestedItemHistoryEntry[]> {
   const store = await prisma.store.findUnique({
     where: { userId },
     select: { id: true },
@@ -365,7 +362,10 @@ export async function issueStock(
       orderBy: { id: "asc" },
     });
 
-    const totalAvailable = inventoryItems.reduce((sum, i) => sum + i.quantity, 0);
+    const totalAvailable = inventoryItems.reduce(
+      (sum, i) => sum + i.quantity,
+      0,
+    );
     if (totalAvailable < requestedItem.quantity) {
       return {
         success: false,
