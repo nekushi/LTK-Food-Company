@@ -15,6 +15,9 @@ type EmployeeRow = {
     dateHired?: Date;
     contactNo?: string | null;
     email?: string | null;
+    sss?: string | null;
+    philhealth?: string | null;
+    pagIbig?: string | null;
   } | null;
 };
 
@@ -165,6 +168,15 @@ export default function EmployeeRecordsClient({ employees }: EmployeeRecordsClie
                   <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
                     Date Hired
                   </th>
+                  <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
+                    SSS
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
+                    PhilHealth
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
+                    Pag-IBIG
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-amber-100">
@@ -225,6 +237,39 @@ export default function EmployeeRecordsClient({ employees }: EmployeeRecordsClie
                         <Link href={`/admin/personnel/employee-records/${row.id}`} className="block">
                           <span className={`text-sm ${dateHired ? "text-amber-900" : "text-amber-400 italic"}`}>
                             {dateHired || "N/A"}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <Link href={`/admin/personnel/employee-records/${row.id}`} className="block">
+                          <span
+                            className={`text-sm ${
+                              row.employeeData?.sss ? "text-amber-900" : "text-amber-400 italic"
+                            }`}
+                          >
+                            {row.employeeData?.sss || "N/A"}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <Link href={`/admin/personnel/employee-records/${row.id}`} className="block">
+                          <span
+                            className={`text-sm ${
+                              row.employeeData?.philhealth ? "text-amber-900" : "text-amber-400 italic"
+                            }`}
+                          >
+                            {row.employeeData?.philhealth || "N/A"}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <Link href={`/admin/personnel/employee-records/${row.id}`} className="block">
+                          <span
+                            className={`text-sm ${
+                              row.employeeData?.pagIbig ? "text-amber-900" : "text-amber-400 italic"
+                            }`}
+                          >
+                            {row.employeeData?.pagIbig || "N/A"}
                           </span>
                         </Link>
                       </td>

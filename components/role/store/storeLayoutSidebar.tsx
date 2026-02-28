@@ -26,9 +26,13 @@ const navLists: TypeNavList[] = [
   },
   { name: "Employees", href: "/store/employees", icon: <FiUsers /> },
   { name: "Attendance", href: "/store/attendance", icon: <FiClock /> },
-  { name: "History", href: "/store/history", icon: <RiCalendarScheduleLine /> },
   {
-    name: "Delivery view",
+    name: "Request History",
+    href: "/store/history",
+    icon: <RiCalendarScheduleLine />,
+  },
+  {
+    name: "Delivery View",
     href: "/store/delivery-view",
     icon: <RiCalendarScheduleLine />,
   },

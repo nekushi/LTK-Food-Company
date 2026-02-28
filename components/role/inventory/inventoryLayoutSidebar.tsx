@@ -30,13 +30,16 @@ export default function InventoryLayoutSidebar() {
     setLastName(getAuth("lastName") || "");
   }, []);
 
-  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "IN";
+  const initials =
+    `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "IN";
   const fullName = `${firstName} ${lastName}`.trim() || "Inventory User";
 
   return (
     <aside className="h-full bg-amber-50 flex flex-col col-span-2 overflow-y-auto border-r border-amber-200">
       <div className="px-5 pt-5 pb-3">
-        <h2 className="text-sm font-bold font-serif text-amber-800 tracking-wide">LTK Food Company</h2>
+        <h2 className="text-sm font-bold font-serif text-amber-800 tracking-wide">
+          LTK Food Company
+        </h2>
       </div>
 
       <div className="px-5 py-4 flex items-center gap-3 border-b border-amber-200">
@@ -44,14 +47,18 @@ export default function InventoryLayoutSidebar() {
           {initials}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-amber-900 truncate">{fullName}</p>
+          <p className="text-sm font-semibold text-amber-900 truncate">
+            {fullName}
+          </p>
           <p className="text-[11px] text-amber-600">Inventory</p>
         </div>
       </div>
 
       <nav className="px-3 py-4 space-y-1">
         {navLists.map((navList: TypeNavList) => {
-          const isActive = path === navList.href || (navList.href !== "" && path.startsWith(`${navList.href}/`));
+          const isActive =
+            path === navList.href ||
+            (navList.href !== "" && path.startsWith(`${navList.href}/`));
           return (
             <Link
               key={navList.name}

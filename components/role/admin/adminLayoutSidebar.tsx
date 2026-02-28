@@ -231,7 +231,7 @@ export default function AdminLayoutSidebar() {
           }`}
         >
           <IoAnalytics className="text-lg" />
-          Requests
+          Item Requests
         </Link>
       </nav>
 

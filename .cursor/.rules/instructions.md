@@ -620,3 +620,8 @@ update all the @default(now()) to use the above date
 [x] - /store/page.tsx. get the UI from /store/history. display only the last 10 history
 [x] - /store/page.tsx. display only the last 10 history. add new table header for date
 [x] - /admin/inventory/item-request. add new table header for date as well
+[x] - /admin/personnel/employee-records. show employees sss, philhealth, and pagibig in rows
+[x] - /store/employees. show employees sss, philhealth, and pagibig in rows, same as /admin/personnel/employee-records
+[x] - /template/header. add this header across the system. all
+[x] - /template/header. remove this header to /login
+[ ] - /layoutSidebars. add /public/img.png besides `LTK Food Company` just like logo

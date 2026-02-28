@@ -14,6 +14,9 @@ type EmployeeRow = {
   employeeData: {
     dateHired?: Date;
     contactNo?: string | null;
+    sss?: string | null;
+    philhealth?: string | null;
+    pagIbig?: string | null;
   } | null;
 };
 
@@ -118,14 +121,23 @@ export default function StoreEmployeesPage() {
                   <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
                     ID
                   </th>
-                  <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
+                  {/* <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
                     Branch
-                  </th>
+                  </th> */}
                   <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
                     Contact
                   </th>
                   <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
                     Date Hired
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
+                    SSS
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
+                    PhilHealth
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3.5 font-semibold text-amber-900 text-xs uppercase tracking-wider">
+                    Pag-IBIG
                   </th>
                 </tr>
               </thead>
@@ -171,13 +183,13 @@ export default function StoreEmployeesPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-5 py-3.5">
+                      {/* <td className="px-5 py-3.5">
                         <span
                           className={`text-sm ${row.branch ? "text-amber-900" : "text-amber-400 italic"}`}
                         >
                           {row.branch || "N/A"}
                         </span>
-                      </td>
+                      </td> */}
                       <td className="px-5 py-3.5">
                         <span
                           className={`text-sm ${
@@ -194,6 +206,39 @@ export default function StoreEmployeesPage() {
                           className={`text-sm ${dateHired ? "text-amber-900" : "text-amber-400 italic"}`}
                         >
                           {dateHired || "N/A"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span
+                          className={`text-sm ${
+                            row.employeeData?.sss
+                              ? "text-amber-900"
+                              : "text-amber-400 italic"
+                          }`}
+                        >
+                          {row.employeeData?.sss || "N/A"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span
+                          className={`text-sm ${
+                            row.employeeData?.philhealth
+                              ? "text-amber-900"
+                              : "text-amber-400 italic"
+                          }`}
+                        >
+                          {row.employeeData?.philhealth || "N/A"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span
+                          className={`text-sm ${
+                            row.employeeData?.pagIbig
+                              ? "text-amber-900"
+                              : "text-amber-400 italic"
+                          }`}
+                        >
+                          {row.employeeData?.pagIbig || "N/A"}
                         </span>
                       </td>
                     </tr>
