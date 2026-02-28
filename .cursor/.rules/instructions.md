@@ -597,4 +597,4 @@ update all the @default(now()) to use the above date
 [x] - /store/request-items. /store/issue-food-stocks should not create new item in inventory. it just create an initial item for store freely
 [x] - /store/issue-food-stocks. i know you are issuing stocks, but dont create new items in /admin/inventory/item-list as issued stocks type.
 [x] - /store/pos. do reference below: 1 Burger = 1 patty & 2 buns, reduce the; 1 spaghetti = 200 grams of spag noodles & 60 grams of spag sauce; 1 burger steak = 1 patty & 200 grams of rice & 60 grams of steak sauce; 1 chicken = 1 raw chicken
-[ ] - /delivery. fix the issue where it does not work properly. it does not adapt or something. seems wrong
+[x] - /delivery. deeply review this SPA. fix the issue where it does not work properly. STARTING GPS button does not reflect on map realtime

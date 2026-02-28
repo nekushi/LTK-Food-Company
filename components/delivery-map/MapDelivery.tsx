@@ -146,10 +146,20 @@ const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
           timeoutRef.current = null;
         }
       };
-    }, [latlng.lat, latlng.lng, getLocation]);
+    }, [getLocation]);
 
-    const centerLat = location?.[0]?.lat ?? DEFAULT_CENTER.lat;
-    const centerLng = location?.[0]?.lng ?? DEFAULT_CENTER.lng;
+    // When tracking, use live latlng from device GPS for real-time map updates
+    const trackingHasPosition =
+      tracking &&
+      Number.isFinite(latlng.lat) &&
+      Number.isFinite(latlng.lng) &&
+      (latlng.lat !== 0 || latlng.lng !== 0);
+    const centerLat = trackingHasPosition
+      ? latlng.lat
+      : location?.[0]?.lat ?? DEFAULT_CENTER.lat;
+    const centerLng = trackingHasPosition
+      ? latlng.lng
+      : location?.[0]?.lng ?? DEFAULT_CENTER.lng;
     const hasValidCenter =
       Number.isFinite(centerLat) &&
       Number.isFinite(centerLng) &&
@@ -157,9 +167,11 @@ const MapDelivery = forwardRef<MapDeliveryRef, MapDeliveryProps>(
     const mapCenter: [number, number] = hasValidCenter
       ? [centerLat, centerLng]
       : [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng];
-    const position = location?.[0]
-      ? { lat: location[0].lat, lng: location[0].lng }
-      : DEFAULT_CENTER;
+    const position = trackingHasPosition
+      ? { lat: latlng.lat, lng: latlng.lng }
+      : location?.[0]
+        ? { lat: location[0].lat, lng: location[0].lng }
+        : DEFAULT_CENTER;
 
     return (
       <div className="absolute inset-0 min-h-[300px] rounded-lg overflow-hidden">
