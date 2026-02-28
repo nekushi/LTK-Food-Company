@@ -2,6 +2,12 @@
 
 import prisma from "@/lib/db";
 import { currentNow } from "@/lib/current-now";
+import { deductRecipeFromStoreInventory } from "./deduct-recipe-inventory";
+
+/**
+ * Store Issue Food Stocks flow: creates/updates ItemForSale only.
+ * Does NOT create or modify Inventory—stores add items for sale (POS) freely here.
+ */
 
 export interface ItemForSaleRow {
   id: string;
@@ -145,6 +151,7 @@ export async function sellItemForSale(
         data: { quantity: newQty, updatedAt: new Date(currentNow()) },
       });
     }
+    await deductRecipeFromStoreInventory(store.id, item.name, quantitySold);
     return { success: true, message: "Sale recorded" };
   } catch (error) {
     console.error("sellItemForSale", error);

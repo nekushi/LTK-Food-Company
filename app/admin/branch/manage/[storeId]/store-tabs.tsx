@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   FiBox,
   FiClock,
   FiCheckCircle,
   FiAlertTriangle,
   FiAlertCircle,
-  FiFileText,
 } from "react-icons/fi";
 
 interface MergedInventory {
@@ -49,9 +48,22 @@ function getStockStatus(qty: number) {
   return { label: "Well Stocked", color: "bg-blue-50 text-blue-700 border-blue-200" };
 }
 
+const DRY_KEYWORDS = ["operational", "office", "janitorial", "marketing"];
+const RAW_KEYWORDS = ["food"];
+
+function isDryCategory(accountRecognition: string): boolean {
+  const lower = (accountRecognition || "").toLowerCase();
+  return DRY_KEYWORDS.some((k) => lower.includes(k));
+}
+
+function isRawCategory(accountRecognition: string): boolean {
+  const lower = (accountRecognition || "").toLowerCase();
+  return RAW_KEYWORDS.some((k) => lower.includes(k));
+}
+
 const TABS = [
-  { value: "inventory", label: "Store Inventory", icon: FiBox },
-  { value: "inventory-report", label: "Inventory Report", icon: FiFileText },
+  { value: "dry", label: "Dry Items", icon: FiBox },
+  { value: "raw", label: "Raw Materials", icon: FiBox },
   { value: "requests", label: "Request History", icon: FiClock },
 ] as const;
 
@@ -70,7 +82,29 @@ export default function StoreTabs({
   requestHistory: RequestItem[];
   inventoryReports?: InventoryReportItem[];
 }) {
-  const [activeTab, setActiveTab] = useState<TabValue>("inventory");
+  const [activeTab, setActiveTab] = useState<TabValue>("dry");
+
+  const dryInventory = useMemo(
+    () => mergedInventory.filter((i) => isDryCategory(i.accountRecognition)),
+    [mergedInventory],
+  );
+  const rawInventory = useMemo(
+    () => mergedInventory.filter((i) => isRawCategory(i.accountRecognition)),
+    [mergedInventory],
+  );
+  const dryReports = useMemo(
+    () => (inventoryReports || []).filter((r) => isDryCategory(r.accountRecognition)),
+    [inventoryReports],
+  );
+  const rawReports = useMemo(
+    () => (inventoryReports || []).filter((r) => isRawCategory(r.accountRecognition)),
+    [inventoryReports],
+  );
+
+  const dryLowStock = dryInventory.filter((i) => i.quantity > 0 && i.quantity <= 15).length;
+  const dryOutOfStock = dryInventory.filter((i) => i.quantity <= 0).length;
+  const rawLowStock = rawInventory.filter((i) => i.quantity > 0 && i.quantity <= 15).length;
+  const rawOutOfStock = rawInventory.filter((i) => i.quantity <= 0).length;
 
   return (
     <div className="rounded-xl border border-amber-200 bg-white shadow-sm">
@@ -91,14 +125,14 @@ export default function StoreTabs({
             >
               <Icon className="text-base" />
               {tab.label}
-              {tab.value === "inventory" && mergedInventory.length > 0 && (
+              {tab.value === "dry" && (dryInventory.length > 0 || dryReports.length > 0) && (
                 <span className="text-[10px] font-medium bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full border border-amber-200">
-                  {mergedInventory.length}
+                  {dryInventory.length + dryReports.length}
                 </span>
               )}
-              {tab.value === "inventory-report" && inventoryReports.length > 0 && (
+              {tab.value === "raw" && (rawInventory.length > 0 || rawReports.length > 0) && (
                 <span className="text-[10px] font-medium bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full border border-amber-200">
-                  {inventoryReports.length}
+                  {rawInventory.length + rawReports.length}
                 </span>
               )}
               {tab.value === "requests" && requestHistory.length > 0 && (
@@ -113,28 +147,27 @@ export default function StoreTabs({
 
       {/* Tab Content */}
       <div className="p-6">
-        {activeTab === "inventory" && (
-          <div>
-            {(lowStockCount > 0 || outOfStockCount > 0) && (
-              <div className="flex gap-2 mb-4">
-                {outOfStockCount > 0 && (
+        {activeTab === "dry" && (
+          <div className="space-y-6">
+            {(dryLowStock > 0 || dryOutOfStock > 0) && (
+              <div className="flex gap-2">
+                {dryOutOfStock > 0 && (
                   <div className="flex items-center gap-1.5 text-xs font-medium text-red-700 bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200">
                     <FiAlertCircle className="text-sm" />
-                    {outOfStockCount} out of stock
+                    {dryOutOfStock} out of stock
                   </div>
                 )}
-                {lowStockCount > 0 && (
+                {dryLowStock > 0 && (
                   <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-200">
                     <FiAlertTriangle className="text-sm" />
-                    {lowStockCount} low stock
+                    {dryLowStock} low stock
                   </div>
                 )}
               </div>
             )}
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {mergedInventory.length > 0 ? (
-                mergedInventory.map((item) => {
+              {dryInventory.length > 0 ? (
+                dryInventory.map((item) => {
                   const status = getStockStatus(item.quantity);
                   return (
                     <div
@@ -172,68 +205,180 @@ export default function StoreTabs({
                 })
               ) : (
                 <div className="col-span-full">
-                  <p className="text-sm text-amber-600/70 italic text-center py-8">
-                    No inventory data linked yet.
+                  <p className="text-sm text-amber-600/70 italic text-center py-4">
+                    No dry items (operational, office, janitorial, marketing supplies) linked yet.
                   </p>
                 </div>
               )}
             </div>
+            {dryReports.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-amber-900 mb-2">Inventory Report</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="border-b border-amber-200 text-amber-900">
+                      <tr>
+                        <th className="py-2 px-2 font-semibold">Product</th>
+                        <th className="py-2 px-2 font-semibold">Category</th>
+                        <th className="py-2 px-2 font-semibold">Period</th>
+                        <th className="py-2 px-2 font-semibold text-center">Qty</th>
+                        <th className="py-2 px-2 font-semibold text-center">Used</th>
+                        <th className="py-2 px-2 font-semibold text-center">Left</th>
+                        <th className="py-2 px-2 font-semibold text-right">Type</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-amber-100">
+                      {dryReports.map((r) => {
+                        const usagePercent = r.quantity > 0 ? (r.itemsUsed / r.quantity) * 100 : 0;
+                        return (
+                          <tr key={r.id} className="hover:bg-amber-50/40">
+                            <td className="py-2 px-2 text-amber-900 font-medium">
+                              {r.productName}
+                              <span className="text-[11px] text-amber-500 ml-1">({r.unitOfMeasurement})</span>
+                            </td>
+                            <td className="py-2 px-2 text-amber-700 text-xs">{r.accountRecognition}</td>
+                            <td className="py-2 px-2 text-amber-700 text-xs">{r.periodMonth} {r.periodYear}</td>
+                            <td className="py-2 px-2 text-center text-amber-900 font-medium">{r.quantity}</td>
+                            <td className="py-2 px-2 text-center">
+                              <span className={`font-medium ${usagePercent > 80 ? "text-red-600" : usagePercent > 50 ? "text-amber-600" : "text-emerald-600"}`}>
+                                {r.itemsUsed}
+                              </span>
+                            </td>
+                            <td className="py-2 px-2 text-center">
+                              <span className={`font-medium ${r.itemsLeft <= 5 ? "text-red-600" : r.itemsLeft <= 15 ? "text-amber-600" : "text-emerald-600"}`}>
+                                {r.itemsLeft}
+                              </span>
+                            </td>
+                            <td className="py-2 px-2 text-right">
+                              <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                                {r.reportType}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {activeTab === "inventory-report" && (
-          <div>
-            {inventoryReports.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="border-b border-amber-200 text-amber-900">
-                    <tr>
-                      <th className="py-2 px-2 font-semibold">Product</th>
-                      <th className="py-2 px-2 font-semibold">Category</th>
-                      <th className="py-2 px-2 font-semibold">Period</th>
-                      <th className="py-2 px-2 font-semibold text-center">Qty</th>
-                      <th className="py-2 px-2 font-semibold text-center">Used</th>
-                      <th className="py-2 px-2 font-semibold text-center">Left</th>
-                      <th className="py-2 px-2 font-semibold text-right">Type</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-amber-100">
-                    {inventoryReports.map((r) => {
-                      const usagePercent = r.quantity > 0 ? (r.itemsUsed / r.quantity) * 100 : 0;
-                      return (
-                        <tr key={r.id} className="hover:bg-amber-50/40">
-                          <td className="py-2 px-2 text-amber-900 font-medium">
-                            {r.productName}
-                            <span className="text-[11px] text-amber-500 ml-1">({r.unitOfMeasurement})</span>
-                          </td>
-                          <td className="py-2 px-2 text-amber-700 text-xs">{r.accountRecognition}</td>
-                          <td className="py-2 px-2 text-amber-700 text-xs">{r.periodMonth} {r.periodYear}</td>
-                          <td className="py-2 px-2 text-center text-amber-900 font-medium">{r.quantity}</td>
-                          <td className="py-2 px-2 text-center">
-                            <span className={`font-medium ${usagePercent > 80 ? "text-red-600" : usagePercent > 50 ? "text-amber-600" : "text-emerald-600"}`}>
-                              {r.itemsUsed}
-                            </span>
-                          </td>
-                          <td className="py-2 px-2 text-center">
-                            <span className={`font-medium ${r.itemsLeft <= 5 ? "text-red-600" : r.itemsLeft <= 15 ? "text-amber-600" : "text-emerald-600"}`}>
-                              {r.itemsLeft}
-                            </span>
-                          </td>
-                          <td className="py-2 px-2 text-right">
-                            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                              {r.reportType}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+        {activeTab === "raw" && (
+          <div className="space-y-6">
+            {(rawLowStock > 0 || rawOutOfStock > 0) && (
+              <div className="flex gap-2">
+                {rawOutOfStock > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-red-700 bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200">
+                    <FiAlertCircle className="text-sm" />
+                    {rawOutOfStock} out of stock
+                  </div>
+                )}
+                {rawLowStock > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-200">
+                    <FiAlertTriangle className="text-sm" />
+                    {rawLowStock} low stock
+                  </div>
+                )}
               </div>
-            ) : (
-              <p className="text-sm text-amber-600/70 italic text-center py-8">
-                No inventory reports submitted yet.
-              </p>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {rawInventory.length > 0 ? (
+                rawInventory.map((item) => {
+                  const status = getStockStatus(item.quantity);
+                  return (
+                    <div
+                      key={item.productName}
+                      className="rounded-lg border border-amber-100 p-3 hover:bg-amber-50/40 transition-colors"
+                    >
+                      <div className="flex justify-between items-start mb-1.5">
+                        <div className="min-w-0 flex-1 mr-2">
+                          <h4 className="text-sm font-semibold text-amber-900 truncate">
+                            {item.productName}
+                          </h4>
+                          <p className="text-[11px] text-amber-600/70 mt-0.5">
+                            {item.accountRecognition}
+                          </p>
+                        </div>
+                        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${status.color}`}>
+                          {status.label}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-end">
+                        <span className="text-xs text-amber-600">
+                          ₱{item.netPay.toLocaleString(undefined, { minimumFractionDigits: 2 })} net
+                        </span>
+                        <div className="text-right">
+                          <span className="text-sm font-bold text-amber-900">
+                            {item.quantity}
+                          </span>
+                          <span className="text-xs text-amber-700 ml-1">
+                            {item.unitOfMeasurement}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="col-span-full">
+                  <p className="text-sm text-amber-600/70 italic text-center py-4">
+                    No raw materials (food supplies) linked yet.
+                  </p>
+                </div>
+              )}
+            </div>
+            {rawReports.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-amber-900 mb-2">Inventory Report</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="border-b border-amber-200 text-amber-900">
+                      <tr>
+                        <th className="py-2 px-2 font-semibold">Product</th>
+                        <th className="py-2 px-2 font-semibold">Category</th>
+                        <th className="py-2 px-2 font-semibold">Period</th>
+                        <th className="py-2 px-2 font-semibold text-center">Qty</th>
+                        <th className="py-2 px-2 font-semibold text-center">Used</th>
+                        <th className="py-2 px-2 font-semibold text-center">Left</th>
+                        <th className="py-2 px-2 font-semibold text-right">Type</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-amber-100">
+                      {rawReports.map((r) => {
+                        const usagePercent = r.quantity > 0 ? (r.itemsUsed / r.quantity) * 100 : 0;
+                        return (
+                          <tr key={r.id} className="hover:bg-amber-50/40">
+                            <td className="py-2 px-2 text-amber-900 font-medium">
+                              {r.productName}
+                              <span className="text-[11px] text-amber-500 ml-1">({r.unitOfMeasurement})</span>
+                            </td>
+                            <td className="py-2 px-2 text-amber-700 text-xs">{r.accountRecognition}</td>
+                            <td className="py-2 px-2 text-amber-700 text-xs">{r.periodMonth} {r.periodYear}</td>
+                            <td className="py-2 px-2 text-center text-amber-900 font-medium">{r.quantity}</td>
+                            <td className="py-2 px-2 text-center">
+                              <span className={`font-medium ${usagePercent > 80 ? "text-red-600" : usagePercent > 50 ? "text-amber-600" : "text-emerald-600"}`}>
+                                {r.itemsUsed}
+                              </span>
+                            </td>
+                            <td className="py-2 px-2 text-center">
+                              <span className={`font-medium ${r.itemsLeft <= 5 ? "text-red-600" : r.itemsLeft <= 15 ? "text-amber-600" : "text-emerald-600"}`}>
+                                {r.itemsLeft}
+                              </span>
+                            </td>
+                            <td className="py-2 px-2 text-right">
+                              <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                                {r.reportType}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             )}
           </div>
         )}

@@ -5,6 +5,11 @@ import prisma from "@/lib/db";
 import { currentNow } from "@/lib/current-now";
 import { createStoreNotification } from "@/dal/admin/store-notifications";
 
+/**
+ * Store request-items flow: creates RequestedItems only (store requests).
+ * Does NOT create Inventory. Compare: /store/issue-food-stocks creates ItemForSale only (POS items).
+ */
+
 export type RestItemsReturnTypeInventory = {
   periodMonth: string;
   periodYear: string;

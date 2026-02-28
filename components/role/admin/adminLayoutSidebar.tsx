@@ -38,8 +38,8 @@ export default function AdminLayoutSidebar() {
   const fullName = `${firstName} ${lastName}`.trim() || "Admin";
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
-    "Branch MGT": true,
-    "Personnel MGT": true,
+    "Branch MGT": false,
+    "Personnel MGT": false,
   });
   const [branchStores, setBranchStores] = useState<BranchStoreNav[]>([]);
 
@@ -89,11 +89,11 @@ export default function AdminLayoutSidebar() {
       icon: <IoAnalytics />,
       children: [
         { name: "Item List", href: "/admin/inventory/item-list" },
-        { name: "Item Request", href: "/admin/inventory/item-request" },
-        {
-          name: "Initial Stock Allocation",
-          href: "/admin/inventory/initial-stock-allocation",
-        },
+        // { name: "Item Request", href: "/admin/inventory/item-request" },
+        // {
+        //   name: "Initial Stock Allocation",
+        //   href: "/admin/inventory/initial-stock-allocation",
+        // },
       ],
     },
     // {
@@ -208,8 +208,30 @@ export default function AdminLayoutSidebar() {
                 })}
               </ul>
             )}
+            {/* <Link
+              href="/admin/inventory/item-list"
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                path === "/admin"
+                  ? "bg-amber-200 font-semibold text-amber-900"
+                  : "text-amber-800 hover:bg-amber-100"
+              }`}
+            >
+              <IoAnalytics className="text-lg" />
+              Item List
+            </Link> */}
           </div>
         ))}
+        <Link
+          href="/admin/inventory/item-request"
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+            path === "/admin/inventory/item-request"
+              ? "bg-amber-200 font-semibold text-amber-900"
+              : "text-amber-800 hover:bg-amber-100"
+          }`}
+        >
+          <IoAnalytics className="text-lg" />
+          Requests
+        </Link>
       </nav>
 
       <div className="px-3 mt-8">

@@ -189,6 +189,7 @@ model Store {
   posReceipts        POSReceipt[]
   posDailyReports    POSDailyReport[]
   storeNotifications StoreNotification[]
+  inventory          Inventory[]
 }
 
 model SalesReport {
@@ -227,6 +228,8 @@ model Inventory {
   ewt                 Float
   netPay              Float
   status              String?
+  storeId             String?
+  store               Store?   @relation(fields: [storeId], references: [id])
   createdAt           DateTime @default(now())
   updatedAt           DateTime @default(now()) @updatedAt
 }

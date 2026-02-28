@@ -7,9 +7,11 @@ import z, { success } from "zod";
 
 import bcrypt from "bcrypt";
 
-import { itemsFlowSchema } from "@/schemas/items.schema";
+import { currentNow } from "@/lib/current-now";
+import { itemsFlowSchema, initialStockAllocationSchema } from "@/schemas/items.schema";
 
 type ItemFlowSchema = z.infer<typeof itemsFlowSchema>;
+type InitialStockAllocationSchema = z.infer<typeof initialStockAllocationSchema>;
 
 // export async function getUser(data: UserData) {
 //   console.log(`Logging in`);
@@ -186,5 +188,58 @@ export async function addAdditionalStock(id: string, data: ItemFlowSchema) {
       success: false,
       message: "Something went wrong",
     };
+  }
+}
+
+function getPeriodFromCurrentNow() {
+  const iso = currentNow();
+  const [datePart] = iso.split("T");
+  const [y, m, d] = datePart.split("-");
+  return { periodYear: y ?? "", periodMonth: m ?? "", periodDate: d ?? "" };
+}
+
+export async function addInitialStockAllocation(data: InitialStockAllocationSchema) {
+  const result = initialStockAllocationSchema.safeParse(data);
+  if (!result.success) {
+    const tree = z.treeifyError(result.error);
+    return { success: "validation_error" as const, errors: tree };
+  }
+  try {
+    const store = await prisma.store.findUnique({
+      where: { id: data.storeId },
+      include: { user: true },
+    });
+    const supplierName =
+      store?.user?.username ?? `Store ${data.storeId.slice(0, 8)}`;
+    const { periodYear, periodMonth, periodDate } = getPeriodFromCurrentNow();
+    const unitPrice = 0;
+    const extras = computeDerived(data.quantity, unitPrice, undefined);
+    const itemData = {
+      periodMonth,
+      periodYear,
+      supplierName,
+      tinNumber: null as string | null,
+      typeOfVatTaxpayer: null as string | null,
+      typeOfStocks: "Issued Stocks" as const,
+      productNameSpecific: data.productNameGeneral,
+      productNameGeneral: data.productNameGeneral,
+      itemCode: data.itemCode,
+      accountRecognition: data.accountingRecognition,
+      unitOfMeasurement: data.measurement,
+      quantity: data.quantity,
+      unitPrice,
+      totalPrice: extras.totalPrice,
+      vatable: extras.vatable,
+      vat: extras.vat,
+      ewt: extras.ewt,
+      netPay: extras.netPay,
+      storeId: data.storeId,
+      createdAt: new Date(`${periodYear}-${periodMonth}-${periodDate}T00:00:00.000Z`),
+    };
+    await prisma.inventory.create({ data: itemData });
+    return { success: "success" as const, message: "Initial stock allocated successfully" };
+  } catch (error) {
+    console.error(error);
+    return { success: false as const, message: "Something went wrong" };
   }
 }

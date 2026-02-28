@@ -45,6 +45,7 @@ export async function getAdminStoreProfile(storeId: string) {
         inventoryReports: {
           orderBy: [{ periodYear: "desc" }, { createdAt: "desc" }],
         },
+        inventory: true,
       },
     });
 
@@ -65,6 +66,7 @@ export async function getAdminStoreProfile(storeId: string) {
         salesReports: store.salesReports,
         requestItems: store.requestItems,
         inventoryReports: store.inventoryReports,
+        inventory: store.inventory,
       },
     };
   } catch (error) {

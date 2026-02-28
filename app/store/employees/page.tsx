@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FiUsers } from "react-icons/fi";
+import { useState, useEffect, useMemo } from "react";
+import { FiSearch, FiUsers } from "react-icons/fi";
 import { getEmployees } from "@/app/hr/employees/dal/get-employees";
 
 type EmployeeRow = {
@@ -18,7 +18,21 @@ type EmployeeRow = {
 
 export default function StoreEmployeesPage() {
   const [employees, setEmployees] = useState<EmployeeRow[]>([]);
+  const [nameFilter, setNameFilter] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const filteredEmployees = useMemo(() => {
+    let list = employees;
+    const name = nameFilter.trim().toLowerCase();
+    if (name) {
+      list = list.filter(
+        (e) =>
+          `${e.firstName} ${e.lastName}`.toLowerCase().includes(name) ||
+          `${e.lastName} ${e.firstName}`.toLowerCase().includes(name),
+      );
+    }
+    return list;
+  }, [employees, nameFilter]);
 
   useEffect(() => {
     const storeName = localStorage.getItem("username") || "";
@@ -29,7 +43,10 @@ export default function StoreEmployeesPage() {
             if (!e.branch) return false;
             const branchLower = e.branch.toLowerCase();
             const storeLower = storeName.toLowerCase();
-            return storeLower.includes(branchLower) || branchLower.includes(storeLower);
+            return (
+              storeLower.includes(branchLower) ||
+              branchLower.includes(storeLower)
+            );
           })
         : (all as EmployeeRow[]);
       setEmployees(filtered);
@@ -53,15 +70,40 @@ export default function StoreEmployeesPage() {
           Employees
         </h1>
         <p className="text-sm text-amber-700/80 mt-1">
-          {employees.length} employee{employees.length !== 1 ? "s" : ""} in this branch
+          {employees.length} employee{employees.length !== 1 ? "s" : ""} in this
+          branch
         </p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-2">
+          <FiSearch className="text-amber-600" />
+          <label
+            htmlFor="filter-name"
+            className="text-xs font-semibold text-amber-900"
+          >
+            Name
+          </label>
+        </div>
+        <input
+          id="filter-name"
+          type="text"
+          placeholder="Search by name..."
+          value={nameFilter}
+          onChange={(e) => setNameFilter(e.target.value)}
+          className="rounded-lg border border-amber-200 px-3 py-2 text-sm text-amber-900 placeholder:text-amber-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 w-48"
+        />
       </div>
 
       {employees.length === 0 ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-12 text-center flex flex-col items-center">
           <FiUsers className="text-4xl text-amber-300 mb-4" />
-          <h3 className="text-lg font-medium text-amber-900 mb-1">No Employees</h3>
-          <p className="text-amber-700/80 text-sm">No employees found for this branch.</p>
+          <h3 className="text-lg font-medium text-amber-900 mb-1">
+            No Employees
+          </h3>
+          <p className="text-amber-700/80 text-sm">
+            No employees found for this branch.
+          </p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-amber-200 bg-white shadow-sm">
@@ -87,19 +129,26 @@ export default function StoreEmployeesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-amber-100">
-                {employees.map((row) => {
+                {filteredEmployees.map((row) => {
                   const initials =
-                    `${row.firstName?.[0] ?? ""}${row.lastName?.[0] ?? ""}`.toUpperCase() || "??";
+                    `${row.firstName?.[0] ?? ""}${row.lastName?.[0] ?? ""}`.toUpperCase() ||
+                    "??";
                   const dateHired = row.employeeData?.dateHired
-                    ? new Date(row.employeeData.dateHired).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })
+                    ? new Date(row.employeeData.dateHired).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )
                     : null;
 
                   return (
-                    <tr key={row.id} className="hover:bg-amber-50/50 transition-colors">
+                    <tr
+                      key={row.id}
+                      className="hover:bg-amber-50/50 transition-colors"
+                    >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <div className="rounded-full bg-amber-700 text-white size-9 flex items-center justify-center text-xs font-bold shrink-0">
@@ -116,25 +165,33 @@ export default function StoreEmployeesPage() {
                             {row.employeeId}
                           </span>
                         ) : (
-                          <span className="text-xs text-amber-400 italic">N/A</span>
+                          <span className="text-xs text-amber-400 italic">
+                            N/A
+                          </span>
                         )}
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`text-sm ${row.branch ? "text-amber-900" : "text-amber-400 italic"}`}>
+                        <span
+                          className={`text-sm ${row.branch ? "text-amber-900" : "text-amber-400 italic"}`}
+                        >
                           {row.branch || "N/A"}
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
                         <span
                           className={`text-sm ${
-                            row.employeeData?.contactNo ? "text-amber-900" : "text-amber-400 italic"
+                            row.employeeData?.contactNo
+                              ? "text-amber-900"
+                              : "text-amber-400 italic"
                           }`}
                         >
                           {row.employeeData?.contactNo || "N/A"}
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`text-sm ${dateHired ? "text-amber-900" : "text-amber-400 italic"}`}>
+                        <span
+                          className={`text-sm ${dateHired ? "text-amber-900" : "text-amber-400 italic"}`}
+                        >
                           {dateHired || "N/A"}
                         </span>
                       </td>

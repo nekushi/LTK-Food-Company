@@ -190,7 +190,30 @@ export default async function ManageBranchProfilePage({
       i.status &&
       ["to be delivered", "on the way", "success"].includes(i.status),
   );
-  const mergedInventory = mergeInventoryItems(approvedItems as InventoryItem[]);
+  const storeInventory = (profile as { inventory?: Array<{
+    productNameGeneral: string;
+    productNameSpecific: string;
+    accountRecognition: string;
+    unitOfMeasurement: string;
+    quantity: number;
+    unitPrice: number;
+    netPay: number;
+    supplierName: string;
+  }> }).inventory ?? [];
+  const inventoryAsItems: InventoryItem[] = storeInventory.map((inv) => ({
+    productNameGeneral: inv.productNameGeneral,
+    productNameSpecific: inv.productNameSpecific,
+    accountRecognition: inv.accountRecognition,
+    unitOfMeasurement: inv.unitOfMeasurement,
+    quantity: inv.quantity,
+    unitPrice: inv.unitPrice,
+    netPay: inv.netPay,
+    supplierName: inv.supplierName,
+  }));
+  const mergedInventory = mergeInventoryItems([
+    ...(approvedItems as InventoryItem[]),
+    ...inventoryAsItems,
+  ]);
 
   const lowStockCount = mergedInventory.filter(
     (i) => i.quantity > 0 && i.quantity <= 15,
