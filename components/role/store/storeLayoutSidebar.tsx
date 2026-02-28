@@ -32,11 +32,11 @@ const navLists: TypeNavList[] = [
     icon: <RiCalendarScheduleLine />,
   },
   {
-    name: "Report",
+    name: "Reports",
     href: "/store/sales-report",
     icon: <RiCalendarScheduleLine />,
   },
-  { name: "Settings", href: "", icon: <IoSettingsOutline /> },
+  // { name: "Settings", href: "", icon: <IoSettingsOutline /> },
 ];
 
 export default function StoreLayoutSidebar() {

@@ -34,6 +34,8 @@ export function ItemRequestClient({
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [isIssuing, setIsIssuing] = useState(false);
+  const [batchIssueModalOpen, setBatchIssueModalOpen] = useState(false);
+  const [batchIssueNote, setBatchIssueNote] = useState("");
 
   const filteredIncoming = useMemo(() => {
     if (activeTab === ALL_TAB) return incoming;
@@ -72,7 +74,7 @@ export function ItemRequestClient({
   const incomingCountFor = (storeId: string) =>
     incoming.filter((i) => i.storeId === storeId).length;
 
-  const handleBatchIssue = async () => {
+  const handleBatchIssue = async (note: string) => {
     if (filteredIncoming.length === 0) {
       toast.warning("No incoming requests to issue.");
       return;
@@ -80,13 +82,17 @@ export function ItemRequestClient({
     setIsIssuing(true);
     try {
       const ids = filteredIncoming.map((i) => i.id);
-      const result = await batchIssueStocks(ids, "Batch issued");
+      const result = await batchIssueStocks(ids, note.trim() || "Batch issued");
       if (result.success) {
         toast.success(result.message);
+        setBatchIssueModalOpen(false);
+        setBatchIssueNote("");
         router.refresh();
       } else {
         toast.error(result.message);
         if (result.issuedCount != null && result.issuedCount > 0) {
+          setBatchIssueModalOpen(false);
+          setBatchIssueNote("");
           router.refresh();
         }
       }
@@ -159,11 +165,11 @@ export function ItemRequestClient({
           </h2>
           <button
             type="button"
-            onClick={handleBatchIssue}
-            disabled={filteredIncoming.length === 0 || isIssuing}
+            onClick={() => setBatchIssueModalOpen(true)}
+            disabled={filteredIncoming.length === 0}
             className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isIssuing ? "Issuing…" : "Batch issue stocks"}
+            Batch issue stocks
           </button>
         </div>
         <div className="overflow-hidden rounded-xl border border-amber-200 bg-white shadow-sm">
@@ -331,6 +337,55 @@ export function ItemRequestClient({
           </div>
         </div>
       </div>
+
+      {batchIssueModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+            <div className="px-6 py-4 border-b border-amber-200 bg-amber-50">
+              <h3 className="text-base font-bold text-amber-900">Batch issue stocks</h3>
+              <p className="text-xs text-amber-600 mt-0.5">
+                {filteredIncoming.length} item{filteredIncoming.length !== 1 ? "s" : ""} will be issued. Add a note (optional).
+              </p>
+            </div>
+            <div className="px-6 py-5">
+              <label htmlFor="batch-issue-note" className="text-xs font-semibold text-amber-900">
+                Note
+              </label>
+              <textarea
+                id="batch-issue-note"
+                rows={3}
+                value={batchIssueNote}
+                onChange={(e) => setBatchIssueNote(e.target.value)}
+                placeholder="e.g. Batch issued for delivery"
+                className="mt-1.5 w-full rounded-lg border border-amber-200 px-3 py-2 text-sm text-amber-900 placeholder:text-amber-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none"
+              />
+            </div>
+            <div className="px-6 py-4 border-t border-amber-100 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isIssuing) {
+                    setBatchIssueModalOpen(false);
+                    setBatchIssueNote("");
+                  }
+                }}
+                disabled={isIssuing}
+                className="rounded-lg border border-amber-200 bg-white px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleBatchIssue(batchIssueNote)}
+                disabled={isIssuing}
+                className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 transition-colors disabled:opacity-50"
+              >
+                {isIssuing ? "Issuing…" : "Issue stocks"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

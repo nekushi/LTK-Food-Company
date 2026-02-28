@@ -78,7 +78,7 @@ export default function AdminLayoutSidebar() {
       name: "Personnel MGT",
       icon: <MdOutlinePeopleAlt />,
       children: [
-        { name: "Admin Info", href: "/admin/personnel/admin-info" },
+        { name: "User Info", href: "/admin/personnel/admin-info" },
         { name: "Employee Records", href: "/admin/personnel/employee-records" },
         // { name: "Attendance", href: "/admin/personnel/attendance" },
         // { name: "Payroll", href: "/admin/personnel/payroll" },
